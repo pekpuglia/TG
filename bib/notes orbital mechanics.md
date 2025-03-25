@@ -8,6 +8,7 @@
 
 * Lambert problem?
 * w, u (equations of motion)?
+* [how many impulses](./how%20many%20impulses%20redux.pdf): why minimum thrust = minimum time?
 
 ## Variables
 
