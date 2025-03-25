@@ -1,6 +1,8 @@
 # Notes
 
 * account for control constraints (max & min thrust)
+* use Moon gravity assist?
+* limit reignitions
 
 ## Questions
 
@@ -11,7 +13,7 @@
 
 * $p$: semi-latus rectum 
 
-  * $p = \frac{h^2}{\mu} = \frac{b^2}{a} = a e^2$
+  * $p = \frac{h^2}{\mu} = \frac{b^2}{a} = a (1-e^2)$
 * $n$: mean motion
 
   * $n = \sqrt{\frac{\mu}{a^3}}$
