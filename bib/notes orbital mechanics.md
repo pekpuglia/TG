@@ -1,8 +1,12 @@
 # Notes
 
+* solve impulses fixed phasing for SatelliteToolbox model, solve no phasing? time independent model, apply primer vector to this case
 * account for control constraints (max & min thrust)
 * use Moon gravity assist?
+* consider solar panels?
 * limit reignitions
+* Bruce conway chap 7 perturbed analytical solutions
+* Battin's guidance law
 
 ## Questions
 
