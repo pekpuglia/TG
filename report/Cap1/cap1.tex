@@ -1,3 +1,20 @@
+\section{Maneuvers of Interest}
+
+Some orbital maneuvers are chosen as representative of general space mission needs for comparing models and solvers. Maneuvers are presented in table XXXX 
+
+\begin{table}
+    \centering
+    \begin{tabular}{>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}}\toprule
+        \textbf{Name/ application} & \textbf{Initial condition} & \textbf{Final condition} & \textbf{Comment}\\ \midrule
+        LEO maintenance & Circular orbit at \(h \approx 400km\) & Circular orbit at \(h \approx 600km\) & Coplanar \\ \midrule
+        SSO injection & Elliptic \(200/800/98^\circ\) & Circular \(750km\), \(98^\circ \) & Coplanar or small \(\Omega\)/\(i\) correction? \\ \midrule
+        Constellation ideshare injection & Circular \(800km\) equatorial & Circular \(600km\), \(i=30^\circ\) & Target point should move according to J2 model? \\ \midrule
+        LEO to GEO transfer & Circular \(600km\) & Circular \(35000km\) & Explore optimal transfer with multiple impulses, add small plane change correction? \\ \midrule
+        Escape velocity (with?) Moon & Circular \(600km\), equatorial & Target velocity vector \(V(t \rightarrow \infty) = \vec{V}_e\) & Variant: start in eliptical orbit (verify perigee is more efficient). Goal: use Moon for gravity assist \\ \bottomrule
+    \end{tabular}
+    \caption{List of orbital maneuvers of interest.}\label{tab:man_interest}
+\end{table}
+
 \section{Minimum Viable Thesis (MVT)}
 
 Given a coasting model for the free evolution of orbital parameters \(\Theta\):
@@ -52,4 +69,22 @@ where the thrust input is constrained \(0 \leq \lVert u \rVert \leq T_{\max}\). 
     \label{tab:prop_models}
 \end{table}
 
-The available models are too many and influence solver options. FINISH
+The available models are too many and influence solver options. Table~%\ref{tab:model_vs_solver} %shows estimated feasibility of problems with different dynamical models associated with different solvers. Objective function choice is thought to not influence solver choice. 
+
+%change to list model, solver
+%pick some models for CSI, some for VSI
+% \begin{table}[]
+%     \centering
+%     \begin{tabular}{cccccc} \toprule
+%        Model & Direct Euler & Direct RK & Hermite Polynomial & SoS decomposition \\ \midrule
+%         Cartesian 2D Kepler & & & & & \\
+%         Orbital el. 2D Kepler & & & & & \\
+%         Cartesian 3D Kepler & & & & & \\
+%         Orbital el. 3D Kepler & & & & & \\
+%         Equinoctial el. 3D Kepler & & & & & \\
+%         3D J2 & & & & & \\
+
+%     \end{tabular}
+%     \caption{Model and Solver Choice feasibility}
+%     \label{tab:model_vs_solver}
+% \end{table}

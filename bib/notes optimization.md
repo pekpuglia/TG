@@ -9,6 +9,7 @@
 * T_final < T_max?
 * Pontryagin's Minimum Principle
 * solve sequence of problems starting with impulse + Lambert and half the thrust until desired thrust is obtained
+* max energy in fixed time?
 
 ## Bruce Conway 1.2.1
 
