@@ -1,12 +1,12 @@
 \section{Maneuvers of Interest}
 
-Some orbital maneuvers are chosen as representative of general space mission needs for comparing models and solvers. Maneuvers are presented in table XXXX 
+Some orbital maneuvers are chosen as representative of general space mission needs for comparing models and solvers. Maneuvers are presented in table~\ref{tab:man_interest}. 
 
-\begin{table}
+\begin{table}[htpb]
     \centering
     \begin{tabular}{>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}}\toprule
         \textbf{Name/ application} & \textbf{Initial condition} & \textbf{Final condition} & \textbf{Comment}\\ \midrule
-        LEO maintenance & Circular orbit at \(h \approx 400km\) & Circular orbit at \(h \approx 600km\) & Coplanar \\ \midrule
+        LEO maintenance & Circular orbit at \(h \approx 400km\) & Circular orbit at \(h \approx 600km\) & Coplanar, (equatorial: reproduce Hohmann?, inclined: reproduce \cite{sandro_quasi_circ}) \\ \midrule
         SSO injection & Elliptic \(200/800/98^\circ\) & Circular \(750km\), \(98^\circ \) & Coplanar or small \(\Omega\)/\(i\) correction? \\ \midrule
         Constellation ideshare injection & Circular \(800km\) equatorial & Circular \(600km\), \(i=30^\circ\) & Target point should move according to J2 model? \\ \midrule
         LEO to GEO transfer & Circular \(600km\) & Circular \(35000km\) & Explore optimal transfer with multiple impulses, add small plane change correction? \\ \midrule
@@ -17,7 +17,7 @@ Some orbital maneuvers are chosen as representative of general space mission nee
 
 \section{Minimum Viable Thesis (MVT)}
 
-Given a coasting model for the free evolution of orbital parameters \(\Theta\):
+Impulsive solutions have coasting segments separated by instant impulses. Given a coasting model for the free evolution of orbital parameters \(\Theta\):
 \begin{equation} \label{eq:coasting}
     \Theta(t) = f(\Theta_0, t_0, t)
 \end{equation}
@@ -31,7 +31,7 @@ Solve a parameter optimization problem for a list of \(N\) impulses parameterize
 \end{equation}
 which configures a sequence of continuous piecewise trajectories described by~\eqref{eq:coasting},
 
-Taking a spacecraft from an initial given position to a final position in \textbf{finite time} while maximizing final mass
+Taking a spacecraft from an initial given condition to a final condition in \textbf{finite time} while maximizing final mass
 \begin{equation} \label{eq:max_m}
     \max_{T(t)} m_f 
 \end{equation}
@@ -46,14 +46,14 @@ Then, verify optimality of the solution by applying primer vector theory as in \
 
 \begin{itemize}
     \item Model~\eqref{eq:coasting} is supplied by Julia's Satellite Toolbox, for example J2 analytical orbit propagator
-    \item Which orbits should be used?
     \item Which objective function,~\eqref{eq:max_m} or~\eqref{eq:min_dV} is more advantageous?
+    \item 
 \end{itemize}
 
 \section{Finite Thrust Dynamical Transfer}
 
 The system is described by a dynamical equation
-\begin{equation}
+\begin{equation} \label{eq:dynamics}
     \dot \Theta = f(\Theta, u, t)
 \end{equation}
 where the thrust input is constrained \(0 \leq \lVert u \rVert \leq T_{\max}\). Solve for a control history \(u(t)\) taking the system from a given initial position to a given final position in finite time while maximizing final mass as in~\eqref{eq:max_m}. This objective has 2 versions depending on engine model shown in table~\ref{tab:prop_models}~\cite{Conway_2010}.
@@ -69,22 +69,10 @@ where the thrust input is constrained \(0 \leq \lVert u \rVert \leq T_{\max}\). 
     \label{tab:prop_models}
 \end{table}
 
-The available models are too many and influence solver options. Table~%\ref{tab:model_vs_solver} %shows estimated feasibility of problems with different dynamical models associated with different solvers. Objective function choice is thought to not influence solver choice. 
+Many dynamical models of the form~\eqref{eq:dynamics} exist, taking into account different physical phenomena and different parameterizations. This, combined with the multiple solver options, makes for a very repetitive combinatorical problem. 
 
-%change to list model, solver
-%pick some models for CSI, some for VSI
-% \begin{table}[]
-%     \centering
-%     \begin{tabular}{cccccc} \toprule
-%        Model & Direct Euler & Direct RK & Hermite Polynomial & SoS decomposition \\ \midrule
-%         Cartesian 2D Kepler & & & & & \\
-%         Orbital el. 2D Kepler & & & & & \\
-%         Cartesian 3D Kepler & & & & & \\
-%         Orbital el. 3D Kepler & & & & & \\
-%         Equinoctial el. 3D Kepler & & & & & \\
-%         3D J2 & & & & & \\
-
-%     \end{tabular}
-%     \caption{Model and Solver Choice feasibility}
-%     \label{tab:model_vs_solver}
-% \end{table}
+\textbf{TODO}
+\begin{itemize}
+    \item decide validation model (capderou)
+    \item decide model x solver x problem
+\end{itemize}
