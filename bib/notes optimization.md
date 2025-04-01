@@ -93,10 +93,9 @@ solar panels, radioisotope, ...
 
 Power limited (<https://www.sciencedirect.com/science/article/pii/S009457651200166X>, <https://www.sciencedirect.com/science/article/pii/0094576589901069> **ITA**)
 
-$\arg \max m(t_f) = \arg \min \int_0^{t_f} \Gamma^2 dt$
+$\arg \max m(t_f) = \arg \min \int_0^{t_f} \Gamma^2 dt$, might change to $\Gamma^2(t)/P(t)$ if power is not constant
 
 Optimal: $\Gamma(t) = p(t)$
-
 
 
 **Question** jacobi no-conjugate-point condition page 23?
@@ -117,5 +116,15 @@ $J = \begin{bmatrix} 0_3 & I_3 \\ -I_3 & 0_3 \end{bmatrix}$
 
 terminal coast: optimal transfer time < specified transfer time
 
-* check sign $\dot p$ at extrema to see if initial/final coast are needed.
+* $\dot p_0 > 0$, initial coast needed. $\dot p_f < 0$, terminal coast needed. Otherwise more time is needed
 * if p > 1 anywhere, an extra impulse is needed
+
+## Chapter 3 Optimization
+
+low thrust: 1rk step per revolution might be enough
+
+equinoctial elements!!!!
+quaternion + a, e?
+kechichian analytical solutions?
+
+shape based initial guess
