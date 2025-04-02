@@ -1,3 +1,9 @@
+\section{Method of Validation}
+
+All generated maneuvers are to be tested in Orekit with J2, atmospheric drag, sun and moon influence.
+
+Is it worth it to add Orekit to the project? SatelliteToolbox provides atmospheric \& sun \& moon models + non spherical gravity models.
+
 \section{Maneuvers of Interest}
 
 Some orbital maneuvers are chosen as representative of general space mission needs for comparing models and solvers. Maneuvers are presented in table~\ref{tab:man_interest}. 
@@ -14,6 +20,11 @@ Some orbital maneuvers are chosen as representative of general space mission nee
     \end{tabular}
     \caption{List of orbital maneuvers of interest.}\label{tab:man_interest}
 \end{table}
+
+Each maneuver in this set needs to be combined with a propagation model, a propulsion model, and a solver. Options for each are discussed in the following sections.
+
+
+
 
 \section{Minimum Viable Thesis (MVT)}
 
