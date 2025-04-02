@@ -1,8 +1,6 @@
 \section{Method of Validation}
 
-All generated maneuvers are to be tested in Orekit with J2, atmospheric drag, sun and moon influence.
-
-Is it worth it to add Orekit to the project? SatelliteToolbox provides atmospheric \& sun \& moon models + non spherical gravity models.
+All generated maneuvers are to be tested with the full model using SatelliteToolbox, considering atmospheric \& sun \& moon models + non spherical gravity model.
 
 All control solutions are to be analyzed with primer vector theory to verify satisfaction of optimality necessary conditions.
 
@@ -26,11 +24,16 @@ Some orbital maneuvers are chosen as representative of general space mission nee
     \centering
     \begin{tabular}{>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}>{\centering\arraybackslash}m{3cm}}\toprule
         \textbf{Name/ application} & \textbf{Initial condition} & \textbf{Final condition} & \textbf{Comment}\\ \midrule
-        LEO maintenance & Circular orbit at \(h \approx 400km\) & Circular orbit at \(h \approx 600km\) & Coplanar, (equatorial: reproduce Hohmann?, inclined: reproduce \cite{sandro_quasi_circ}) \\ \midrule
-        SSO injection & Elliptic \(200/800/98^\circ\) & Circular \(750km\), \(98^\circ \) & Coplanar or small \(\Omega\)/\(i\) correction? \\ \midrule
-        Constellation rideshare injection & Circular \(800km\) equatorial & Circular \(600km\), \(i=30^\circ\) & Target point should move according to J2 model? \\ \midrule
+        LEO maintenance & Circular orbit at \(h \approx 400km\) & 
+        Circular orbit at \(h \approx 600km\) & Coplanar, equatorial reproduce Hohmann \\ \midrule
+
+        SSO maintenance & Circular \(700km\), \(i=95^\circ\), \(\Delta Omega = 5^\circ\) & Circular \(750km\), \(98^\circ \) & Small correction in multiple orbital elements \\ \midrule
+        
+        Constellation rideshare phasing & Circular \(800km\)equatorial & Circular \(800km\), \(\Delta \Phi = 30^\circ\) & Coplanar, inclined, consider J2 \\ \midrule
+        
         LEO to GEO transfer & Circular \(600km\) & Circular \(35000km\) & Explore optimal transfer with multiple impulses, add small plane change correction? \\ \midrule
-        Escape velocity (with?) Moon & Circular \(600km\), equatorial & Target velocity vector \(V(t \rightarrow \infty) = \vec{V}_e\) & Variant: start in eliptical orbit (verify perigee is more efficient). Goal: use Moon for gravity assist \\ \bottomrule
+        
+        \textbf{Optional} Escape velocity (with?) Moon & Circular \(600km\), equatorial & Target velocity vector \(V(t \rightarrow \infty) = \vec{V}_e\) & Variant: start in eliptical orbit (verify perigee is more efficient). Goal: use Moon for gravity assist \\ \bottomrule
     \end{tabular}
     \caption{List of orbital maneuvers of interest.}\label{tab:man_interest}
 \end{table}
@@ -56,7 +59,7 @@ Rocket engine models are exposed in table~\ref{tab:prop_models}. Objective funct
 A priori, all combinations of maneuver x propulsion model seem to be reasonable cases of study. It is unknown whether using the objetive functions from the table or using the generic~\eqref{eq:max_m} is better for the solvers.
 
 \newpage
-\section{Propagation model}
+\section{Propagation model} %decouple model & parameterization
 
 Several orbital dynamics models are available. Naturally the more complex the model, the more precise it is. It is however necessary to have simplified synthesis models for control optimization. Table~\ref{tab:orb_models} discusses some filtered options. For example, there exists a 3D Keplerian Analytical propagator, but its pratical interest is small due to J2, Sun, Moon. Similarly, classical orbital elements are ignored due to the usage of circular/elliptical orbits in the Maneuvers of Interest.
 
@@ -91,9 +94,19 @@ Literature says using indirect methods is inefficient due to high variable count
     \caption{Solver options}\label{tab:solvers}
 \end{table}
 
-\section{Minimum Viable Thesis (MVT)}
+\section{Planning}
 
-Use a coasting model from SatelliteToolbox to optimize parameterized impulsive maneuvers and verify their optimality with primer vector theory. The number of impulses is a hyper-parameter subject to optimization by analyzing primer vector histories. 
+\begin{enumerate}
+    \item Solve LEO maintenance, impulsive propulsion, 2D Kepler analytical, parameter optimization
+    \item Solve LEO maintenance, impulsive propulsion, 3D J2 analytical, parameter optimization
+    \item Solve LEO maintenance, CSI propulsion, 2D Kepler dynamics, RK
+    \item Solve LEO maintenance, CSI propulsion, 3D J2 dynamics, RK
+    \item Solve LEO maintenance, VSI propulsion, 3D J2 dynamics, RK
+    \item Solve Rideshare Phasing, 3 propulsion types, 3D J2 dynamics, RK
+    \item Solve LEO maintenance, propulsion?, 2D Kepler dynamics, SoS
+    \item Solve other cases, CSI propulsion, 3D J2 dynamics, RK
+    \item ????
+\end{enumerate}
 
 \section{Comments}
 
