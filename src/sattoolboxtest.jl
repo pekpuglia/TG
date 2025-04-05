@@ -20,8 +20,10 @@ Propagators.propagate!(orbp, 5.0, OrbitStateVector)
 # ##
 # ForwardDiff.derivative(v_t, 5.0)
 ##
-function v_els(el_vector)
+function f_els(el_vector)
     r, e, i, RAAN, omega, f, time = el_vector
+    # time = el_vector[1]
+
     orb = KeplerianElements(
         date_to_jd(2023, 1, 1, 0, 0, 0),
         r,
@@ -32,10 +34,11 @@ function v_els(el_vector)
         f
     )
     orbp = Propagators.init(Val(:TwoBody), orb)
-    Propagators.propagate!(orbp, time, OrbitStateVector).v
+    Propagators.propagate!(orbp, time)
+    orbp.tbd.orbk.f
 end
 ##
-ForwardDiff.jacobian(v_els, [
+ForwardDiff.gradient(f_els, [
     7190.982e3,
     0.001111,
     98.405 |> deg2rad,
