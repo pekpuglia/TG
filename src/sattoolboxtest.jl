@@ -14,7 +14,8 @@ orb = KeplerianElements(
 ##
 orbp = Propagators.init(Val(:TwoBody), orb)
 ##
-Propagators.propagate!(orbp, 5.0, OrbitStateVector)
+Propagators.propagate!(orbp, 50.0, OrbitStateVector)
+orbp.tbd.orbk
 ##
 # v_t(t) = Propagators.propagate!(orbp, t, OrbitStateVector).v
 # ##
@@ -33,12 +34,19 @@ function f_els(el_vector)
         omega,
         f
     )
-    orbp = Propagators.init(Val(:TwoBody), orb)
+    orbp = Propagators.init(Val(:TwoBody), orb; propagation_type=Number)
     Propagators.propagate!(orbp, time)
-    orbp.tbd.orbk.f
+    [
+        orbp.tbd.orbk.a
+        orbp.tbd.orbk.e
+        orbp.tbd.orbk.i
+        orbp.tbd.orbk.Ω
+        orbp.tbd.orbk.ω
+        orbp.tbd.orbk.f
+    ]
 end
 ##
-ForwardDiff.gradient(f_els, [
+ForwardDiff.jacobian(f_els, [
     7190.982e3,
     0.001111,
     98.405 |> deg2rad,
