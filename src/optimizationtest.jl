@@ -35,9 +35,6 @@ plot_orbit(orb_final)
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
 function final_state_residuals(maneuver_params, prob_params)
-    maneuver_time = maneuver_params[1]
-    maneuver_deltaV = maneuver_params[2:4]
-
     orb0       = prob_params[1]
     total_time = prob_params[2]
     r_target   = prob_params[3]
@@ -45,6 +42,11 @@ function final_state_residuals(maneuver_params, prob_params)
 
     r_norm = √sum(r_target' * r_target)
     v_norm = √sum(v_target' * v_target)
+
+    #normalized time
+    maneuver_time = maneuver_params[1] * total_time
+    maneuver_deltaV = maneuver_params[2:4]
+
 
     propagator_preman = Propagators.init(Val(:TwoBody), orb0, propagation_type=Number)
 
@@ -82,14 +84,14 @@ prob_params = [
 ]
 ##
 prob_answer = [
-    T0/4;
+    T0/4 / (prob_params[2]);
     deltaV
 ]
 ##
 final_state_residuals(prob_answer, prob_params)
 ##
 man0 = [
-    1.1
+    0.0
     0.0
     0.0
     0.0
@@ -97,7 +99,7 @@ man0 = [
 ##
 final_state_residuals(man0, prob_params)
 ##
-ForwardDiff.gradient(m -> final_state_residuals(m, prob_params), prob_answer)
+ForwardDiff.gradient(m -> final_state_residuals(m, prob_params), man0)
 ##
 f = OptimizationFunction(final_state_residuals, Optimization.AutoForwardDiff())
 ##
