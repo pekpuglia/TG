@@ -1,8 +1,7 @@
 using SatelliteToolboxBase
 using SatelliteToolboxPropagators
-using Optimization
-using OptimizationOptimJL
-using Optim
+using JuMP
+using Ipopt
 using Setfield
 using ForwardDiff
 include("TG.jl")
@@ -37,11 +36,6 @@ noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
 function final_state(maneuver_params, prob_params)
     orb0       = prob_params[1]
     total_time = prob_params[2]
-    r_target   = prob_params[3]
-    v_target   = prob_params[4]
-
-    r_norm = √sum(r_target' * r_target)
-    v_norm = √sum(v_target' * v_target)
 
     #normalized time
     maneuver_time = maneuver_params[1] * total_time
@@ -99,10 +93,75 @@ man0 = [
 ##
 final_state(man0, prob_params)
 ##
-ForwardDiff.gradient(m -> final_state_residuals(m, prob_params), man0)
+ForwardDiff.jacobian(m -> final_state(m, prob_params), man0)
+## https://jump.dev/JuMP.jl/stable/tutorials/nonlinear/tips_and_tricks/#User-defined-operators-with-vector-outputs
+"""
+    memoize(foo::Function, n_outputs::Int)
+
+Take a function `foo` and return a vector of length `n_outputs`, where element
+`i` is a function that returns the equivalent of `foo(x...)[i]`.
+
+To avoid duplication of work, cache the most-recent evaluations of `foo`.
+Because `foo_i` is auto-differentiated with ForwardDiff, our cache needs to
+work when `x` is a `Float64` and a `ForwardDiff.Dual`.
+"""
+function memoize(foo::Function, n_outputs::Int)
+    last_x, last_f = nothing, nothing
+    last_dx, last_dfdx = nothing, nothing
+    function foo_i(i, x::T...) where {T<:Real}
+        if T == Float64
+            if x !== last_x
+                last_x, last_f = x, foo(x...)
+            end
+            return last_f[i]::T
+        else
+            if x !== last_dx
+                last_dx, last_dfdx = x, foo(x...)
+            end
+            return last_dfdx[i]::T
+        end
+    end
+    return [(x...) -> foo_i(i, x...) for i in 1:n_outputs]
+end
+memoized_final_state = memoize(
+    (t, dVx, dVy, dVz) -> final_state([t;dVx;dVy;dVz], prob_params), 6)
 ##
-f = OptimizationFunction(final_state_residuals, Optimization.AutoForwardDiff())
+memoized_final_state[1](man0...)
 ##
-prob = OptimizationProblem(f, man0, prob_params)
+function residuals(x, y, z, vx, vy, vz, r_target, v_target)
+    r_norm = √sum(r_target' * r_target)
+    v_norm = √sum(v_target' * v_target)
+
+    sum(
+        ([x;y;z]/r_norm - r_target/r_norm).^2
+    )+sum(
+        ([vx;vy;vz]/v_norm - v_target/v_norm).^2
+    )
+end
 ##
-sol = solve(prob, NewtonTrustRegion())
+model = Model(Ipopt.Optimizer)
+@variable(model, t_maneuver)
+@variable(model, ΔV[1:3])
+
+@operator(model, final_position_x, 4, memoized_final_state[1])
+@operator(model, final_position_y, 4, memoized_final_state[2])
+@operator(model, final_position_z, 4, memoized_final_state[3])
+@operator(model, final_velocity_x, 4, memoized_final_state[4])
+@operator(model, final_velocity_y, 4, memoized_final_state[5])
+@operator(model, final_velocity_z, 4, memoized_final_state[6])
+
+@constraint(model, 0 <= t_maneuver <= 1)
+
+@objective(model, Min, residuals(
+    final_position_x(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_position_y(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_position_z(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_velocity_x(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_velocity_y(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_velocity_z(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    prob_params[3], prob_params[4]
+))
+# @constraint(model, final_state([t_maneuver; ΔV], prob_params) == [prob_params[3]; prob_params[4]])
+model
+##
+optimize!(model)
