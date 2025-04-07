@@ -34,7 +34,7 @@ plot_orbit(orb_final)
 ## optimize [t; ΔV] for this maneuver
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
-function final_state_residuals(maneuver_params, prob_params)
+function final_state(maneuver_params, prob_params)
     orb0       = prob_params[1]
     total_time = prob_params[2]
     r_target   = prob_params[3]
@@ -48,7 +48,7 @@ function final_state_residuals(maneuver_params, prob_params)
     maneuver_deltaV = maneuver_params[2:4]
 
 
-    propagator_preman = Propagators.init(Val(:TwoBody), orb0, propagation_type=Number)
+    propagator_preman = Propagators.init(Val(:TwoBody), orb0, propagation_type=Real)
 
     r_preman, v_preman = Propagators.propagate!(propagator_preman, maneuver_time)
     v_postman = v_preman + maneuver_deltaV
@@ -70,11 +70,11 @@ function final_state_residuals(maneuver_params, prob_params)
     @assert noNaNs(orb_postman.Ω) "NaN found"
     @assert noNaNs(orb_postman.ω) "NaN found"
 
-    propagator_postman = Propagators.init(Val(:TwoBody), orb_postman, propagation_type=Number)
+    propagator_postman = Propagators.init(Val(:TwoBody), orb_postman, propagation_type=Real)
 
     r_final, v_final = Propagators.propagate!(propagator_postman, total_time-maneuver_time)
     
-    sum((r_final/r_norm - r_target/r_norm).^2) + sum((v_final/v_norm - v_target/v_norm).^2)
+    [r_final; v_final]
 end
 ##
 prob_params = [
@@ -88,7 +88,7 @@ prob_answer = [
     deltaV
 ]
 ##
-final_state_residuals(prob_answer, prob_params)
+final_state(prob_answer, prob_params)
 ##
 man0 = [
     0.0
@@ -97,7 +97,7 @@ man0 = [
     0.0
 ]
 ##
-final_state_residuals(man0, prob_params)
+final_state(man0, prob_params)
 ##
 ForwardDiff.gradient(m -> final_state_residuals(m, prob_params), man0)
 ##
