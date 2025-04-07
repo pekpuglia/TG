@@ -29,4 +29,9 @@ function plot_orbit(orbs::KeplerianElements...)
     fig
 end
 
+export orbital_period
+function orbital_period(orb::KeplerianElements, m0)
+    2π√(orb.a^3/m0)
+end
+
 end # module TG
