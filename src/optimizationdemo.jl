@@ -105,4 +105,4 @@ f = OptimizationFunction(final_state_residuals, Optimization.AutoForwardDiff())
 ##
 prob = OptimizationProblem(f, man0, prob_params)
 ##
-sol = solve(prob, Newton())
+sol = solve(prob, NewtonTrustRegion())
