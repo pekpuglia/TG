@@ -140,8 +140,8 @@ function residuals(x, y, z, vx, vy, vz, r_target, v_target)
 end
 ##
 model = Model(Ipopt.Optimizer)
-@variable(model, t_maneuver)
-@variable(model, ΔV[1:3])
+@variable(model, t_maneuver, start=0.0)
+@variable(model, ΔV[i = 1:3], start=0.0)
 
 @operator(model, final_position_x, 4, memoized_final_state[1])
 @operator(model, final_position_y, 4, memoized_final_state[2])
@@ -151,6 +151,7 @@ model = Model(Ipopt.Optimizer)
 @operator(model, final_velocity_z, 4, memoized_final_state[6])
 
 @constraint(model, 0 <= t_maneuver <= 1)
+@constraint(model, 0 <= ΔV' * ΔV <= 2e6)
 
 @objective(model, Min, residuals(
     final_position_x(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
