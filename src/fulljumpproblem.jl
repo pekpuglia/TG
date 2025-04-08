@@ -10,15 +10,16 @@ using .TG
 #designing single maneuver inversely
 orb0 = KeplerianElements(
                   date_to_jd(2023, 1, 1, 0, 0, 0),
-                  7190.982e3,
-                  0.001111,
-                  10 |> deg2rad,
-                  0.5    |> deg2rad,
-                  0.5     |> deg2rad,
-                  0.5     |> deg2rad
+                  8000e3,
+                  0.101111,
+                  20 |> deg2rad,
+                  50    |> deg2rad,
+                  30     |> deg2rad,
+                  70     |> deg2rad
 )
 T0 = orbital_period(orb0, tbc_m0)
 r0, v0 = kepler_to_rv(orb0)
+plot_orbit(orb0)
 ##
 r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), T0/4, orb0)
 orb_preman = orbp_preman.tbd.orbk
@@ -53,7 +54,7 @@ function final_state(maneuver_params, prob_params)
 
     #normalized time
     maneuver_delta_t = maneuver_params[1] * total_time
-    maneuver_deltaV = maneuver_params[2:4]
+    maneuver_deltaV = maneuver_params[2:4] * 1000
 
     r_preman, v_postman, tman = state_post_maneuver(orb0, maneuver_deltaV, maneuver_delta_t)
 
@@ -72,7 +73,7 @@ prob_params = [
 ##
 prob_answer = [
     T0/4 / (prob_params[2]);
-    deltaV
+    deltaV / 1000
 ]
 ##
 final_state(prob_answer, prob_params)
@@ -144,7 +145,7 @@ model = Model(Ipopt.Optimizer)
 @operator(model, final_velocity_z, 4, memoized_final_state[6])
 
 @constraint(model, 0 <= Δt_maneuver <= 1)
-@constraint(model, 0 <= ΔV' * ΔV <= 2e6)
+@constraint(model, 0 <= ΔV' * ΔV <= 8)
 
 @objective(model, Min, residuals(
     final_position_x(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
