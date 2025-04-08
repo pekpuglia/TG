@@ -32,6 +32,8 @@ T_postman = orbital_period(orb_postman, tbc_m0)
 r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), 0.3*T_postman, orb_postman)
 orb_final = orbp_postman.tbd.orbk
 plot_orbit(orb_final)
+##
+plot_orbit(orb0, orb_postman, orb_final)
 ## optimize [t; ΔV] for this maneuver
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
@@ -138,8 +140,8 @@ model = Model(Ipopt.Optimizer)
 @operator(model, final_velocity_y, 4, memoized_final_state[5])
 @operator(model, final_velocity_z, 4, memoized_final_state[6])
 
-@constraint(model, 0 <= Δt_maneuver <= 1)
-@constraint(model, 0 <= ΔV' * ΔV <= 8)
+# @constraint(model, 0 <= Δt_maneuver <= 1)
+# @constraint(model, 0 <= ΔV' * ΔV <= 8)
 
 @objective(model, Min, residuals(
     final_position_x(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
