@@ -18,6 +18,7 @@ orb0 = KeplerianElements(
                   0.5     |> deg2rad
 )
 T0 = orbital_period(orb0, tbc_m0)
+r0, v0 = kepler_to_rv(orb0)
 ##
 r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), T0/4, orb0)
 orb_preman = orbp_preman.tbd.orbk
