@@ -166,3 +166,5 @@ model = Model(Ipopt.Optimizer)
 model
 ##
 optimize!(model)
+##
+value.(all_variables(model))
