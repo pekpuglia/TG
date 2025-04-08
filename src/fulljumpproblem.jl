@@ -55,29 +55,9 @@ function final_state(maneuver_params, prob_params)
     maneuver_delta_t = maneuver_params[1] * total_time
     maneuver_deltaV = maneuver_params[2:4]
 
-    # r_preman, v_preman, tman = propagate_coast(orb0, maneuver_delta_t)
-    # v_postman = v_preman + maneuver_deltaV
-
     r_preman, v_postman, tman = state_post_maneuver(orb0, maneuver_deltaV, maneuver_delta_t)
 
-    @assert noNaNs(r_preman[1]) "NaN found"
-    @assert noNaNs(r_preman[2]) "NaN found"
-    @assert noNaNs(r_preman[3]) "NaN found"
-    @assert noNaNs(v_postman[1]) "NaN found"
-    @assert noNaNs(v_postman[2]) "NaN found"
-    @assert noNaNs(v_postman[3]) "NaN found"
-
     orb_postman = rv_to_kepler(r_preman, v_postman, tman)
-    
-    @assert noNaNs(orb_postman.a) "NaN found"
-    @assert noNaNs(orb_postman.e) "NaN found"
-    @assert noNaNs(orb_postman.f) "NaN found"
-    @assert noNaNs(orb_postman.i) "NaN found"
-    @assert noNaNs(orb_postman.t) "NaN found"
-    @assert noNaNs(orb_postman.Ω) "NaN found"
-    @assert noNaNs(orb_postman.ω) "NaN found"
-
-    # r_final, v_final = Propagators.propagate!(propagator_postman, total_time-maneuver_delta_t)
     
     r_final, v_final, tfinal = propagate_coast(orb_postman, total_time-maneuver_delta_t)
 
@@ -153,7 +133,7 @@ function residuals(x, y, z, vx, vy, vz, r_target, v_target)
 end
 ##
 model = Model(Ipopt.Optimizer)
-@variable(model, t_maneuver, start=0.0)
+@variable(model, Δt_maneuver, start=0.0)
 @variable(model, ΔV[i = 1:3], start=0.0)
 
 @operator(model, final_position_x, 4, memoized_final_state[1])
@@ -163,19 +143,19 @@ model = Model(Ipopt.Optimizer)
 @operator(model, final_velocity_y, 4, memoized_final_state[5])
 @operator(model, final_velocity_z, 4, memoized_final_state[6])
 
-@constraint(model, 0 <= t_maneuver <= 1)
+@constraint(model, 0 <= Δt_maneuver <= 1)
 @constraint(model, 0 <= ΔV' * ΔV <= 2e6)
 
 @objective(model, Min, residuals(
-    final_position_x(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_position_y(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_position_z(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_velocity_x(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_velocity_y(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_velocity_z(t_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_position_x(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_position_y(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_position_z(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_velocity_x(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_velocity_y(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
+    final_velocity_z(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
     prob_params[3], prob_params[4]
 ))
-# @constraint(model, final_state([t_maneuver; ΔV], prob_params) == [prob_params[3]; prob_params[4]])
+# @constraint(model, final_state([Δt_maneuver; ΔV], prob_params) == [prob_params[3]; prob_params[4]])
 model
 ##
 optimize!(model)
