@@ -35,8 +35,9 @@ plot_orbit(orb_final)
 ## optimize [t; ΔV] for this maneuver
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
-function propagate_coast(ri, vi, ti, deltat)
-    orbi = rv_to_kepler(ri, vi, ti)
+
+function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
+    orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
     propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
     r, v = Propagators.propagate!(propagator, deltat)
     r, v, propagator.tbd.orbk.t
@@ -50,10 +51,10 @@ function final_state(maneuver_params, prob_params)
     maneuver_delta_t = maneuver_params[1] * total_time
     maneuver_deltaV = maneuver_params[2:4] * 1000
 
-    r_preman, v_preman, tman = propagate_coast(ri, vi, ti, maneuver_delta_t)
+    r_preman, v_preman, tman = propagate_coast(ri..., vi..., ti, maneuver_delta_t)
     v_postman = v_preman + maneuver_deltaV
     
-    r_final, v_final, tfinal = propagate_coast(r_preman, v_postman, tman, total_time-maneuver_delta_t)
+    r_final, v_final, tfinal = propagate_coast(r_preman..., v_postman..., tman, total_time-maneuver_delta_t)
 
     [r_final; v_final]
 end
