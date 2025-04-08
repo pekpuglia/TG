@@ -40,16 +40,25 @@ function propagate_coast(orb0::KeplerianElements, deltat)
     r, v, propagator.tbd.orbk.t
 end
 
+function state_post_maneuver(orb0, maneuver_deltaV, maneuver_delta_t)
+    r_preman, v_preman, tman = propagate_coast(orb0, maneuver_delta_t)
+    v_postman = v_preman + maneuver_deltaV
+
+    r_preman, v_postman, tman
+end
+
 function final_state(maneuver_params, prob_params)
     orb0       = prob_params[1]
     total_time = prob_params[2]
 
     #normalized time
-    maneuver_time = maneuver_params[1] * total_time
+    maneuver_delta_t = maneuver_params[1] * total_time
     maneuver_deltaV = maneuver_params[2:4]
 
-    r_preman, v_preman, tman = propagate_coast(orb0, maneuver_time)
-    v_postman = v_preman + maneuver_deltaV
+    # r_preman, v_preman, tman = propagate_coast(orb0, maneuver_delta_t)
+    # v_postman = v_preman + maneuver_deltaV
+
+    r_preman, v_postman, tman = state_post_maneuver(orb0, maneuver_deltaV, maneuver_delta_t)
 
     @assert noNaNs(r_preman[1]) "NaN found"
     @assert noNaNs(r_preman[2]) "NaN found"
@@ -68,9 +77,9 @@ function final_state(maneuver_params, prob_params)
     @assert noNaNs(orb_postman.Ω) "NaN found"
     @assert noNaNs(orb_postman.ω) "NaN found"
 
-    # r_final, v_final = Propagators.propagate!(propagator_postman, total_time-maneuver_time)
+    # r_final, v_final = Propagators.propagate!(propagator_postman, total_time-maneuver_delta_t)
     
-    r_final, v_final, tfinal = propagate_coast(orb_postman, total_time-maneuver_time)
+    r_final, v_final, tfinal = propagate_coast(orb_postman, total_time-maneuver_delta_t)
 
     [r_final; v_final]
 end
