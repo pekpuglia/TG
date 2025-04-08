@@ -42,13 +42,6 @@ function propagate_coast(ri, vi, ti, deltat)
     r, v, propagator.tbd.orbk.t
 end
 
-function state_post_maneuver(ri, vi, ti, maneuver_deltaV, maneuver_delta_t)
-    r_preman, v_preman, tman = propagate_coast(ri, vi, ti, maneuver_delta_t)
-    v_postman = v_preman + maneuver_deltaV
-
-    r_preman, v_postman, tman
-end
-
 function final_state(maneuver_params, prob_params)
     ri, vi, ti       = prob_params[1]
     total_time = prob_params[2]
@@ -57,9 +50,8 @@ function final_state(maneuver_params, prob_params)
     maneuver_delta_t = maneuver_params[1] * total_time
     maneuver_deltaV = maneuver_params[2:4] * 1000
 
-    r_preman, v_postman, tman = state_post_maneuver(ri, vi, ti, maneuver_deltaV, maneuver_delta_t)
-
-    # orb_postman = rv_to_kepler(r_preman, v_postman, tman)
+    r_preman, v_preman, tman = propagate_coast(ri, vi, ti, maneuver_delta_t)
+    v_postman = v_preman + maneuver_deltaV
     
     r_final, v_final, tfinal = propagate_coast(r_preman, v_postman, tman, total_time-maneuver_delta_t)
 
