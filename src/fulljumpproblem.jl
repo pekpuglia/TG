@@ -33,6 +33,12 @@ plot_orbit(orb_final)
 ## optimize [t; ΔV] for this maneuver
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
+function propagate_coast(orb0::KeplerianElements, deltat)
+    propagator = Propagators.init(Val(:TwoBody), orb0, propagation_type=Real)
+    r, v = Propagators.propagate!(propagator, deltat)
+    r, v, propagator.tbd.orbk.t
+end
+
 function final_state(maneuver_params, prob_params)
     orb0       = prob_params[1]
     total_time = prob_params[2]
@@ -41,10 +47,7 @@ function final_state(maneuver_params, prob_params)
     maneuver_time = maneuver_params[1] * total_time
     maneuver_deltaV = maneuver_params[2:4]
 
-
-    propagator_preman = Propagators.init(Val(:TwoBody), orb0, propagation_type=Real)
-
-    r_preman, v_preman = Propagators.propagate!(propagator_preman, maneuver_time)
+    r_preman, v_preman, tman = propagate_coast(orb0, maneuver_time)
     v_postman = v_preman + maneuver_deltaV
 
     @assert noNaNs(r_preman[1]) "NaN found"
@@ -54,7 +57,7 @@ function final_state(maneuver_params, prob_params)
     @assert noNaNs(v_postman[2]) "NaN found"
     @assert noNaNs(v_postman[3]) "NaN found"
 
-    orb_postman = rv_to_kepler(r_preman, v_postman, propagator_preman.tbd.orbk.t)
+    orb_postman = rv_to_kepler(r_preman, v_postman, tman)
     
     @assert noNaNs(orb_postman.a) "NaN found"
     @assert noNaNs(orb_postman.e) "NaN found"
@@ -64,10 +67,10 @@ function final_state(maneuver_params, prob_params)
     @assert noNaNs(orb_postman.Ω) "NaN found"
     @assert noNaNs(orb_postman.ω) "NaN found"
 
-    propagator_postman = Propagators.init(Val(:TwoBody), orb_postman, propagation_type=Real)
-
-    r_final, v_final = Propagators.propagate!(propagator_postman, total_time-maneuver_time)
+    # r_final, v_final = Propagators.propagate!(propagator_postman, total_time-maneuver_time)
     
+    r_final, v_final, tfinal = propagate_coast(orb_postman, total_time-maneuver_time)
+
     [r_final; v_final]
 end
 ##
