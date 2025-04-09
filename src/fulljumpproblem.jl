@@ -174,8 +174,10 @@ end)
     v_post_maneuver == v_pre_maneuver + ΔV
 end)
 
-@constraint(model, -1e9 <= -tbc_m0 / √(r_maneuver' * r_maneuver) + 1/2 * v_post_maneuver' * v_post_maneuver <= -1e5)
-# @constraint(model, )
+# @constraint(model, -tbc_m0 / √(r_maneuver' * r_maneuver) + 1/2 * v_post_maneuver' * v_post_maneuver <= 0)
+
+# h_post_maneuver = cross(r_maneuver/r_norm, v_post_maneuver/v_norm)
+# @constraint(model, √(h_post_maneuver' * h_post_maneuver) >= 1e8 / (r_norm*v_norm))
 
 #second coast
 @constraints(model, begin
