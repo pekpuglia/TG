@@ -40,6 +40,7 @@ noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
 
 function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
+    # println(-tbc_m0 / (√(xi^2+yi^2+zi^2)) + (vxi^2+vyi^2+vzi^2)/2)
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
     propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
     r, v = Propagators.propagate!(propagator, deltat)
@@ -70,6 +71,7 @@ prob_params = [
     T0/4+0.3*T_postman,
     r_final, v_final
 ]
+total_time = prob_params[2]
 ##
 prob_answer = [
     T0/4 / (prob_params[2]);
@@ -126,27 +128,28 @@ memoized_final_state = memoize(
 #for some reason this is required 
 ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0.t, T0/4])
 ##
-function residuals(x, y, z, vx, vy, vz, r_target, v_target)
-    r_norm = √sum(r_target' * r_target)
-    v_norm = √sum(v_target' * v_target)
-
-    sum(
-        ([x;y;z]/r_norm - r_target/r_norm).^2
-    )+sum(
-        ([vx;vy;vz]/v_norm - v_target/v_norm).^2
-    )
-end
+r_norm = √sum(r_final' * r_final)
+v_norm = √sum(v_final' * v_final)
+# time_scale = total_time
+# deltaV_scale = v_norm
+# objective_scaling = 10000.0
 ##
 model = Model(Ipopt.Optimizer)
+
+#control variables
 @variable(model, Δt_maneuver, start=0.0)
+# @constraint(model, 0 <= Δt_maneuver <= 1)
+
 @variable(model, ΔV[i = 1:3], start=0.0)
 
-@operator(model, final_position_x, 4, memoized_final_state[1])
-@operator(model, final_position_y, 4, memoized_final_state[2])
-@operator(model, final_position_z, 4, memoized_final_state[3])
-@operator(model, final_velocity_x, 4, memoized_final_state[4])
-@operator(model, final_velocity_y, 4, memoized_final_state[5])
-@operator(model, final_velocity_z, 4, memoized_final_state[6])
+#relevant state variables
+@variable(model, r_maneuver[i=1:3], start=r0[i])
+@variable(model, v_pre_maneuver[i=1:3], start=v0[i])
+@variable(model, v_post_maneuver[i=1:3], start=v0[i])
+@variable(model, time_maneuver, start = orb0.t)
+
+@variable(model, rf[i=1:3], start=r0[i])
+@variable(model, vf[i=1:3], start=v0[i])
 
 @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
 @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -156,21 +159,54 @@ model = Model(Ipopt.Optimizer)
 @operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
 @operator(model, coast_time      , 8, memoized_propagate_coast[7])
 
+#first coast
+@constraints(model, begin
+    r_maneuver[1]     == coast_position_x(r0..., v0..., orb0.t, Δt_maneuver)
+    r_maneuver[2]     == coast_position_y(r0..., v0..., orb0.t, Δt_maneuver)
+    r_maneuver[3]     == coast_position_z(r0..., v0..., orb0.t, Δt_maneuver)
+    v_pre_maneuver[1] == coast_velocity_x(r0..., v0..., orb0.t, Δt_maneuver)
+    v_pre_maneuver[2] == coast_velocity_y(r0..., v0..., orb0.t, Δt_maneuver)
+    v_pre_maneuver[3] == coast_velocity_z(r0..., v0..., orb0.t, Δt_maneuver)
+    time_maneuver     == coast_time(      r0..., v0..., orb0.t, Δt_maneuver)
+end)
+
+@constraints(model, begin
+    v_post_maneuver == v_pre_maneuver + ΔV
+end)
+
+@constraint(model, -1e9 <= -tbc_m0 / √(r_maneuver' * r_maneuver) + 1/2 * v_post_maneuver' * v_post_maneuver <= -1e5)
+# @constraint(model, )
+
+#second coast
+@constraints(model, begin
+    rf[1] == coast_position_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    rf[2] == coast_position_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    rf[3] == coast_position_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    vf[1] == coast_velocity_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    vf[2] == coast_velocity_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    vf[3] == coast_velocity_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+end)
+
 # @constraint(model, 0 <= Δt_maneuver <= 1)
 # @constraint(model, 0 <= ΔV' * ΔV <= 8)
 
-@objective(model, Min, residuals(
-    final_position_x(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_position_y(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_position_z(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_velocity_x(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_velocity_y(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    final_velocity_z(Δt_maneuver, ΔV[1], ΔV[2], ΔV[3]),
-    prob_params[3], prob_params[4]
-))
+@objective(model, MIN_SENSE, 
+    sum(((rf- r_final)) .^ 2) + 
+    sum(((vf - v_final)) .^ 2))
 # @constraint(model, final_state([Δt_maneuver; ΔV], prob_params) == [prob_params[3]; prob_params[4]])
 model
 ##
 optimize!(model)
 ##
-value.(all_variables(model))
+objective_value(model)
+##
+value(model[:Δt_maneuver])
+##
+value.(model[:ΔV])
+##
+solved_rf = value.(model[:rf])
+solved_vf = value.(model[:vf])
+##
+value(model[:time_maneuver])
+##
+plot_orbit(orb_final, rv_to_kepler(solved_rf, solved_vf))
