@@ -139,10 +139,10 @@ model = Model(Ipopt.Optimizer)
 @variable(model, ΔV[i = 1:3], start=0.0)
 
 #relevant state variables
-@variable(model, r_maneuver[i=1:3], start=r0[i])
-@variable(model, v_pre_maneuver[i=1:3], start=v0[i])
-@variable(model, v_post_maneuver[i=1:3], start=v0[i])
-@variable(model, time_maneuver, start = orb0.t)
+# @variable(model, r_maneuver[i=1:3], start=r0[i])
+# @variable(model, v_pre_maneuver[i=1:3], start=v0[i])
+# @variable(model, v_post_maneuver[i=1:3], start=v0[i])
+# @variable(model, time_maneuver, start = orb0.t)
 
 @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
 @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -153,19 +153,22 @@ model = Model(Ipopt.Optimizer)
 @operator(model, coast_time      , 8, memoized_propagate_coast[7])
 
 #first coast
-@constraints(model, begin
-    r_maneuver[1]     == coast_position_x(r0..., v0..., orb0.t, Δt_maneuver)
-    r_maneuver[2]     == coast_position_y(r0..., v0..., orb0.t, Δt_maneuver)
-    r_maneuver[3]     == coast_position_z(r0..., v0..., orb0.t, Δt_maneuver)
-    v_pre_maneuver[1] == coast_velocity_x(r0..., v0..., orb0.t, Δt_maneuver)
-    v_pre_maneuver[2] == coast_velocity_y(r0..., v0..., orb0.t, Δt_maneuver)
-    v_pre_maneuver[3] == coast_velocity_z(r0..., v0..., orb0.t, Δt_maneuver)
-    time_maneuver     == coast_time(      r0..., v0..., orb0.t, Δt_maneuver)
-end)
+# @constraints(model, begin
+r_maneuver = 
+    [coast_position_x(r0..., v0..., orb0.t, Δt_maneuver)
+    coast_position_y(r0..., v0..., orb0.t, Δt_maneuver)
+    coast_position_z(r0..., v0..., orb0.t, Δt_maneuver)]
+v_pre_maneuver = [
+    coast_velocity_x(r0..., v0..., orb0.t, Δt_maneuver)
+    coast_velocity_y(r0..., v0..., orb0.t, Δt_maneuver)
+    coast_velocity_z(r0..., v0..., orb0.t, Δt_maneuver)
+]
+time_maneuver     = coast_time(      r0..., v0..., orb0.t, Δt_maneuver)
+# end)
 
-@constraints(model, begin
-    v_post_maneuver == v_pre_maneuver + ΔV
-end)
+# @constraints(model, begin
+v_post_maneuver = v_pre_maneuver + ΔV
+# end)
 
 #second coast
 rf = [
@@ -184,8 +187,8 @@ vf = [
     rf[2] == r_final[2]
     rf[3] == r_final[3]
     vf[1] == v_final[1]
-    vf[2] == v_final[2]
-    vf[3] == v_final[3]
+    # vf[2] == v_final[2]
+    # vf[3] == v_final[3]
 end)
 
 model
@@ -201,6 +204,6 @@ value.(model[:ΔV])
 solved_rf = value.(rf)
 solved_vf = value.(vf)
 ##
-value(model[:time_maneuver])
+# value(model[:time_maneuver])
 ##
 plot_orbit(orb0, orb_final, rv_to_kepler(solved_rf, solved_vf))
