@@ -38,35 +38,48 @@ total_time = T0/4+0.3*T_postman
 plot_orbit(orb0, orb_postman, orb_final)
 #######################################################
 ## solving maneuver
-memoized_propagate_coast = memoize(propagate_coast, 7)
-#for some reason this is required 
-ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0.t, T0/4])
+function add_coast_operators!(model)
+    memoized_propagate_coast = memoize(propagate_coast, 7)
+    
+    #for some reason this is required to avoid error no method matching getindex(::Nothing, ::Int64)
+    #no f clue why
+    #maybe something to do with the memoization initialization?
+    ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0.t, T0/4])
+
+    coast_position_x = @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
+    coast_position_y = @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
+    coast_position_z = @operator(model, coast_position_z, 8, memoized_propagate_coast[3])
+    coast_velocity_x = @operator(model, coast_velocity_x, 8, memoized_propagate_coast[4])
+    coast_velocity_y = @operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
+    coast_velocity_z = @operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
+    coast_time       = @operator(model, coast_time      , 8, memoized_propagate_coast[7])
+
+    return (
+        (r, v, t, dt) -> [
+            coast_position_x(r..., v..., t, dt)
+            coast_position_y(r..., v..., t, dt)
+            coast_position_z(r..., v..., t, dt)
+        ],
+        (r, v, t, dt) -> [
+            coast_velocity_x(r..., v..., t, dt)
+            coast_velocity_y(r..., v..., t, dt)
+            coast_velocity_z(r..., v..., t, dt)
+        ],
+        (r, v, t, dt) -> coast_time(r..., v..., t, dt)
+    )
+end
 ##
 model = Model(Ipopt.Optimizer)
 #control variables
 Δt_maneuver = @variable(model, Δt_maneuver, start=0.0)
 ΔV = @variable(model, -11000 <= ΔV[i = 1:3] <= 11000, start=1.0)
 
-coast_position_x = @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
-coast_position_y = @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
-coast_position_z = @operator(model, coast_position_z, 8, memoized_propagate_coast[3])
-coast_velocity_x = @operator(model, coast_velocity_x, 8, memoized_propagate_coast[4])
-coast_velocity_y = @operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
-coast_velocity_z = @operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
-coast_time       = @operator(model, coast_time      , 8, memoized_propagate_coast[7])
+coast_r, coast_v, coast_t = add_coast_operators!(model)
 
 #first coast
-r_maneuver = [
-    coast_position_x(r0..., v0..., orb0.t, Δt_maneuver)
-    coast_position_y(r0..., v0..., orb0.t, Δt_maneuver)
-    coast_position_z(r0..., v0..., orb0.t, Δt_maneuver)
-]
-v_pre_maneuver = [
-    coast_velocity_x(r0..., v0..., orb0.t, Δt_maneuver)
-    coast_velocity_y(r0..., v0..., orb0.t, Δt_maneuver)
-    coast_velocity_z(r0..., v0..., orb0.t, Δt_maneuver)
-]
-time_maneuver = coast_time(r0..., v0..., orb0.t, Δt_maneuver)
+r_maneuver = coast_r(r0, v0, orb0.t, Δt_maneuver)
+v_pre_maneuver = coast_v(r0, v0, orb0.t, Δt_maneuver)
+time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
 
 v_post_maneuver = v_pre_maneuver + ΔV
 
@@ -74,24 +87,16 @@ v_post_maneuver = v_pre_maneuver + ΔV
 @constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
 
 #second coast
-rf = [
-    coast_position_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    coast_position_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    coast_position_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-]
-vf = [
-    coast_velocity_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    coast_velocity_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    coast_velocity_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-]
+rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+vf = coast_v(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
 
 @constraints(model, begin
     rf[1] == r_final[1]
     rf[2] == r_final[2]
     rf[3] == r_final[3]
-    # vf[1] == v_final[1]
+    vf[1] == v_final[1]
     # vf[2] == v_final[2]
-    vf[3] == v_final[3]
+    # vf[3] == v_final[3]
 end)
 
 @objective(model, MIN_SENSE, √(ΔV' * ΔV))
