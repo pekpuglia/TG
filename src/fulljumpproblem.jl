@@ -130,15 +130,11 @@ ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0
 ##
 r_norm = √sum(r_final' * r_final)
 v_norm = √sum(v_final' * v_final)
-# time_scale = total_time
-# deltaV_scale = v_norm
-# objective_scaling = 10000.0
 ##
 model = Model(Ipopt.Optimizer)
 
 #control variables
 @variable(model, Δt_maneuver, start=0.0)
-# @constraint(model, 0 <= Δt_maneuver <= 1)
 
 @variable(model, ΔV[i = 1:3], start=0.0)
 
@@ -147,9 +143,6 @@ model = Model(Ipopt.Optimizer)
 @variable(model, v_pre_maneuver[i=1:3], start=v0[i])
 @variable(model, v_post_maneuver[i=1:3], start=v0[i])
 @variable(model, time_maneuver, start = orb0.t)
-
-# @variable(model, rf[i=1:3], start=r0[i])
-# @variable(model, vf[i=1:3], start=v0[i])
 
 @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
 @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -174,13 +167,7 @@ end)
     v_post_maneuver == v_pre_maneuver + ΔV
 end)
 
-# @constraint(model, -tbc_m0 / √(r_maneuver' * r_maneuver) + 1/2 * v_post_maneuver' * v_post_maneuver <= 0)
-
-# h_post_maneuver = cross(r_maneuver/r_norm, v_post_maneuver/v_norm)
-# @constraint(model, √(h_post_maneuver' * h_post_maneuver) >= 1e8 / (r_norm*v_norm))
-
 #second coast
-# @constraints(model, begin
 rf = [
     coast_position_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
     coast_position_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
@@ -191,15 +178,16 @@ vf = [
     coast_velocity_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
     coast_velocity_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
 ]
-# end)
 
-# @constraint(model, 0 <= Δt_maneuver <= 1)
-# @constraint(model, 0 <= ΔV' * ΔV <= 8)
+@constraints(model, begin
+    rf[1] == r_final[1]
+    rf[2] == r_final[2]
+    rf[3] == r_final[3]
+    vf[1] == v_final[1]
+    vf[2] == v_final[2]
+    vf[3] == v_final[3]
+end)
 
-@objective(model, MIN_SENSE, 
-    sum(((rf- r_final)) .^ 2) + 
-    sum(((vf - v_final)) .^ 2))
-# @constraint(model, final_state([Δt_maneuver; ΔV], prob_params) == [prob_params[3]; prob_params[4]])
 model
 ##
 optimize!(model)
