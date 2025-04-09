@@ -7,7 +7,7 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
-##
+## ##########################################
 #designing single maneuver inversely
 orb0 = KeplerianElements(
                   date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -20,7 +20,7 @@ orb0 = KeplerianElements(
 )
 T0 = orbital_period(orb0, tbc_m0)
 r0, v0 = kepler_to_rv(orb0)
-plot_orbit(orb0)
+# plot_orbit(orb0)
 ##
 r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), T0/4, orb0)
 orb_preman = orbp_preman.tbd.orbk
@@ -93,6 +93,8 @@ vf = [
     # vf[3] == v_final[3]
 end)
 
+@objective(model, MIN_SENSE, (ΔV' * ΔV))
+
 model
 ##
 optimize!(model)
@@ -109,4 +111,8 @@ solved_vf = value.(vf)
 solved_r_maneuver = value.(r_maneuver)
 solved_v_post_maneuver = value.(v_post_maneuver)
 ##
-plot_orbit(orb0, rv_to_kepler(solved_r_maneuver, solved_v_post_maneuver), orb_final, rv_to_kepler(solved_rf, solved_vf))
+plot_orbit(
+    orb0, 
+    rv_to_kepler(solved_r_maneuver, solved_v_post_maneuver), 
+    orb_final, 
+    rv_to_kepler(solved_rf, solved_vf))
