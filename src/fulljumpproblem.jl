@@ -6,6 +6,7 @@ using Setfield
 using ForwardDiff
 include("TG.jl")
 using .TG
+using LinearAlgebra
 ##
 #designing single maneuver inversely
 orb0 = KeplerianElements(
