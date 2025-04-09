@@ -24,16 +24,16 @@ plot_orbit(orb0)
 ##
 r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), T0/4, orb0)
 orb_preman = orbp_preman.tbd.orbk
-deltaV = [-1000, 0, 0]
+deltaV = [1000, 0, 0]
 v_postman = v_preman + deltaV
 orb_postman = rv_to_kepler(r_preman, v_postman, orb_preman.t)
-plot_orbit(orb0, orb_postman)
+# plot_orbit(orb0, orb_postman)
 ## final position desired
 T_postman = orbital_period(orb_postman, tbc_m0)
 r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), 0.3*T_postman, orb_postman)
 orb_final = orbp_postman.tbd.orbk
 total_time = T0/4+0.3*T_postman
-plot_orbit(orb_final)
+# plot_orbit(orb_final)
 ##
 plot_orbit(orb0, orb_postman, orb_final)
 ## optimize [t; ΔV] for this maneuver
@@ -47,7 +47,6 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     r, v = Propagators.propagate!(propagator, deltat)
     [r; v; propagator.tbd.orbk.t]
 end
-##
 ## https://jump.dev/JuMP.jl/stable/tutorials/nonlinear/tips_and_tricks/#User-defined-operators-with-vector-outputs
 """
     memoize(foo::Function, n_outputs::Int)
@@ -109,6 +108,8 @@ v_pre_maneuver = [
 time_maneuver = coast_time(r0..., v0..., orb0.t, Δt_maneuver)
 
 v_post_maneuver = v_pre_maneuver + ΔV
+
+@constraint(model, v_post_maneuver' * v_post_maneuver >= 1e4)
 
 #second coast
 rf = [
