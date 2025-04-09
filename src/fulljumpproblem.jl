@@ -36,47 +36,8 @@ total_time = T0/4+0.3*T_postman
 # plot_orbit(orb_final)
 ##
 plot_orbit(orb0, orb_postman, orb_final)
-## optimize [t; ΔV] for this maneuver
-noNaNs(x::Real) = true
-noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
-
-function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
-    # println(-tbc_m0 / (√(xi^2+yi^2+zi^2)) + (vxi^2+vyi^2+vzi^2)/2)
-    orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
-    propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
-    r, v = Propagators.propagate!(propagator, deltat)
-    [r; v; propagator.tbd.orbk.t]
-end
-## https://jump.dev/JuMP.jl/stable/tutorials/nonlinear/tips_and_tricks/#User-defined-operators-with-vector-outputs
-"""
-    memoize(foo::Function, n_outputs::Int)
-
-Take a function `foo` and return a vector of length `n_outputs`, where element
-`i` is a function that returns the equivalent of `foo(x...)[i]`.
-
-To avoid duplication of work, cache the most-recent evaluations of `foo`.
-Because `foo_i` is auto-differentiated with ForwardDiff, our cache needs to
-work when `x` is a `Float64` and a `ForwardDiff.Dual`.
-"""
-function memoize(foo::Function, n_outputs::Int)
-    last_x, last_f = nothing, nothing
-    last_dx, last_dfdx = nothing, nothing
-    function foo_i(i, x::T...) where {T<:Real}
-        if T == Float64
-            if x !== last_x
-                last_x, last_f = x, foo(x...)
-            end
-            return last_f[i]::T
-        else
-            if x !== last_dx
-                last_dx, last_dfdx = x, foo(x...)
-            end
-            return last_dfdx[i]::T
-        end
-    end
-    return [(x...) -> foo_i(i, x...) for i in 1:n_outputs]
-end
-
+#######################################################
+## solving maneuver
 memoized_propagate_coast = memoize(propagate_coast, 7)
 #for some reason this is required 
 ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0.t, T0/4])
