@@ -148,8 +148,8 @@ model = Model(Ipopt.Optimizer)
 @variable(model, v_post_maneuver[i=1:3], start=v0[i])
 @variable(model, time_maneuver, start = orb0.t)
 
-@variable(model, rf[i=1:3], start=r0[i])
-@variable(model, vf[i=1:3], start=v0[i])
+# @variable(model, rf[i=1:3], start=r0[i])
+# @variable(model, vf[i=1:3], start=v0[i])
 
 @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
 @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -180,14 +180,18 @@ end)
 # @constraint(model, √(h_post_maneuver' * h_post_maneuver) >= 1e8 / (r_norm*v_norm))
 
 #second coast
-@constraints(model, begin
-    rf[1] == coast_position_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    rf[2] == coast_position_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    rf[3] == coast_position_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    vf[1] == coast_velocity_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    vf[2] == coast_velocity_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-    vf[3] == coast_velocity_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
-end)
+# @constraints(model, begin
+rf = [
+    coast_position_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    coast_position_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    coast_position_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+]
+vf = [
+    coast_velocity_x(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    coast_velocity_y(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+    coast_velocity_z(r_maneuver..., v_post_maneuver..., time_maneuver, total_time - Δt_maneuver)
+]
+# end)
 
 # @constraint(model, 0 <= Δt_maneuver <= 1)
 # @constraint(model, 0 <= ΔV' * ΔV <= 8)
@@ -206,9 +210,9 @@ value(model[:Δt_maneuver])
 ##
 value.(model[:ΔV])
 ##
-solved_rf = value.(model[:rf])
-solved_vf = value.(model[:vf])
+solved_rf = value.(rf)
+solved_vf = value.(vf)
 ##
 value(model[:time_maneuver])
 ##
-plot_orbit(orb_final, rv_to_kepler(solved_rf, solved_vf))
+plot_orbit(orb0, orb_final, rv_to_kepler(solved_rf, solved_vf))
