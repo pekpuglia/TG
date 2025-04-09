@@ -144,4 +144,7 @@ value.(model[:ΔV])
 solved_rf = value.(rf)
 solved_vf = value.(vf)
 ##
-plot_orbit(orb0, orb_final, rv_to_kepler(solved_rf, solved_vf))
+solved_r_maneuver = value.(r_maneuver)
+solved_v_post_maneuver = value.(v_post_maneuver)
+##
+plot_orbit(orb0, rv_to_kepler(solved_r_maneuver, solved_v_post_maneuver), orb_final, rv_to_kepler(solved_rf, solved_vf))
