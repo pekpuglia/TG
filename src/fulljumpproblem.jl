@@ -42,7 +42,7 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
     propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
     r, v = Propagators.propagate!(propagator, deltat)
-    r, v, propagator.tbd.orbk.t
+    [r; v; propagator.tbd.orbk.t]
 end
 
 function final_state(maneuver_params, prob_params)
@@ -53,10 +53,13 @@ function final_state(maneuver_params, prob_params)
     maneuver_delta_t = maneuver_params[1] * total_time
     maneuver_deltaV = maneuver_params[2:4] * 1000
 
-    r_preman, v_preman, tman = propagate_coast(ri..., vi..., ti, maneuver_delta_t)
+    first_coast_ret = propagate_coast(ri..., vi..., ti, maneuver_delta_t)
+    r_preman, v_preman, tman = first_coast_ret[1:3], first_coast_ret[4:6], first_coast_ret[7]
     v_postman = v_preman + maneuver_deltaV
     
-    r_final, v_final, tfinal = propagate_coast(r_preman..., v_postman..., tman, total_time-maneuver_delta_t)
+    final_coast_ret = propagate_coast(r_preman..., v_postman..., tman, total_time-maneuver_delta_t)
+
+    r_final, v_final, tfinal = final_coast_ret[1:3], final_coast_ret[4:6], final_coast_ret[7]
 
     [r_final; v_final]
 end
@@ -113,10 +116,14 @@ function memoize(foo::Function, n_outputs::Int)
     end
     return [(x...) -> foo_i(i, x...) for i in 1:n_outputs]
 end
+
+memoized_propagate_coast = memoize(propagate_coast, 7)
+
 memoized_final_state = memoize(
     (t, dVx, dVy, dVz) -> final_state([t;dVx;dVy;dVz], prob_params), 6)
 ##
-memoized_final_state[1](man0...)
+#for some reason this is required 
+ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0.t, T0/4])
 ##
 function residuals(x, y, z, vx, vy, vz, r_target, v_target)
     r_norm = √sum(r_target' * r_target)
@@ -139,6 +146,14 @@ model = Model(Ipopt.Optimizer)
 @operator(model, final_velocity_x, 4, memoized_final_state[4])
 @operator(model, final_velocity_y, 4, memoized_final_state[5])
 @operator(model, final_velocity_z, 4, memoized_final_state[6])
+
+@operator(model, coast_position_x, 8, memoized_propagate_coast[1])
+@operator(model, coast_position_y, 8, memoized_propagate_coast[2])
+@operator(model, coast_position_z, 8, memoized_propagate_coast[3])
+@operator(model, coast_velocity_x, 8, memoized_propagate_coast[4])
+@operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
+@operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
+@operator(model, coast_time      , 8, memoized_propagate_coast[7])
 
 # @constraint(model, 0 <= Δt_maneuver <= 1)
 # @constraint(model, 0 <= ΔV' * ΔV <= 8)
