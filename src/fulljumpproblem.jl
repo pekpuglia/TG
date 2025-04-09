@@ -45,7 +45,7 @@ ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0
 model = Model(Ipopt.Optimizer)
 #control variables
 @variable(model, Δt_maneuver, start=0.0)
-@variable(model, ΔV[i = 1:3], start=1.0)
+@variable(model, -11000 <= ΔV[i = 1:3] <= 11000, start=1.0)
 
 @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
 @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -70,7 +70,8 @@ time_maneuver = coast_time(r0..., v0..., orb0.t, Δt_maneuver)
 
 v_post_maneuver = v_pre_maneuver + ΔV
 
-@constraint(model, v_post_maneuver' * v_post_maneuver >= 1e4)
+@constraint(model, 121_000_000 >= v_post_maneuver' * v_post_maneuver >= 1e4)
+@constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
 
 #second coast
 rf = [
@@ -88,9 +89,9 @@ vf = [
     rf[1] == r_final[1]
     rf[2] == r_final[2]
     rf[3] == r_final[3]
-    vf[1] == v_final[1]
+    # vf[1] == v_final[1]
     # vf[2] == v_final[2]
-    # vf[3] == v_final[3]
+    vf[3] == v_final[3]
 end)
 
 @objective(model, MIN_SENSE, √(ΔV' * ΔV))
