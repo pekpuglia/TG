@@ -45,7 +45,7 @@ ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0
 model = Model(Ipopt.Optimizer)
 #control variables
 @variable(model, Δt_maneuver, start=0.0)
-@variable(model, ΔV[i = 1:3], start=0.0)
+@variable(model, ΔV[i = 1:3], start=1.0)
 
 @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
 @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -93,7 +93,7 @@ vf = [
     # vf[3] == v_final[3]
 end)
 
-@objective(model, MIN_SENSE, (ΔV' * ΔV))
+@objective(model, MIN_SENSE, √(ΔV' * ΔV))
 
 model
 ##
