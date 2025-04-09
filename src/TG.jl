@@ -4,6 +4,7 @@ using SatelliteToolboxBase
 using SatelliteToolboxPropagators
 using GLMakie
 using Setfield
+using LinearAlgebra
 
 export plot_orbit
 
@@ -36,6 +37,14 @@ end
 
 export propagate_coast
 function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
+    r = [xi; yi; zi]
+    v = [vxi; vyi; vzi]
+    #readd nan tests? safe, non safe version?
+    @assert norm(v) > 1e3 "Velocity too small"
+    @assert norm(cross(r, v)) > 1e9 "Angular momentum too small"
+    energy = -tbc_m0/norm(r) + (v'*v)/2
+    @assert energy < 0 "Energy non negative: $energy, r = $r, v = $v"
+
     # println(-tbc_m0 / (√(xi^2+yi^2+zi^2)) + (vxi^2+vyi^2+vzi^2)/2)
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
     propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
