@@ -44,16 +44,16 @@ ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0
 ##
 model = Model(Ipopt.Optimizer)
 #control variables
-@variable(model, Δt_maneuver, start=0.0)
-@variable(model, -11000 <= ΔV[i = 1:3] <= 11000, start=1.0)
+Δt_maneuver = @variable(model, Δt_maneuver, start=0.0)
+ΔV = @variable(model, -11000 <= ΔV[i = 1:3] <= 11000, start=1.0)
 
-@operator(model, coast_position_x, 8, memoized_propagate_coast[1])
-@operator(model, coast_position_y, 8, memoized_propagate_coast[2])
-@operator(model, coast_position_z, 8, memoized_propagate_coast[3])
-@operator(model, coast_velocity_x, 8, memoized_propagate_coast[4])
-@operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
-@operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
-@operator(model, coast_time      , 8, memoized_propagate_coast[7])
+coast_position_x = @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
+coast_position_y = @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
+coast_position_z = @operator(model, coast_position_z, 8, memoized_propagate_coast[3])
+coast_velocity_x = @operator(model, coast_velocity_x, 8, memoized_propagate_coast[4])
+coast_velocity_y = @operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
+coast_velocity_z = @operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
+coast_time       = @operator(model, coast_time      , 8, memoized_propagate_coast[7])
 
 #first coast
 r_maneuver = [
