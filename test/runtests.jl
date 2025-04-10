@@ -35,6 +35,30 @@ using SatelliteToolboxBase
         @test norm(value.(model[:ΔV])) <= norm(LEOdeltaV)
     end
 
+    @testset "LEO high delta V" begin
+        LEOorb = KeplerianElements(
+            date_to_jd(2023, 1, 1, 0, 0, 0),
+            8000e3,
+            0.01,
+            1.5 |> deg2rad,
+            1.5    |> deg2rad,
+            1.5     |> deg2rad,
+            1.5     |> deg2rad
+        )
+    
+        deltaV = [0, -2000, 0]
+    
+        LEO_r_final, LEO_total_time, _, _ = final_position(LEOorb, LEOdeltaV, 0.5, 0.7)
+    
+        model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(LEOorb, LEO_r_final, LEO_total_time);
+    
+        optimize!(model)
+    
+        @test is_solved_and_feasible(model)
+    
+        @test norm(value.(model[:ΔV])) <= norm(LEOdeltaV)
+    end
+
     @testset "GEO case" begin
         orb = KeplerianElements(
                       date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -66,6 +90,7 @@ using SatelliteToolboxBase
         @test norm(value.(model[:ΔV])) <= norm(deltaV)
     end
     
+    #remove? out of scope
     @testset "High excentricity high deltaV" begin
         orb0 = KeplerianElements(
             date_to_jd(2023, 1, 1, 0, 0, 0),
