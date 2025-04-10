@@ -76,7 +76,7 @@ using SatelliteToolboxBase
             1.5     |> deg2rad,
             1.5     |> deg2rad
         )
-        deltaV = [0, -2000, 0]
+        deltaV = [0, -1500, 0]
 
         r_final, total_time, orb_postman, orb_final = final_position(
             orb0, 
