@@ -40,7 +40,7 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
         optimizer_with_attributes(Ipopt.Optimizer,
             "max_iter" => 10000)
     )
-    
+
     #control variables
     Δt_maneuver = @variable(model, Δt_maneuver, start=0.7*total_time)
     @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
@@ -69,7 +69,20 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
     
-    v_post_maneuver = v_pre_maneuver + ΔV
+    #delta V is in tangential reference frame
+    #x ∥ v
+    #z ∥ h = r × v
+    #y = z × x
+
+    x_tang = v_pre_maneuver ./ √(v_pre_maneuver' * v_pre_maneuver)
+
+    h = cross(r_maneuver, v_pre_maneuver)
+
+    z_tang = h ./ √(h' * h)
+
+    y_tang = cross(z_tang, x_tang)
+
+    v_post_maneuver = v_pre_maneuver + [x_tang y_tang z_tang] * ΔV
 
     @constraints(model, begin
         Vesc >= v_post_maneuver[1] >= -Vesc
