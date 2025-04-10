@@ -120,6 +120,8 @@ terminal coast: optimal transfer time < specified transfer time
 * $\dot p_0 > 0$, initial coast needed. $\dot p_f < 0$, terminal coast needed. Otherwise more time is needed
 * if p > 1 anywhere, an extra impulse is needed
 
+sukhanov has more conditions
+
 ## Chapter 3 Optimization
 
 low thrust: 1rk step per revolution might be enough
