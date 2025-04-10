@@ -36,7 +36,11 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     moon_distance = 384400.e2 
 
-    model = Model(Ipopt.Optimizer)
+    model = Model(
+        optimizer_with_attributes(Ipopt.Optimizer,
+            "max_iter" => 10000)
+    )
+    
     #control variables
     Δt_maneuver = @variable(model, Δt_maneuver, start=0.7*total_time)
     @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
