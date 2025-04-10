@@ -14,9 +14,9 @@ orb0 = KeplerianElements(
                   30000e3,
                   0.6,
                   1.5 |> deg2rad,
-                  0    |> deg2rad,
-                  0     |> deg2rad,
-                  0     |> deg2rad
+                  1.5    |> deg2rad,
+                  1.5     |> deg2rad,
+                  1.5     |> deg2rad
 )
 deltaV = [0, -2000, 0]
 r_final, total_time, orb_postman, orb_final = final_position(
