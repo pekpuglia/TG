@@ -38,7 +38,7 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     model = Model(Ipopt.Optimizer)
     #control variables
-    Δt_maneuver = @variable(model, Δt_maneuver, start=total_time/2)
+    Δt_maneuver = @variable(model, Δt_maneuver, start=0.7*total_time)
     @constraint(model, 0 <= Δt_maneuver <= total_time)
 
     ΔV = @variable(model, -Vesc <= ΔV[i = 1:3] <= Vesc, start=1.0)
