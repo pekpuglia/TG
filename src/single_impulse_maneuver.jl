@@ -114,9 +114,9 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     
     @constraints(model, begin
-        rf[1] == r_final[1]
-        rf[2] == r_final[2]
-        rf[3] == r_final[3]
+        -100.0 <= rf[1] - r_final[1] <= 100.0
+        -100.0 <= rf[2] - r_final[2] <= 100.0
+        -100.0 <= rf[3] - r_final[3] <= 100.0
     end)
     
     @objective(model, MIN_SENSE, ΔVmag)
