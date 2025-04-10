@@ -44,7 +44,10 @@ function add_coast_operators!(model)
     #for some reason this is required to avoid error no method matching getindex(::Nothing, ::Int64)
     #no f clue why
     #maybe something to do with the memoization initialization?
-    ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., orb0.t, T0/4])
+    Vcirc = [0, √(tbc_m0 / EARTH_EQUATORIAL_RADIUS), 0]
+    rcirc = [EARTH_EQUATORIAL_RADIUS, 0, 0]
+    Tcirc = orbital_period(rv_to_kepler(rcirc, Vcirc), tbc_m0)
+    ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [rcirc..., Vcirc..., 0.0, Tcirc])
 
     coast_position_x = @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
     coast_position_y = @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
@@ -109,7 +112,7 @@ function maneuver_model(orb0, r_final, total_time)
     model, r_maneuver, v_post_maneuver, rf, vf
 end
 ##
-model, r_maneuver, v_post_maneuver, rf, vf = maneuver_model(orb0, r_final, 2*total_time)
+model, r_maneuver, v_post_maneuver, rf, vf = maneuver_model(orb0, r_final, 2*total_time);
 ##
 optimize!(model)
 ##
