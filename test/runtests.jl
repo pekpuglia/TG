@@ -69,19 +69,20 @@ using SatelliteToolboxBase
     @testset "High excentricity high deltaV" begin
         orb0 = KeplerianElements(
             date_to_jd(2023, 1, 1, 0, 0, 0),
-            8000e3,
-            0.001,
+            30000e3,
+            0.6,
             1.5 |> deg2rad,
             0    |> deg2rad,
             0     |> deg2rad,
             0     |> deg2rad
         )
-        deltaV = [-2400, 0, 0]
+        deltaV = [0, -2000, 0]
+
         r_final, total_time, orb_postman, orb_final = final_position(
             orb0, 
             deltaV, 
-            0.25, 
-            0.5
+            0.5, 
+            0.7
         )
             
         ## solving maneuver
