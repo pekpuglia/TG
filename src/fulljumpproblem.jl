@@ -69,56 +69,61 @@ function add_coast_operators!(model)
     )
 end
 ##
-model = Model(Ipopt.Optimizer)
-#control variables
-Δt_maneuver = @variable(model, Δt_maneuver, start=0.0)
-ΔV = @variable(model, -11000 <= ΔV[i = 1:3] <= 11000, start=1.0)
+function maneuver_model(orb0, r_final, total_time)
+    ## auxiliary parameters
+    Vesc = √(2tbc_m0 / EARTH_EQUATORIAL_RADIUS)
+    Vmin = 100.0
+    model = Model(Ipopt.Optimizer)
+    #control variables
+    Δt_maneuver = @variable(model, Δt_maneuver, start=0.0)
+    @constraint(model, 0 <= Δt_maneuver <= total_time)
 
-coast_r, coast_v, coast_t = add_coast_operators!(model)
+    ΔV = @variable(model, -Vesc <= ΔV[i = 1:3] <= Vesc, start=1.0)
+    
+    coast_r, coast_v, coast_t = add_coast_operators!(model)
+    
+    r0, v0 = kepler_to_rv(orb0)
 
-#first coast
-r_maneuver = coast_r(r0, v0, orb0.t, Δt_maneuver)
-v_pre_maneuver = coast_v(r0, v0, orb0.t, Δt_maneuver)
-time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
+    #first coast
+    r_maneuver = coast_r(r0, v0, orb0.t, Δt_maneuver)
+    v_pre_maneuver = coast_v(r0, v0, orb0.t, Δt_maneuver)
+    time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
+    
+    v_post_maneuver = v_pre_maneuver + ΔV
+    
+    @constraint(model, Vesc^2 >= v_post_maneuver' * v_post_maneuver >= Vmin^2)
+    @constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
+    
+    #second coast
+    rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+    vf = coast_v(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+    
+    @constraints(model, begin
+        rf[1] == r_final[1]
+        rf[2] == r_final[2]
+        rf[3] == r_final[3]
+    end)
+    
+    @objective(model, MIN_SENSE, √(ΔV' * ΔV))
 
-v_post_maneuver = v_pre_maneuver + ΔV
-
-@constraint(model, 121_000_000 >= v_post_maneuver' * v_post_maneuver >= 1e4)
-@constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
-
-#second coast
-rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
-vf = coast_v(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
-
-@constraints(model, begin
-    rf[1] == r_final[1]
-    rf[2] == r_final[2]
-    rf[3] == r_final[3]
-    vf[1] == v_final[1]
-    # vf[2] == v_final[2]
-    # vf[3] == v_final[3]
-end)
-
-@objective(model, MIN_SENSE, √(ΔV' * ΔV))
-
-model
+    model
+end
+##
+model = maneuver_model(orb0, r_final, 2*total_time)
 ##
 optimize!(model)
 ##
-objective_value(model)
-##
-value(model[:Δt_maneuver])
-##
-value.(model[:ΔV])
-##
 solved_rf = value.(rf)
 solved_vf = value.(vf)
-##
+
 solved_r_maneuver = value.(r_maneuver)
 solved_v_post_maneuver = value.(v_post_maneuver)
-##
+
 plot_orbit(
-    orb0, 
-    rv_to_kepler(solved_r_maneuver, solved_v_post_maneuver), 
-    orb_final, 
-    rv_to_kepler(solved_rf, solved_vf))
+orb0, 
+rv_to_kepler(solved_r_maneuver, solved_v_post_maneuver), 
+orb_final, 
+rv_to_kepler(solved_rf, solved_vf)) |> display
+
+objective_value(model), value(model[:Δt_maneuver])
+##
