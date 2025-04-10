@@ -162,4 +162,21 @@ function single_maneuver_model(orb0, r_final, total_time)
     model, r_maneuver, v_post_maneuver, rf, vf
 end
 
+#testing purposes only
+export final_position
+function final_position(orb0, deltaV, period_fraction1, period_fraction2)
+    T0 = orbital_period(orb0, tbc_m0)
+
+    r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), period_fraction1*T0, orb0)
+    orb_preman = orbp_preman.tbd.orbk
+
+    v_postman = v_preman + deltaV
+    orb_postman = rv_to_kepler(r_preman, v_postman, orb_preman.t)
+    T_postman = orbital_period(orb_postman, tbc_m0)
+
+    r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), period_fraction2*T_postman, orb_postman)
+    total_time = orbp_preman.tbd.Δt + orbp_postman.tbd.Δt
+    r_final, total_time, orb_postman, orbp_postman.tbd.orbk
+end
+
 end # module TG
