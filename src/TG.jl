@@ -38,11 +38,14 @@ function orbital_period(orb::KeplerianElements, m0)
     2π√(orb.a^3/m0)
 end
 
+noNaNs(x::Real) = true
+noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
+
 export propagate_coast
 function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     r = [xi; yi; zi]
     v = [vxi; vyi; vzi]
-    #readd nan tests? safe, non safe version?
+
     @assert norm(v) > 1e3 "Velocity too small"
     @assert norm(cross(r, v)) > 1e9 "Angular momentum too small"
     energy = -tbc_m0/norm(r) + (v'*v)/2
@@ -50,6 +53,15 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
 
     # println(-tbc_m0 / (√(xi^2+yi^2+zi^2)) + (vxi^2+vyi^2+vzi^2)/2)
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
+
+    @assert noNaNs(orbi.a) "NaN found"
+    @assert noNaNs(orbi.e) "NaN found"
+    @assert noNaNs(orbi.f) "NaN found"
+    @assert noNaNs(orbi.i) "NaN found"
+    @assert noNaNs(orbi.t) "NaN found"
+    @assert noNaNs(orbi.Ω) "NaN found"
+    @assert noNaNs(orbi.ω) "NaN found"
+
     propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
     r, v = Propagators.propagate!(propagator, deltat)
     [r; v; propagator.tbd.orbk.t]
