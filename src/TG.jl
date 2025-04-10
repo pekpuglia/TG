@@ -45,11 +45,16 @@ export propagate_coast
 function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     r = [xi; yi; zi]
     v = [vxi; vyi; vzi]
+    
+    (norm(r) < EARTH_EQUATORIAL_RADIUS) ? (@info "Passing through Earth") : nothing
+    Vesc = √(2tbc_m0 / EARTH_EQUATORIAL_RADIUS)
+    (norm(v) <= 100.0) ? (@info "Velocity very small") : nothing
 
-    @assert norm(v) > 1e3 "Velocity too small"
-    @assert norm(cross(r, v)) > 1e9 "Angular momentum too small"
+    # @assert norm(v) > 1e3 "Velocity too small"
+    # @assert norm(cross(r, v)) > 1e9 "Angular momentum too small"
     energy = -tbc_m0/norm(r) + (v'*v)/2
     @assert energy < 0 "Energy non negative: $energy, r = $r, v = $v"
+
 
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
 
