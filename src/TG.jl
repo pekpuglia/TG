@@ -51,9 +51,9 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     energy = -tbc_m0/norm(r) + (v'*v)/2
     @assert energy < 0 "Energy non negative: $energy, r = $r, v = $v"
 
-    # println(-tbc_m0 / (√(xi^2+yi^2+zi^2)) + (vxi^2+vyi^2+vzi^2)/2)
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
 
+    #low excentricity + f ≈ 0 causes NaN derivatives
     @assert noNaNs(orbi.a) "NaN found"
     @assert noNaNs(orbi.e) "NaN found"
     @assert noNaNs(orbi.f) "NaN found"
