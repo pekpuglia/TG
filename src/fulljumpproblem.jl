@@ -106,10 +106,10 @@ function maneuver_model(orb0, r_final, total_time)
     
     @objective(model, MIN_SENSE, √(ΔV' * ΔV))
 
-    model
+    model, r_maneuver, v_post_maneuver, rf, vf
 end
 ##
-model = maneuver_model(orb0, r_final, 2*total_time)
+model, r_maneuver, v_post_maneuver, rf, vf = maneuver_model(orb0, r_final, 2*total_time)
 ##
 optimize!(model)
 ##
