@@ -49,17 +49,46 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     #first coast
     r_maneuver = coast_r(r0, v0, orb0.t, Δt_maneuver)
+
+    @constraint(model, EARTH_EQUATORIAL_RADIUS^2 <= r_maneuver' * r_maneuver <= moon_distance^2)
+
     v_pre_maneuver = coast_v(r0, v0, orb0.t, Δt_maneuver)
+
+    @constraints(model, begin
+        Vesc >= v_pre_maneuver[1] >= -Vesc
+        Vesc >= v_pre_maneuver[2] >= -Vesc 
+        Vesc >= v_pre_maneuver[3] >= -Vesc 
+    end)
+    @constraint(model, Vesc^2 >= v_pre_maneuver' * v_pre_maneuver >= Vmin^2)
+    @constraint(model, (v_pre_maneuver' * v_pre_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
+
     time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
     
     v_post_maneuver = v_pre_maneuver + ΔV
-    
+
+    @constraints(model, begin
+        Vesc >= v_post_maneuver[1] >= -Vesc
+        Vesc >= v_post_maneuver[2] >= -Vesc 
+        Vesc >= v_post_maneuver[3] >= -Vesc 
+    end)
     @constraint(model, Vesc^2 >= v_post_maneuver' * v_post_maneuver >= Vmin^2)
     @constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
     
     #second coast
     rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+
+    @constraint(model, EARTH_EQUATORIAL_RADIUS^2 <= rf' * rf <= moon_distance^2)
+
     vf = coast_v(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+    
+    @constraints(model, begin
+        Vesc >= vf[1] >= -Vesc
+        Vesc >= vf[2] >= -Vesc 
+        Vesc >= vf[3] >= -Vesc 
+    end)
+    @constraint(model, Vesc^2 >= vf' * vf >= Vmin^2)
+    @constraint(model, (vf' * vf) * √(rf' * rf) / (2tbc_m0) <= 1-1e-6)
+
     
     @constraints(model, begin
         rf[1] == r_final[1]
