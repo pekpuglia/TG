@@ -46,9 +46,10 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     r = [xi; yi; zi]
     v = [vxi; vyi; vzi]
     
-    (norm(r) < EARTH_EQUATORIAL_RADIUS) ? (@info "Passing through Earth") : nothing
+    #always shows 0 at the beginning of solve - why?
+    (norm(r) < EARTH_EQUATORIAL_RADIUS) ? (@info "Passing through Earth r = $r") : nothing
     Vesc = √(2tbc_m0 / EARTH_EQUATORIAL_RADIUS)
-    (norm(v) <= 100.0) ? (@info "Velocity very small") : nothing
+    (norm(v) <= 100.0) ? (@info "Velocity very small v = $v") : nothing
 
     # @assert norm(v) > 1e3 "Velocity too small"
     # @assert norm(cross(r, v)) > 1e9 "Angular momentum too small"
