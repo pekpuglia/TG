@@ -54,7 +54,7 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
     # @assert norm(v) > 1e3 "Velocity too small"
     # @assert norm(cross(r, v)) > 1e9 "Angular momentum too small"
     energy = -tbc_m0/norm(r) + (v'*v)/2
-    @assert energy < 0 "Energy non negative: $energy, r = $r, v = $v"
+    @assert energy < 0 "Energy non negative: $energy, t = $ti, r = $r, v = $v"
 
 
     orbi = rv_to_kepler([xi, yi, zi], [vxi, vyi, vzi], ti)
