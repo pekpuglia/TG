@@ -66,4 +66,35 @@ using SatelliteToolboxBase
         @test norm(value.(model[:ΔV])) <= norm(deltaV)
     end
     
+    @testset "High excentricity high deltaV" begin
+        orb0 = KeplerianElements(
+            date_to_jd(2023, 1, 1, 0, 0, 0),
+            8000e3,
+            0.001,
+            1.5 |> deg2rad,
+            0    |> deg2rad,
+            0     |> deg2rad,
+            0     |> deg2rad
+        )
+        deltaV = [-2400, 0, 0]
+        r_final, total_time, orb_postman, orb_final = final_position(
+            orb0, 
+            deltaV, 
+            0.25, 
+            0.5
+        )
+            
+        ## solving maneuver
+        model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(
+            orb0, 
+            r_final, 
+            total_time);
+        ##
+        optimize!(model)
+
+        @test is_solved_and_feasible(model)
+    
+        @test norm(value.(model[:ΔV])) <= norm(deltaV)
+    end
+
 end
