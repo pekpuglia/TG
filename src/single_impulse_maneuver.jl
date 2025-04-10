@@ -26,8 +26,51 @@ r_final, total_time, orb_postman, orb_final = final_position(
     0.7)
 
 plot_orbit(orb0, orb_postman, orb_final)
+##
+function single_maneuver_model_fix(orb0, r_final, total_time)
+    ## auxiliary parameters
+    Vesc = √(2tbc_m0 / EARTH_EQUATORIAL_RADIUS)
+    Vmin = 100.0
+
+    moon_distance = 384400.e2 
+
+    model = Model(Ipopt.Optimizer)
+    #control variables
+    Δt_maneuver = @variable(model, Δt_maneuver, start=total_time/2)
+    @constraint(model, 0 <= Δt_maneuver <= total_time)
+
+    ΔV = @variable(model, -Vesc <= ΔV[i = 1:3] <= Vesc, start=1.0)
+    
+    coast_r, coast_v, coast_t = add_coast_operators!(model)
+    
+    r0, v0 = kepler_to_rv(orb0)
+
+    #first coast
+    r_maneuver = coast_r(r0, v0, orb0.t, Δt_maneuver)
+    v_pre_maneuver = coast_v(r0, v0, orb0.t, Δt_maneuver)
+    time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
+    
+    v_post_maneuver = v_pre_maneuver + ΔV
+    
+    @constraint(model, Vesc^2 >= v_post_maneuver' * v_post_maneuver >= Vmin^2)
+    @constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
+    
+    #second coast
+    rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+    vf = coast_v(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+    
+    @constraints(model, begin
+        rf[1] == r_final[1]
+        rf[2] == r_final[2]
+        rf[3] == r_final[3]
+    end)
+    
+    @objective(model, MIN_SENSE, √(ΔV' * ΔV))
+
+    model, r_maneuver, v_post_maneuver, rf, vf
+end
 ## solving maneuver
-model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(
+model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model_fix(
     orb0, 
     r_final, 
     total_time);
