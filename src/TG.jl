@@ -105,10 +105,17 @@ function add_coast_operators!(model)
     #for some reason this is required to avoid error no method matching getindex(::Nothing, ::Int64)
     #no f clue why
     #maybe something to do with the memoization initialization?
-    Vcirc = [0, √(tbc_m0 / EARTH_EQUATORIAL_RADIUS), 0]
-    rcirc = [EARTH_EQUATORIAL_RADIUS, 0, 0]
-    Tcirc = orbital_period(rv_to_kepler(rcirc, Vcirc), tbc_m0)
-    ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [rcirc..., Vcirc..., 0.0, Tcirc])
+    orb0 = KeplerianElements(
+    date_to_jd(2023, 1, 1, 0, 0, 0),
+    8000e3,
+    0.001111,
+    2 |> deg2rad,
+    50    |> deg2rad,
+    30     |> deg2rad,
+    1     |> deg2rad
+)
+    r0, v0 = kepler_to_rv(orb0)
+    ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [r0..., v0..., 0.0, 10.0])
 
     coast_position_x = @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
     coast_position_y = @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
