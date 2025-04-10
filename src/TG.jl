@@ -1,10 +1,12 @@
 module TG
 
+using ForwardDiff
+using GLMakie
+using JuMP
+using LinearAlgebra
 using SatelliteToolboxBase
 using SatelliteToolboxPropagators
-using GLMakie
 using Setfield
-using LinearAlgebra
 
 export plot_orbit
 
@@ -82,4 +84,40 @@ function memoize(foo::Function, n_outputs::Int)
     end
     return [(x...) -> foo_i(i, x...) for i in 1:n_outputs]
 end
+
+export add_coast_operators!
+function add_coast_operators!(model)
+    memoized_propagate_coast = memoize(propagate_coast, 7)
+    
+    #for some reason this is required to avoid error no method matching getindex(::Nothing, ::Int64)
+    #no f clue why
+    #maybe something to do with the memoization initialization?
+    Vcirc = [0, √(tbc_m0 / EARTH_EQUATORIAL_RADIUS), 0]
+    rcirc = [EARTH_EQUATORIAL_RADIUS, 0, 0]
+    Tcirc = orbital_period(rv_to_kepler(rcirc, Vcirc), tbc_m0)
+    ForwardDiff.gradient(x -> memoized_propagate_coast[7](x...), [rcirc..., Vcirc..., 0.0, Tcirc])
+
+    coast_position_x = @operator(model, coast_position_x, 8, memoized_propagate_coast[1])
+    coast_position_y = @operator(model, coast_position_y, 8, memoized_propagate_coast[2])
+    coast_position_z = @operator(model, coast_position_z, 8, memoized_propagate_coast[3])
+    coast_velocity_x = @operator(model, coast_velocity_x, 8, memoized_propagate_coast[4])
+    coast_velocity_y = @operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
+    coast_velocity_z = @operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
+    coast_time       = @operator(model, coast_time      , 8, memoized_propagate_coast[7])
+
+    return (
+        (r, v, t, dt) -> [
+            coast_position_x(r..., v..., t, dt)
+            coast_position_y(r..., v..., t, dt)
+            coast_position_z(r..., v..., t, dt)
+        ],
+        (r, v, t, dt) -> [
+            coast_velocity_x(r..., v..., t, dt)
+            coast_velocity_y(r..., v..., t, dt)
+            coast_velocity_z(r..., v..., t, dt)
+        ],
+        (r, v, t, dt) -> coast_time(r..., v..., t, dt)
+    )
+end
+
 end # module TG
