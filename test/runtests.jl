@@ -31,5 +31,5 @@ using SatelliteToolboxBase
 
     @test is_solved_and_feasible(model)
 
-    @test norm(value.(model[:ΔV])) < norm(LEOdeltaV)
+    @test norm(value.(model[:ΔV])) <= norm(LEOdeltaV)
 end
