@@ -10,15 +10,17 @@ using LinearAlgebra
 ## ##########################################
 #designing single maneuver inversely
 orb0 = KeplerianElements(
-                  date_to_jd(2023, 1, 1, 0, 0, 0),
-                  30000e3,
-                  0.6,
-                  1.5 |> deg2rad,
-                  1.5    |> deg2rad,
-                  1.5     |> deg2rad,
-                  1.5     |> deg2rad
+    date_to_jd(2023, 1, 1, 0, 0, 0),
+    8000e3,
+    0.01,
+    1.5 |> deg2rad,
+    1.5    |> deg2rad,
+    1.5     |> deg2rad,
+    1.5     |> deg2rad
 )
+
 deltaV = [0, -2000, 0]
+
 r_final, total_time, orb_postman, orb_final = final_position(
     orb0, 
     deltaV, 
