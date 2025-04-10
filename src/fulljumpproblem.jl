@@ -7,38 +7,6 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
-## ##########################################
-#designing single maneuver inversely
-orb0 = KeplerianElements(
-                  date_to_jd(2023, 1, 1, 0, 0, 0),
-                  8000e3,
-                  0.101111,
-                  20 |> deg2rad,
-                  50    |> deg2rad,
-                  30     |> deg2rad,
-                  70     |> deg2rad
-)
-T0 = orbital_period(orb0, tbc_m0)
-r0, v0 = kepler_to_rv(orb0)
-# plot_orbit(orb0)
-##
-r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), T0/4, orb0)
-orb_preman = orbp_preman.tbd.orbk
-deltaV = [1000, 0, 0]
-v_postman = v_preman + deltaV
-orb_postman = rv_to_kepler(r_preman, v_postman, orb_preman.t)
-# plot_orbit(orb0, orb_postman)
-## final position desired
-T_postman = orbital_period(orb_postman, tbc_m0)
-r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), 0.3*T_postman, orb_postman)
-orb_final = orbp_postman.tbd.orbk
-total_time = T0/4+0.3*T_postman
-# plot_orbit(orb_final)
-##
-plot_orbit(orb0, orb_postman, orb_final)
-#######################################################
-## solving maneuver
-
 ##
 function maneuver_model(orb0, r_final, total_time)
     ## auxiliary parameters
@@ -79,7 +47,33 @@ function maneuver_model(orb0, r_final, total_time)
 
     model, r_maneuver, v_post_maneuver, rf, vf
 end
-##
+## ##########################################
+#designing single maneuver inversely
+orb0 = KeplerianElements(
+                  date_to_jd(2023, 1, 1, 0, 0, 0),
+                  8000e3,
+                  0.101111,
+                  20 |> deg2rad,
+                  50    |> deg2rad,
+                  30     |> deg2rad,
+                  70     |> deg2rad
+)
+T0 = orbital_period(orb0, tbc_m0)
+
+r_preman, v_preman, orbp_preman = Propagators.propagate(Val(:TwoBody), T0/4, orb0)
+orb_preman = orbp_preman.tbd.orbk
+
+deltaV = [1000, 0, 0]
+v_postman = v_preman + deltaV
+orb_postman = rv_to_kepler(r_preman, v_postman, orb_preman.t)
+T_postman = orbital_period(orb_postman, tbc_m0)
+
+r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), 0.3*T_postman, orb_postman)
+orb_final = orbp_postman.tbd.orbk
+total_time = orbp_preman.tbd.Δt + orbp_postman.tbd.Δt
+# ##
+# plot_orbit(orb0, orb_postman, orb_final)
+## solving maneuver
 model, r_maneuver, v_post_maneuver, rf, vf = maneuver_model(orb0, r_final, 2*total_time);
 ##
 optimize!(model)
