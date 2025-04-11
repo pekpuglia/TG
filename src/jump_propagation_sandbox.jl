@@ -14,13 +14,14 @@ orb0 = KeplerianElements(
     7000e3,
     0.01,
     1.5 |> deg2rad,
-    1.5    |> deg2rad,
+    91.5    |> deg2rad,
     1.5     |> deg2rad,
     1.5     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
 T0 = orbital_period(orb0, GM_EARTH)
-## auxiliary parameters
+# plot_orbit(orb0)
+## CURTIS chap 3
 
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
@@ -29,33 +30,51 @@ model = Model(
 )
 
 @variables(model, begin
-    a0
-    e0
-    0 <= i0d <= 180
-    Ω0
-    ω0
-    M0
-    M
-    E
-    nu0
+    a
+    e
+    0 <= id <= 180
+    0 <= Ω <= 360
+    0 <= ω <= 360
     nu
 end)
+set_start_value(Ω, 180)
+set_start_value(ω, 180)
 
-@variable(model, r[1:3])
-@variable(model, v[1:3])
+# @variable(model, r[1:3])
+# @variable(model, v[1:3])
 
-r0norm = norm(r0)
-v0norm = norm(v0)
-v0r = dot(r0/r0norm, v0)
+rnorm = norm(r0)
+vnorm = norm(v0)
+vr = dot(r0/rnorm, v0)
 
-h0 = cross(r0, v0)
+h = cross(r0, v0)
 
-@constraint(model, cosd(i0d) == h0[3]/√(h0' * h0))
+@constraint(model, cosd(id) == h[3]/√(h' * h))
+
+N = cross([0;0;1], h)
+
+Nnorm = √(N' * N)
+
+@constraint(model, cosd(Ω) == N[1]/Nnorm)
+@constraint(model, sind(Ω) == N[2]/Nnorm)
+
+exc_vec = (vnorm^2 / GM_EARTH - 1 / rnorm) * r0 - rnorm*vr/GM_EARTH .* v0
+
+e = √(exc_vec' * exc_vec)
+
+@constraint(model, cosd(ω) == dot(N, exc_vec) / (Nnorm*e))
+
+N_e_cross = cross(N, exc_vec)
+normal_N_e_cross = dot(N_e_cross, h/√(h' * h))
+
+@constraint(model, sind(ω) == normal_N_e_cross / (Nnorm*e))
 
 model
 
 ##
 optimize!(model)
+value(model[:ω])
 ##
 value.(all_variables(model))
 ##
+value(normal_N_e_cross)
