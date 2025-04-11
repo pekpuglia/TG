@@ -1,0 +1,3 @@
+OutputParams(InputParams(9.0e6, 0.02, 0, 500, 500, 1100, 0.5, 0.1), AssertionError("NaN found"), nothing, nothing, nothing, nothing)
+OutputParams(InputParams(2.0e7, 0.02, 1, -1000, 500, 1000, 0.3, 0.7), nothing, false, 24.52448003, [-468.1386866687185, 2784.1995281032205, 104.73707040739444], 28405.534431318596)
+OutputParams(InputParams(2.0e7, 0.01, 1, -1000, 1100, -1000, 0.3, 0.1), nothing, true, 3.790631353, [668.1219057632127, -40.87361050853878, -915.1619968785816], 4848.925509898638)
