@@ -19,7 +19,7 @@ orb0 = KeplerianElements(
     1.5     |> deg2rad
 )
 
-deltaV = [0, -2000, 0]
+deltaV = [0, -1000, 0]
 
 r_final, total_time, orb_postman, orb_final = final_position(
     orb0, 
@@ -48,8 +48,10 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
     #colocar no referencial local da v_pre_maneuver
     ΔVmag = @variable(model, 0 <= ΔV <= Vesc, start=1.0)
     
-    alpha = @variable(model, 0 <= alpha <= pi, start = 0.0)
-    beta = @variable(model, -π <= beta <= π, start = 0.0)
+    ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
+    set_start_value(ΔVdir[1], 1.0)
+
+    @constraint(model, ΔVdir' * ΔVdir == 1)
 
     coast_r, coast_v, coast_t = add_coast_operators!(model)
     
@@ -85,7 +87,7 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     y_tang = cross(z_tang, x_tang)
 
-    ΔV = ΔVmag * [cos(alpha); sin(alpha)*cos(beta); sin(alpha)*sin(beta)]
+    ΔV = ΔVmag * ΔVdir
 
     v_post_maneuver = v_pre_maneuver + [x_tang y_tang z_tang] * ΔV
 
