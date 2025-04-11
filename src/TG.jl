@@ -70,7 +70,10 @@ function propagate_coast(xi, yi, zi, vxi, vyi, vzi, ti, deltat)
 
     propagator = Propagators.init(Val(:TwoBody), orbi, propagation_type=Real)
     r, v = Propagators.propagate!(propagator, deltat)
-    [r; v; propagator.tbd.orbk.t]
+
+    perigee = orbi.a * (1 - orbi.e)
+
+    [r; v; propagator.tbd.orbk.t; perigee]
 end
 
 export memoize
@@ -106,7 +109,7 @@ end
 
 export add_coast_operators!
 function add_coast_operators!(model)
-    memoized_propagate_coast = memoize(propagate_coast, 7)
+    memoized_propagate_coast = memoize(propagate_coast, 8)
     
     #for some reason this is required to avoid error no method matching getindex(::Nothing, ::Int64)
     #no f clue why
@@ -130,6 +133,7 @@ function add_coast_operators!(model)
     coast_velocity_y = @operator(model, coast_velocity_y, 8, memoized_propagate_coast[5])
     coast_velocity_z = @operator(model, coast_velocity_z, 8, memoized_propagate_coast[6])
     coast_time       = @operator(model, coast_time      , 8, memoized_propagate_coast[7])
+    coast_perigee    = @operator(model, coast_perigee   , 8, memoized_propagate_coast[8])
 
     return (
         (r, v, t, dt) -> [
@@ -142,7 +146,8 @@ function add_coast_operators!(model)
             coast_velocity_y(r..., v..., t, dt)
             coast_velocity_z(r..., v..., t, dt)
         ],
-        (r, v, t, dt) -> coast_time(r..., v..., t, dt)
+        (r, v, t, dt) -> coast_time(r..., v..., t, dt),
+        (r, v, t, dt) -> coast_perigee(r..., v..., t, dt)
     )
 end
 
@@ -158,7 +163,7 @@ function single_maneuver_model(orb0, r_final, total_time)
 
     ΔV = @variable(model, -Vesc <= ΔV[i = 1:3] <= Vesc, start=1.0)
     
-    coast_r, coast_v, coast_t = add_coast_operators!(model)
+    coast_r, coast_v, coast_t, coast_exc = add_coast_operators!(model)
     
     r0, v0 = kepler_to_rv(orb0)
 
