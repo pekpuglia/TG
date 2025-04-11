@@ -161,7 +161,8 @@ function single_maneuver_model(orb0, r_final, dir_v_final, total_time)
 
     model = Model(
         optimizer_with_attributes(Ipopt.Optimizer,
-            "max_iter" => 10000)
+            "max_iter" => 10000,
+            "max_wall_time" => 30.0)
     )
 
     #control variables
