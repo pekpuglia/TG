@@ -19,7 +19,7 @@ orb0 = KeplerianElements(
     263     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
-v0 = v0 * 10/7
+# v0 = v0 * 10/7
 # T0 = orbital_period(orb0, GM_EARTH)
 plot_orbit(rv_to_kepler(r0, v0, orb0.t))
 ## CURTIS chap 3
@@ -30,12 +30,16 @@ model = Model(
         "max_wall_time" => 30.0)
 )
 
-@variables(model, begin
-    0 <= id <= 180
-    Ω
-    ω
-    nu
-end)
+i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
+Ω = @variable(model, base_name = "Ω")
+ω = @variable(model, base_name = "ω")
+nu = @variable(model, base_name = "nu")
+# @variables(model, begin
+#     # 0 <= i <= 180
+#     # Ω
+#     ω
+#     nu
+# end)
 # @variable(model, r[1:3])
 # @variable(model, v[1:3])
 tol = 1e-3
@@ -47,7 +51,7 @@ h = cross(r0, v0)
 
 normal_direction = h / √(h' * h)
 
-@constraint(model, -tol <= cosd(id) - normal_direction[3] <= tol)
+@constraint(model, -tol <= cosd(i) - normal_direction[3] <= tol)
 
 N = cross([0;0;1], h)
 
@@ -80,3 +84,5 @@ optimize!(model)
 value.(all_variables(model))
 ##
 value(e)
+##
+all_variables(model)
