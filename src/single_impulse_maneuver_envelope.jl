@@ -21,10 +21,10 @@ struct InputParams
     fT2
 end
 ##
-  a_list = 7000e3:1000e3:20000e3
-  e_list = [0.001, 0.01, 0.02, 0.1, 0.4]
-  f_list = 0:4
-dvx_list = [-1200, -1100, -1000, -500, 0, 500, 1000, 1100, 1200]
+  a_list = 7000e3:100e3:8000e3
+  e_list = [0.001, 0.01, 0.02, 0.03, 0.05]
+  f_list = [0.1, 1, 180, 50]
+dvx_list = [-1100, -1000, -500, -200, 0, 200, 500, 1000, 1100]
 dvy_list = dvx_list
 dvz_list = dvx_list
 fT1_list = 0.1:0.2:0.9
@@ -44,12 +44,12 @@ struct OutputParams
     time_man
 end
 ##
-Nsamples = 3
+Nsamples = 100
 random_inputs = input_params_list[1:Nsamples]
 
 outputs = []
 
-out_file = "./src/single_impulse_out"
+out_file = "./src/LEO_single_impulse_out"
 
 open(out_file, "a") do file
     
