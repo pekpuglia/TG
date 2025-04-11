@@ -15,7 +15,7 @@ orb0 = KeplerianElements(
     0.01,
     1.5 |> deg2rad,
     91.5    |> deg2rad,
-    1.5     |> deg2rad,
+    271.5     |> deg2rad,
     1.5     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
@@ -33,13 +33,10 @@ model = Model(
     a
     e
     0 <= id <= 180
-    0 <= Ω <= 360
-    0 <= ω <= 360
+    Ω
+    ω
     nu
 end)
-set_start_value(Ω, 180)
-set_start_value(ω, 180)
-
 # @variable(model, r[1:3])
 # @variable(model, v[1:3])
 
@@ -74,7 +71,4 @@ model
 ##
 optimize!(model)
 value(model[:ω])
-##
 value.(all_variables(model))
-##
-value(normal_N_e_cross)
