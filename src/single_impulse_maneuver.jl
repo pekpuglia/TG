@@ -19,7 +19,7 @@ orb0 = KeplerianElements(
     1.5     |> deg2rad
 )
 
-deltaV = [0, -600, 1000]
+deltaV = [1000, -1500, 1000]
 
 r_final, total_time, orb_postman, orb_final, dir_v_final = final_position(
     orb0, 

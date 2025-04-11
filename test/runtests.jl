@@ -24,9 +24,9 @@ using SatelliteToolboxBase
     
         LEOdeltaV = [1000, 0, 0]
     
-        LEO_r_final, LEO_total_time, _, _ = final_position(LEOorb, LEOdeltaV, 0.25, 0.3)
+        LEO_r_final, LEO_total_time, _, _, dir_v_final = final_position(LEOorb, LEOdeltaV, 0.25, 0.3)
     
-        model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(LEOorb, LEO_r_final, LEO_total_time);
+        model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(LEOorb, LEO_r_final, dir_v_final, LEO_total_time);
     
         optimize!(model)
     
@@ -48,9 +48,9 @@ using SatelliteToolboxBase
     
         deltaV = [0, -2000, 0]
     
-        LEO_r_final, LEO_total_time, _, _ = final_position(LEOorb, LEOdeltaV, 0.5, 0.7)
+        LEO_r_final, LEO_total_time, _, _, dir_v_final = final_position(LEOorb, LEOdeltaV, dir, 0.5, 0.7)
     
-        model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(LEOorb, LEO_r_final, LEO_total_time);
+        model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(LEOorb, LEO_r_final, dir_v_final, LEO_total_time);
     
         optimize!(model)
     
@@ -72,7 +72,7 @@ using SatelliteToolboxBase
     
         deltaV = [-1000, 0, 0]
     
-        r_final, total_time, _, _ = final_position(
+        r_final, total_time, _, _, dir_v_final = final_position(
             orb, 
             deltaV,
             0.25,
@@ -81,7 +81,9 @@ using SatelliteToolboxBase
         model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(
             orb, 
             r_final, 
-            total_time);
+            dir_v_final,
+            total_time
+        );
     
         optimize!(model)
     
@@ -103,7 +105,7 @@ using SatelliteToolboxBase
         )
         deltaV = [0, -1500, 0]
 
-        r_final, total_time, orb_postman, orb_final = final_position(
+        r_final, total_time, orb_postman, orb_final, dir_v_final = final_position(
             orb0, 
             deltaV, 
             0.5, 
@@ -114,6 +116,7 @@ using SatelliteToolboxBase
         model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model(
             orb0, 
             r_final, 
+            dir_v_final,
             total_time);
         ##
         optimize!(model)

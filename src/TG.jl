@@ -152,42 +152,107 @@ function add_coast_operators!(model)
 end
 
 export single_maneuver_model
-function single_maneuver_model(orb0, r_final, total_time)
+function single_maneuver_model(orb0, r_final, dir_v_final, total_time)
     ## auxiliary parameters
     Vesc = √(2tbc_m0 / EARTH_EQUATORIAL_RADIUS)
     Vmin = 100.0
-    model = Model(Ipopt.Optimizer)
-    #control variables
-    Δt_maneuver = @variable(model, Δt_maneuver, start=total_time/2)
-    @constraint(model, 0 <= Δt_maneuver <= total_time)
 
-    ΔV = @variable(model, -Vesc <= ΔV[i = 1:3] <= Vesc, start=1.0)
+    moon_distance = 384400.e2 
+
+    model = Model(
+        optimizer_with_attributes(Ipopt.Optimizer,
+            "max_iter" => 10000)
+    )
+
+    #control variables
+    Δt_maneuver = @variable(model, Δt_maneuver, start=0.5*total_time)
+    @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
+
+    #colocar no referencial local da v_pre_maneuver
+    ΔVmag = @variable(model, 0 <= ΔV <= Vesc, start=1.0)
     
-    coast_r, coast_v, coast_t, coast_exc = add_coast_operators!(model)
+    ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
+    set_start_value(ΔVdir[1], 1.0)
+
+    @constraint(model, ΔVdir' * ΔVdir == 1)
+
+    # ΔV = @variable(model, -Vesc <= ΔV[1:3] <= Vesc, start = 1.0)
+
+    coast_r, coast_v, coast_t, coast_perigee = add_coast_operators!(model)
     
     r0, v0 = kepler_to_rv(orb0)
 
     #first coast
     r_maneuver = coast_r(r0, v0, orb0.t, Δt_maneuver)
+
+    @constraint(model, EARTH_EQUATORIAL_RADIUS^2 <= r_maneuver' * r_maneuver <= moon_distance^2)
+
     v_pre_maneuver = coast_v(r0, v0, orb0.t, Δt_maneuver)
+
+    @constraints(model, begin
+        Vesc >= v_pre_maneuver[1] >= -Vesc
+        Vesc >= v_pre_maneuver[2] >= -Vesc 
+        Vesc >= v_pre_maneuver[3] >= -Vesc 
+    end)
+    @constraint(model, Vesc^2 >= v_pre_maneuver' * v_pre_maneuver >= Vmin^2)
+    @constraint(model, (v_pre_maneuver' * v_pre_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
+
     time_maneuver = coast_t(r0, v0, orb0.t, Δt_maneuver)
     
-    v_post_maneuver = v_pre_maneuver + ΔV
-    
+    #delta V is in tangential reference frame
+    #x ∥ v
+    #z ∥ h = r × v
+    #y = z × x
+
+    x_tang = v_pre_maneuver ./ √(v_pre_maneuver' * v_pre_maneuver)
+
+    h = cross(r_maneuver, v_pre_maneuver)
+
+    z_tang = h ./ √(h' * h)
+
+    y_tang = cross(z_tang, x_tang)
+
+    ΔV = ΔVmag * ΔVdir
+
+    v_post_maneuver = v_pre_maneuver + [x_tang y_tang z_tang] * ΔV
+
+    @constraints(model, begin
+        Vesc >= v_post_maneuver[1] >= -Vesc
+        Vesc >= v_post_maneuver[2] >= -Vesc 
+        Vesc >= v_post_maneuver[3] >= -Vesc 
+    end)
     @constraint(model, Vesc^2 >= v_post_maneuver' * v_post_maneuver >= Vmin^2)
     @constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
     
+    #perigee outside of earth
+    @constraint(model, coast_perigee(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver) >= EARTH_EQUATORIAL_RADIUS)
+
     #second coast
     rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
+
+    @constraint(model, EARTH_EQUATORIAL_RADIUS^2 <= rf' * rf <= moon_distance^2)
+
     vf = coast_v(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
     
     @constraints(model, begin
-        rf[1] == r_final[1]
-        rf[2] == r_final[2]
-        rf[3] == r_final[3]
+        Vesc >= vf[1] >= -Vesc
+        Vesc >= vf[2] >= -Vesc 
+        Vesc >= vf[3] >= -Vesc 
+    end)
+    @constraint(model, Vesc^2 >= vf' * vf >= Vmin^2)
+    @constraint(model, (vf' * vf) * √(rf' * rf) / (2tbc_m0) <= 1-1e-6)
+
+    dir_vf = vf ./ √(vf' * vf)
+    
+    @constraints(model, begin
+        -100.0 <= rf[1] - r_final[1] <= 100.0
+        -100.0 <= rf[2] - r_final[2] <= 100.0
+        -100.0 <= rf[3] - r_final[3] <= 100.0
+        dot(dir_vf, dir_v_final) >= 0.97
     end)
     
-    @objective(model, MIN_SENSE, √(ΔV' * ΔV))
+    # @objective(model, MIN_SENSE, √(ΔV' * ΔV))
+    @objective(model, MIN_SENSE, ΔVmag)
 
     model, r_maneuver, v_post_maneuver, rf, vf
 end
