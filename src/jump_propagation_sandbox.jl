@@ -7,35 +7,15 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
-## obj: dar r0, v0, deltaT, receber r, v
-#designing single maneuver inversely
-orb0 = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    7000e3,
-    0.01,
-    91.5 |> deg2rad,
-    91.5    |> deg2rad,
-    271.5     |> deg2rad,
-    263     |> deg2rad
-)
-r0, v0 = kepler_to_rv(orb0)
-# v0 = v0 * 10/7
-# T0 = orbital_period(orb0, GM_EARTH)
-plot_orbit(rv_to_kepler(r0, v0, orb0.t))
-## CURTIS chap 3
-
-model = Model(
-    optimizer_with_attributes(Ipopt.Optimizer,
-        "max_iter" => 10000,
-        "max_wall_time" => 30.0)
-)
-
 function add_orbital_elements!(model)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     r = @variable(model, [1:3], start = EARTH_EQUATORIAL_RADIUS)
     v = @variable(model, [1:3])
     set_start_value(v[1], Vorb_sup)
 
+    #adding exc as variable so bounds will always be respected
+    #then need to put constraint on it and implement E and M
+    e = @variable(model, lower_bound = 0, upper_bound) = 
     i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
@@ -81,11 +61,35 @@ function add_orbital_elements!(model)
     
     r, v, a, e, i, Ω, ω, nu
 end
+## obj: dar r0, v0, deltaT, receber r, v
+#designing single maneuver inversely
+orb0 = KeplerianElements(
+    date_to_jd(2023, 1, 1, 0, 0, 0),
+    7000e3,
+    0.01,
+    91.5 |> deg2rad,
+    91.5    |> deg2rad,
+    271.5     |> deg2rad,
+    263     |> deg2rad
+)
+r0, v0 = kepler_to_rv(orb0)
+# v0 = v0 * 10/7
+# T0 = orbital_period(orb0, GM_EARTH)
+plot_orbit(rv_to_kepler(r0, v0, orb0.t))
+## CURTIS chap 3
 
-r, v, a, e, i, Ω, ω, nu = add_orbital_elements!(model)
+model = Model(
+    optimizer_with_attributes(Ipopt.Optimizer,
+        "max_iter" => 10000,
+        "max_wall_time" => 30.0)
+)
 
-@constraint(model, r .== r0)
-@constraint(model, v .== v0)
+
+ri, vi, ai, ei, ii, Ωi, ωi, nui = add_orbital_elements!(model)
+rf, vf, af, ef, i_f, Ωf, ωf, nuf = add_orbital_elements!(model)
+
+@constraint(model, ri .== r0)
+@constraint(model, vi .== v0)
 
 ##
 optimize!(model)
