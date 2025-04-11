@@ -46,12 +46,14 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
     @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
 
     #colocar no referencial local da v_pre_maneuver
-    ΔVmag = @variable(model, 0 <= ΔV <= Vesc, start=1.0)
+    # ΔVmag = @variable(model, 0 <= ΔV <= Vesc, start=1.0)
     
-    ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
-    set_start_value(ΔVdir[1], 1.0)
+    # ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
+    # set_start_value(ΔVdir[1], 1.0)
 
-    @constraint(model, ΔVdir' * ΔVdir == 1)
+    # @constraint(model, ΔVdir' * ΔVdir == 1)
+
+    ΔV = @variable(model, -Vesc <= ΔV[1:3] <= Vesc, start = 1.0)
 
     coast_r, coast_v, coast_t = add_coast_operators!(model)
     
@@ -87,7 +89,7 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
 
     y_tang = cross(z_tang, x_tang)
 
-    ΔV = ΔVmag * ΔVdir
+    # ΔV = ΔVmag * ΔVdir
 
     v_post_maneuver = v_pre_maneuver + [x_tang y_tang z_tang] * ΔV
 
@@ -121,7 +123,7 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
         -100.0 <= rf[3] - r_final[3] <= 100.0
     end)
     
-    @objective(model, MIN_SENSE, ΔVmag)
+    @objective(model, MIN_SENSE, √(ΔV' * ΔV))
 
     model, r_maneuver, v_post_maneuver, rf, vf
 end
