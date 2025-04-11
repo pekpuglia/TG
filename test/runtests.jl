@@ -32,7 +32,7 @@ using SatelliteToolboxBase
     
         @test is_solved_and_feasible(model)
     
-        @test norm(value.(model[:ΔV])) <= norm(LEOdeltaV)
+        @test norm(value.(model[:ΔVmag])) <= norm(LEOdeltaV)
     end
 
     @testset "LEO high delta V" begin
@@ -56,7 +56,7 @@ using SatelliteToolboxBase
     
         @test is_solved_and_feasible(model)
     
-        @test norm(value.(model[:ΔV])) <= norm(LEOdeltaV)
+        @test norm(value.(model[:ΔVmag])) <= norm(LEOdeltaV)
     end
 
     @testset "GEO case" begin
@@ -89,7 +89,7 @@ using SatelliteToolboxBase
     
         @test is_solved_and_feasible(model)
     
-        @test norm(value.(model[:ΔV])) <= norm(deltaV)
+        @test norm(value.(model[:ΔVmag])) <= norm(deltaV)
     end
     
     #remove? out of scope
@@ -123,7 +123,7 @@ using SatelliteToolboxBase
 
         @test is_solved_and_feasible(model)
     
-        @test norm(value.(model[:ΔV])) <= norm(deltaV)
+        @test norm(value.(model[:ΔVmag])) <= norm(deltaV)
     end
 
 end

@@ -170,7 +170,7 @@ function single_maneuver_model(orb0, r_final, dir_v_final, total_time)
     @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
 
     #colocar no referencial local da v_pre_maneuver
-    ΔVmag = @variable(model, 0 <= ΔV <= Vesc, start=1.0)
+    ΔVmag = @variable(model, 0 <= ΔVmag <= Vesc, start=1.0)
     
     ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
     set_start_value(ΔVdir[1], 1.0)
