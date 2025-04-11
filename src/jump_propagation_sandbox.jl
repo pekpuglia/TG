@@ -30,49 +30,60 @@ model = Model(
         "max_wall_time" => 30.0)
 )
 
-i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
-Ω = @variable(model, base_name = "Ω")
-ω = @variable(model, base_name = "ω")
-nu = @variable(model, base_name = "nu")
-tol = 1e-6
-rnorm = norm(r0)
-vnorm = norm(v0)
+function add_orbital_elements!(model)
+    r = @variable(model, [1:3], start = EARTH_EQUATORIAL_RADIUS)
+    v = @variable(model, [1:3])
 
-a = -1 / (- 2 / rnorm + vnorm^2 / GM_EARTH)
+    i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
+    Ω = @variable(model, base_name = "Ω")
+    ω = @variable(model, base_name = "ω")
+    nu = @variable(model, base_name = "nu")
+    
+    tol = 1e-9
+    rnorm = √(r' * r)
+    vnorm = √(v' * v)
+    
+    a = -1 / (- 2 / rnorm + vnorm^2 / GM_EARTH)
+    
+    vr = dot(r ./ rnorm, v)
+    
+    h = cross(r, v)
+    
+    normal_direction = h ./ √(h' * h)
+    
+    @constraint(model, -tol <= cosd(i) - normal_direction[3] <= tol)
+    
+    N = cross([0;0;1], h)
+    
+    Nnorm = √(N' * N)
+    
+    @constraint(model, -tol <= cosd(Ω) - N[1]/Nnorm <= tol)
+    @constraint(model, -tol <= sind(Ω) - N[2]/Nnorm <= tol)
+    
+    exc_vec = (vnorm^2 / GM_EARTH - 1 / rnorm) * r - rnorm*vr/GM_EARTH .* v
+    
+    e = √(exc_vec' * exc_vec)
+    
+    @constraint(model, -tol <= cosd(ω) - dot(N, exc_vec) / (Nnorm*e) <= tol)
+    
+    N_e_cross = cross(N, exc_vec)
+    normal_N_e_cross = dot(N_e_cross, normal_direction)
+    
+    @constraint(model, -tol <= sind(ω) - normal_N_e_cross / (Nnorm*e) <= tol)
+    
+    @constraint(model, -tol <= cosd(nu) - dot(exc_vec, r) / (e*rnorm) <= tol)
+    
+    exc_r_cross = cross(exc_vec, r)
+    normal_exc_r_cross = dot(exc_r_cross, normal_direction)
+    @constraint(model, -tol <= sind(nu) -  normal_exc_r_cross / (e*rnorm) <= tol)
+    
+    r, v, a, e, i, Ω, ω, nu
+end
 
-vr = dot(r0/rnorm, v0)
+r, v, a, e, i, Ω, ω, nu = add_orbital_elements!(model)
 
-h = cross(r0, v0)
-
-normal_direction = h / √(h' * h)
-
-@constraint(model, -tol <= cosd(i) - normal_direction[3] <= tol)
-
-N = cross([0;0;1], h)
-
-Nnorm = √(N' * N)
-
-@constraint(model, -tol <= cosd(Ω) - N[1]/Nnorm <= tol)
-@constraint(model, -tol <= sind(Ω) - N[2]/Nnorm <= tol)
-
-exc_vec = (vnorm^2 / GM_EARTH - 1 / rnorm) * r0 - rnorm*vr/GM_EARTH .* v0
-
-e = √(exc_vec' * exc_vec)
-
-@constraint(model, -tol <= cosd(ω) - dot(N, exc_vec) / (Nnorm*e) <= tol)
-
-N_e_cross = cross(N, exc_vec)
-normal_N_e_cross = dot(N_e_cross, normal_direction)
-
-@constraint(model, -tol <= sind(ω) - normal_N_e_cross / (Nnorm*e) <= tol)
-
-@constraint(model, -tol <= cosd(nu) - dot(exc_vec, r0) / (e*rnorm) <= tol)
-
-exc_r_cross = cross(exc_vec, r0)
-normal_exc_r_cross = dot(exc_r_cross, normal_direction)
-@constraint(model, -tol <= sind(nu) -  normal_exc_r_cross / (e*rnorm) <= tol)
-
-model
+@constraint(model, r .== r0)
+@constraint(model, v .== v0)
 
 ##
 optimize!(model)
