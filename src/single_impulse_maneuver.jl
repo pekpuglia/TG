@@ -19,7 +19,7 @@ orb0 = KeplerianElements(
     1.5     |> deg2rad
 )
 
-deltaV = [0, -1150, 0]
+deltaV = [0, -600, 1000]
 
 r_final, total_time, orb_postman, orb_final, dir_v_final = final_position(
     orb0, 
@@ -55,7 +55,7 @@ function single_maneuver_model_fix(orb0, r_final, dir_v_final, total_time)
 
     # ΔV = @variable(model, -Vesc <= ΔV[1:3] <= Vesc, start = 1.0)
 
-    coast_r, coast_v, coast_t = add_coast_operators!(model)
+    coast_r, coast_v, coast_t, coast_perigee = add_coast_operators!(model)
     
     r0, v0 = kepler_to_rv(orb0)
 
@@ -101,6 +101,9 @@ function single_maneuver_model_fix(orb0, r_final, dir_v_final, total_time)
     @constraint(model, Vesc^2 >= v_post_maneuver' * v_post_maneuver >= Vmin^2)
     @constraint(model, (v_post_maneuver' * v_post_maneuver) * √(r_maneuver' * r_maneuver) / (2tbc_m0) <= 1-1e-6)
     
+    #perigee outside of earth
+    @constraint(model, coast_perigee(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver) >= EARTH_EQUATORIAL_RADIUS)
+
     #second coast
     rf = coast_r(r_maneuver, v_post_maneuver, time_maneuver, total_time - Δt_maneuver)
 
@@ -122,7 +125,7 @@ function single_maneuver_model_fix(orb0, r_final, dir_v_final, total_time)
         -100.0 <= rf[1] - r_final[1] <= 100.0
         -100.0 <= rf[2] - r_final[2] <= 100.0
         -100.0 <= rf[3] - r_final[3] <= 100.0
-        dot(dir_vf, dir_v_final) >= 0.9
+        dot(dir_vf, dir_v_final) >= 0.97
     end)
     
     # @objective(model, MIN_SENSE, √(ΔV' * ΔV))
