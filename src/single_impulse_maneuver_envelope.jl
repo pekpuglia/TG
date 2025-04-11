@@ -53,7 +53,12 @@ out_file = "./src/single_impulse_out"
 
 open(out_file, "a") do file
     
-    for inp in random_inputs
+    for (i, inp) in enumerate(random_inputs)
+
+        if mod(i, round(Nsamples/10)) == 0
+            @info "$i of $Nsamples done"
+        end
+
         orb0 = KeplerianElements(
             date_to_jd(2023, 1, 1, 0, 0, 0),
             inp.a,
@@ -84,7 +89,7 @@ open(out_file, "a") do file
             r_final, 
             dir_v_final,
             total_time);
-        # set_silent(model)
+        set_silent(model)
     
         stats = nothing
         output = nothing
@@ -112,6 +117,7 @@ open(out_file, "a") do file
 
         push!(outputs, output)
         println(file, output)
+        flush(file)
     end
 end
 
