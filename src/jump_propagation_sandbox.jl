@@ -34,17 +34,12 @@ i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
 Ω = @variable(model, base_name = "Ω")
 ω = @variable(model, base_name = "ω")
 nu = @variable(model, base_name = "nu")
-# @variables(model, begin
-#     # 0 <= i <= 180
-#     # Ω
-#     ω
-#     nu
-# end)
-# @variable(model, r[1:3])
-# @variable(model, v[1:3])
-tol = 1e-3
+tol = 1e-6
 rnorm = norm(r0)
 vnorm = norm(v0)
+
+a = -1 / (- 2 / rnorm + vnorm^2 / GM_EARTH)
+
 vr = dot(r0/rnorm, v0)
 
 h = cross(r0, v0)
