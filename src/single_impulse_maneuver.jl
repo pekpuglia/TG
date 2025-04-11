@@ -11,7 +11,7 @@ using LinearAlgebra
 #designing single maneuver inversely
 orb0 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    8000e3,
+    7000e3,
     0.01,
     1.5 |> deg2rad,
     1.5    |> deg2rad,
@@ -19,9 +19,9 @@ orb0 = KeplerianElements(
     1.5     |> deg2rad
 )
 
-deltaV = [0, -1000, 0]
+deltaV = [0, -1150, 0]
 
-r_final, total_time, orb_postman, orb_final = final_position(
+r_final, total_time, orb_postman, orb_final, dir_v_final = final_position(
     orb0, 
     deltaV, 
     0.5, 
@@ -29,7 +29,7 @@ r_final, total_time, orb_postman, orb_final = final_position(
 
 plot_orbit(orb0, orb_postman, orb_final)
 ##
-function single_maneuver_model_fix(orb0, r_final, total_time)
+function single_maneuver_model_fix(orb0, r_final, dir_v_final, total_time)
     ## auxiliary parameters
     Vesc = √(2tbc_m0 / EARTH_EQUATORIAL_RADIUS)
     Vmin = 100.0
@@ -116,11 +116,13 @@ function single_maneuver_model_fix(orb0, r_final, total_time)
     @constraint(model, Vesc^2 >= vf' * vf >= Vmin^2)
     @constraint(model, (vf' * vf) * √(rf' * rf) / (2tbc_m0) <= 1-1e-6)
 
+    dir_vf = vf ./ √(vf' * vf)
     
     @constraints(model, begin
         -100.0 <= rf[1] - r_final[1] <= 100.0
         -100.0 <= rf[2] - r_final[2] <= 100.0
         -100.0 <= rf[3] - r_final[3] <= 100.0
+        dot(dir_vf, dir_v_final) >= 0.9
     end)
     
     # @objective(model, MIN_SENSE, √(ΔV' * ΔV))
@@ -132,6 +134,7 @@ end
 model, r_maneuver, v_post_maneuver, rf, vf = single_maneuver_model_fix(
     orb0, 
     r_final, 
+    dir_v_final,
     total_time);
 ##
 optimize!(model)
