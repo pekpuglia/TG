@@ -31,8 +31,10 @@ model = Model(
 )
 
 function add_orbital_elements!(model)
+    Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     r = @variable(model, [1:3], start = EARTH_EQUATORIAL_RADIUS)
     v = @variable(model, [1:3])
+    set_start_value(v[1], Vorb_sup)
 
     i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
@@ -91,4 +93,3 @@ value.(all_variables(model))
 ##
 value(e)
 ##
-all_variables(model)
