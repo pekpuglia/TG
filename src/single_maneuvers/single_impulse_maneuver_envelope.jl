@@ -4,7 +4,7 @@ using JuMP
 using Ipopt
 using Setfield
 using ForwardDiff
-include("TG.jl")
+include("../TG.jl")
 using .TG
 using LinearAlgebra
 using LazyGrids
