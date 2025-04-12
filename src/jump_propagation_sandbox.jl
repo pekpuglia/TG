@@ -7,8 +7,6 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
-##
-##
 ## obj: dar r0, v0, deltaT, receber r, v
 #example 3.1 curtis
 rp = 9600e3
@@ -37,29 +35,30 @@ model = Model(
 )
 
 
-ri, vi, ai, ei, ii, Ωi, ωi, nui, Mi, Ei = add_orbital_elements!(model)
-rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = add_orbital_elements!(model)
+orbparams_i = add_orbital_elements!(model)
+orbparams_f = add_orbital_elements!(model)
 
-@constraint(model, ri .== r0)
-@constraint(model, vi .== v0)
-@constraint(model, rf .== r)
-@constraint(model, vf .== v)
+
+@constraint(model, orbparams_i.r .== r0)
+@constraint(model, orbparams_i.v .== v0)
+@constraint(model, orbparams_f.r .== r)
+@constraint(model, orbparams_f.v .== v)
 
 @variable(model, Δt)
 
-@constraint(model, Δt == (Mf - Mi) / (2π) * T)
+@constraint(model, Δt == (orbparams_f.M - orbparams_i.M) / (2π) * T)
 
 model
 ##
 optimize!(model)
 value.(all_variables(model))
 ##
-value(ei), value(ef)
+value(orbparams_i.e), value(orbparams_f.e)
 ##
-value(ai), value(af)
+value(orbparams_i.a), value(orbparams_f.a)
 ##
-value(Ei), value(Ef)
+value(orbparams_i.E), value(orbparams_f.E)
 ##
-value(Mi), value(Mf)
+value(orbparams_i.M), value(orbparams_f.M)
 ##
 value(model[:Δt])

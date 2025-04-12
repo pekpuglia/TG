@@ -22,8 +22,10 @@
         "max_wall_time" => 30.0)
     )
 
-    ri, vi, ai, ei, ii, Ωi, ωi, nui, Mi, Ei = add_orbital_elements!(model)
-    rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = add_orbital_elements!(model)
+    orbparams_i = add_orbital_elements!(model)
+    ri, vi, ai, ei, ii, Ωi, ωi, nui, Mi, Ei = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
+    orbparams_f = add_orbital_elements!(model)
+    rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
     @constraint(model, ri .== r0)
     @constraint(model, vi .== v0)

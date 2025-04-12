@@ -275,6 +275,20 @@ function final_position(orb0, deltaV, period_fraction1, period_fraction2)
     r_final, total_time, orb_postman, orbp_postman.tbd.orbk, v_final/norm(v_final)
 end
 
+export FullOrbitalParameters
+struct FullOrbitalParameters
+    r
+    v
+    a
+    e
+    i
+    Ω
+    ω
+    nu
+    M
+    E # excluir?
+end
+
 export add_orbital_elements!
 function add_orbital_elements!(model)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
@@ -341,7 +355,7 @@ function add_orbital_elements!(model)
     @constraint(model, cos(E) == (e + cosd(nu)) / (1 + e*cosd(nu)))
     @constraint(model, -tol <= sin(E) - √(1-e^2)*sind(nu) / (1 + e*cosd(nu)) <= tol)
 
-    r, v, a, e, i, Ω, ω, nu, M, E
+    FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
 end
 
 end # module TG
