@@ -2,6 +2,7 @@ using LinearAlgebra
 using JuMP
 using Ipopt
 using SatelliteToolboxBase
+include("TG.jl")
 ##
 r1 = [
     5000
@@ -81,3 +82,7 @@ gdot = 1 - yz / r2n
 ##
 v1 = 1/g * (r2 - f*r1)
 v2 = 1/g * (gdot * r2 - r1)
+##
+orb1 = rv_to_kepler(r1, v1)
+orb2 = rv_to_kepler(r2, v2)
+TG.plot_orbit(orb1, orb2)
