@@ -20,7 +20,7 @@ orb0 = KeplerianElements(
 )
 r0, v0 = kepler_to_rv(orb0)
 
-deltaV = [0, 0, 0]
+deltaV = [-1000, 0, 0]
 
 r_final, total_time, orb_postman, orb_final, v_final = final_position(
     orb0, 
@@ -43,13 +43,13 @@ model = Model(
         "max_wall_time" => 30.0)
 )
 
-Δt_maneuver = @variable(model, Δt_maneuver) #, start=0.5*total_time)
+Δt_maneuver = @variable(model, Δt_maneuver, start=0.5*total_time)
 # @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
 
-# ΔVmag = @variable(model, 0 <= ΔVmag, start=1.0)
+ΔVmag = @variable(model, 0 <= ΔVmag, start=1.0)
     
-# ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
-# set_start_value(ΔVdir[1], 1.0)
+ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
+set_start_value(ΔVdir[1], 1.0)
 
 # @constraint(model, ΔVdir' * ΔVdir == 1)
 
@@ -64,11 +64,9 @@ add_coast_set_boundaries!(model,
     orbparams_i,
     orbparams_pre_maneuver,
     r0, v0,
-    r_final, v_final, 
+    r_final, v_final - ΔVmag * ΔVdir, 
     Δt_maneuver
 )
-
-
 
 # add_coast_set_boundaries!(model,
 #     orbparams_post_maneuver,
@@ -86,11 +84,13 @@ model
 ##
 optimize!(model)
 ##
-solved_rf = value.(orbparams_f.r)
-solved_vf = value.(orbparams_f.v)
+solved_rf = value.(orbparams_pre_maneuver.r)
+solved_vf = value.(orbparams_pre_maneuver.v)
+
+solved_deltaV = value.(ΔVmag * ΔVdir)
 
 solved_r_maneuver = value.(orbparams_pre_maneuver.r)
-solved_v_post_maneuver = value.(orbparams_post_maneuver.v)
+solved_v_post_maneuver = value.(orbparams_pre_maneuver.v + solved_deltaV)
 
 plot_orbit(
 orb0, 
