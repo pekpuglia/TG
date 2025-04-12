@@ -274,7 +274,7 @@ function final_position(orb0, deltaV, period_fraction1, period_fraction2)
 
     r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), period_fraction2*T_postman, orb_postman)
     total_time = orbp_preman.tbd.Δt + orbp_postman.tbd.Δt
-    r_final, total_time, orb_postman, orbp_postman.tbd.orbk, v_final/norm(v_final)
+    r_final, total_time, orb_postman, orbp_postman.tbd.orbk, v_final
 end
 
 export FullOrbitalParameters
