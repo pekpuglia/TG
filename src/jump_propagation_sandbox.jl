@@ -80,7 +80,7 @@ rp = 9600e3
 ra = 21000e3
 a = (rp + ra) / 2
 e = (ra - rp) / (ra + rp)
-orb0 = KeplerianElements(
+orbi = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
     a,
     e,
@@ -89,5 +89,25 @@ orb0 = KeplerianElements(
     0     |> deg2rad,
     0     |> deg2rad
 )
-r0, v0 = kepler_to_rv(orb0)
+ri, vi = kepler_to_rv(orbi)
 Δt = 3*3600.0
+##
+model = Model(
+    optimizer_with_attributes(Ipopt.Optimizer,
+    "max_wall_time" => 30.0)
+)
+
+r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = add_orbital_elements_fix!(model)
+r1, v1, a1, e1, i1, Ω1, ω1, nu1, M1, E1 = add_orbital_elements_fix!(model)
+
+T = orbital_period(a0, GM_EARTH)
+
+@constraint(model, r0 .== ri)
+@constraint(model, v0 .== vi)
+
+@constraint(model, Δt == (M1 - M0) / (2π) * T)
+
+
+
+##
+optimize!(model)
