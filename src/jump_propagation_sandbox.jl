@@ -26,7 +26,7 @@ r0, v0 = kepler_to_rv(orb0)
 orbf = @set orb0.f = 120 |> deg2rad
 r, v = kepler_to_rv(orbf)
 T = orbital_period(orb0, GM_EARTH)
-plot_orbit(orb0, orbf)
+# plot_orbit(orb0, orbf)
 ## CURTIS chap 3
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
@@ -38,15 +38,9 @@ model = Model(
 orbparams_i = add_orbital_elements!(model)
 orbparams_f = add_orbital_elements!(model)
 
-
-@constraint(model, orbparams_i.r .== r0)
-@constraint(model, orbparams_i.v .== v0)
-@constraint(model, orbparams_f.r .== r)
-@constraint(model, orbparams_f.v .== v)
-
 @variable(model, Δt)
 
-@constraint(model, Δt == (orbparams_f.M - orbparams_i.M) / (2π) * T)
+add_coast_set_boundaries!(model, orbparams_i, orbparams_f, r0, v0, r, v, Δt)
 
 model
 ##

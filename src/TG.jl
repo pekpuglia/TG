@@ -35,8 +35,10 @@ end
 
 export orbital_period
 function orbital_period(orb::KeplerianElements, m0)
-    2π√(orb.a^3/m0)
+    orbital_period(orb.a,m0)
 end
+
+orbital_period(a, m0) = 2π√(a^3/m0)
 
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
@@ -356,6 +358,19 @@ function add_orbital_elements!(model)
     @constraint(model, -tol <= sin(E) - √(1-e^2)*sind(nu) / (1 + e*cosd(nu)) <= tol)
 
     FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
+end
+
+export add_coast_set_boundaries!
+function add_coast_set_boundaries!(model, orbi::FullOrbitalParameters, orbf::FullOrbitalParameters, ri, vi, rf, vf, Δt)
+    @constraint(model, orbi.r .== ri)
+    @constraint(model, orbi.v .== vi)
+    @constraint(model, orbf.r .== rf)
+    @constraint(model, orbf.v .== vf)
+    
+    T = orbital_period(orbi.a, GM_EARTH)
+
+
+    @constraint(model, Δt == (orbf.M - orbi.M) / (2π) * T)
 end
 
 end # module TG

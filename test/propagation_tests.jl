@@ -15,7 +15,7 @@
     r0, v0 = kepler_to_rv(orb0)
     orbf = @set orb0.f = 120 |> deg2rad
     r, v = kepler_to_rv(orbf)
-    T = orbital_period(orb0, GM_EARTH)
+    # T = orbital_period(orb0, GM_EARTH)
 
     model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
@@ -27,14 +27,9 @@
     orbparams_f = add_orbital_elements!(model)
     rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
-    @constraint(model, ri .== r0)
-    @constraint(model, vi .== v0)
-    @constraint(model, rf .== r)
-    @constraint(model, vf .== v)
-
     @variable(model, Δt)
 
-    @constraint(model, Δt == (Mf - Mi) / (2π) * T)
+    add_coast_set_boundaries!(model, orbparams_i, orbparams_f, r0, v0, r, v, Δt)
 
     optimize!(model)
 
