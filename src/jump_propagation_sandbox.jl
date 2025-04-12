@@ -15,11 +15,16 @@ function add_orbital_elements!(model)
 
     #adding exc as variable so bounds will always be respected
     #then need to put constraint on it and implement E and M
+    #deg!!!
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
     i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
     nu = @variable(model, base_name = "nu")
+
+    #rad!!!
+    M = @variable(model, base_name = "M")
+    E = @variable(model, base_name= "E")
     
     tol = 1e-9
     rnorm = √(r' * r)
@@ -61,7 +66,13 @@ function add_orbital_elements!(model)
     normal_exc_r_cross = dot(exc_r_cross, normal_direction)
     @constraint(model, -tol <= sind(nu) -  normal_exc_r_cross / (exc_vec_norm*rnorm) <= tol)
     
-    r, v, a, e, i, Ω, ω, nu
+    @constraint(model, E - e*sin(E) == M)
+
+    #curtis page 144 & 145
+    @constraint(model, cos(E) == (e + cosd(nu)) / (1 + e*cosd(nu)))
+    @constraint(model, -tol <= sin(E) - √(1-e^2)*sind(nu) / (1 + e*cosd(nu)) <= tol)
+
+    r, v, a, e, i, Ω, ω, nu, M, E
 end
 ## obj: dar r0, v0, deltaT, receber r, v
 #designing single maneuver inversely
@@ -87,7 +98,7 @@ model = Model(
 )
 
 
-ri, vi, ai, ei, ii, Ωi, ωi, nui = add_orbital_elements!(model)
+ri, vi, ai, ei, ii, Ωi, ωi, nui, Mi, Ei = add_orbital_elements!(model)
 # rf, vf, af, ef, i_f, Ωf, ωf, nuf = add_orbital_elements!(model)
 
 @constraint(model, ri .== r0)
