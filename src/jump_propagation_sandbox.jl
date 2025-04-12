@@ -44,7 +44,7 @@ model = Model(
 )
 
 Δt_maneuver = @variable(model, Δt_maneuver, start=0.5*total_time)
-# @constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
+@constraint(model, 0 <= Δt_maneuver <= total_time)  #set start value of constraints?
 
 ΔVmag = @variable(model, 0 <= ΔVmag, start=1.0)
     
@@ -90,13 +90,13 @@ model
 ##
 optimize!(model)
 ##
-solved_rf = value.(orbparams_pre_maneuver.r)
-solved_vf = value.(orbparams_pre_maneuver.v)
+solved_rf = value.(orbparams_f.r)
+solved_vf = value.(orbparams_f.v)
 
 solved_deltaV = value.(ΔVmag * ΔVdir)
 
 solved_r_maneuver = value.(orbparams_pre_maneuver.r)
-solved_v_post_maneuver = value.(orbparams_pre_maneuver.v + solved_deltaV)
+solved_v_post_maneuver = value.(orbparams_post_maneuver.v)
 
 plot_orbit(
 orb0, 
