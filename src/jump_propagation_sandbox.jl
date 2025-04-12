@@ -15,7 +15,7 @@ function add_orbital_elements!(model)
 
     #adding exc as variable so bounds will always be respected
     #then need to put constraint on it and implement E and M
-    e = @variable(model, lower_bound = 0, upper_bound) = 
+    # e = @variable(model, lower_bound = 0, upper_bound) = 
     i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
@@ -33,27 +33,27 @@ function add_orbital_elements!(model)
     
     normal_direction = h ./ √(h' * h)
     
-    @constraint(model, -tol <= cosd(i) - normal_direction[3] <= tol)
+    @constraint(model, cosd(i) == normal_direction[3])
     
     N = cross([0;0;1], h)
     
     Nnorm = √(N' * N)
     
-    @constraint(model, -tol <= cosd(Ω) - N[1]/Nnorm <= tol)
+    @constraint(model, cosd(Ω) == N[1]/Nnorm)
     @constraint(model, -tol <= sind(Ω) - N[2]/Nnorm <= tol)
     
     exc_vec = (vnorm^2 / GM_EARTH - 1 / rnorm) * r - rnorm*vr/GM_EARTH .* v
     
     e = √(exc_vec' * exc_vec)
     
-    @constraint(model, -tol <= cosd(ω) - dot(N, exc_vec) / (Nnorm*e) <= tol)
+    @constraint(model, cosd(ω) == dot(N, exc_vec) / (Nnorm*e))
     
     N_e_cross = cross(N, exc_vec)
     normal_N_e_cross = dot(N_e_cross, normal_direction)
     
     @constraint(model, -tol <= sind(ω) - normal_N_e_cross / (Nnorm*e) <= tol)
     
-    @constraint(model, -tol <= cosd(nu) - dot(exc_vec, r) / (e*rnorm) <= tol)
+    @constraint(model, cosd(nu) == dot(exc_vec, r) / (e*rnorm))
     
     exc_r_cross = cross(exc_vec, r)
     normal_exc_r_cross = dot(exc_r_cross, normal_direction)
@@ -86,14 +86,14 @@ model = Model(
 
 
 ri, vi, ai, ei, ii, Ωi, ωi, nui = add_orbital_elements!(model)
-rf, vf, af, ef, i_f, Ωf, ωf, nuf = add_orbital_elements!(model)
+# rf, vf, af, ef, i_f, Ωf, ωf, nuf = add_orbital_elements!(model)
 
 @constraint(model, ri .== r0)
 @constraint(model, vi .== v0)
-
+model
 ##
 optimize!(model)
 value.(all_variables(model))
 ##
-value(e)
+value(ei)
 ##
