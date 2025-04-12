@@ -19,7 +19,7 @@ orb0 = KeplerianElements(
     30 |> deg2rad,
     0    |> deg2rad,
     0     |> deg2rad,
-    0     |> deg2rad
+    90     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
 orbf = @set orb0.f = 120 |> deg2rad
@@ -36,7 +36,7 @@ function add_orbital_elements_fix!(model)
     #then need to put constraint on it and implement E and M
     #deg!!!
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
-    i = @variable(model, lower_bound = 0, upper_bound = 180, base_name = "i")
+    i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
     nu = @variable(model, base_name = "nu")
@@ -49,25 +49,25 @@ function add_orbital_elements_fix!(model)
     h = √(hvec' * hvec)
 
     #curtis chap 4
-    r_perifocal = h^2/GM_EARTH * 1/(1+e*cosd(nu)) * [cosd(nu); sind(nu); 0]
+    r_perifocal = h^2/GM_EARTH * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
-    v_perifocal = GM_EARTH / h * [-sind(nu); e + cosd(nu); 0]
+    v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
     R3Omega = [
-        cosd(Ω) -sind(Ω) 0
-        sind(Ω)  cosd(Ω) 0
+        cos(Ω) -sin(Ω) 0
+        sin(Ω)  cos(Ω) 0
         0           0         1
     ]
 
     R1i = [
         1 0          0
-        0 cosd(i) -sind(i)
-        0 sind(i)  cosd(i)
+        0 cos(i) -sin(i)
+        0 sin(i)  cos(i)
     ]
 
     R3omega = [
-        cosd(Ω) -sind(Ω) 0
-        sind(Ω)  cosd(Ω) 0
+        cos(Ω) -sin(Ω) 0
+        sin(Ω)  cos(Ω) 0
         0           0         1    
     ]
 
@@ -79,8 +79,7 @@ function add_orbital_elements_fix!(model)
     @constraint(model, E - e*sin(E) == M)
 
     #curtis page 144 & 145
-    @constraint(model, cos(E) == (e + cosd(nu)) / (1 + e*cosd(nu)))
-    @constraint(model, -tol <= sin(E) - √(1-e^2)*sind(nu) / (1 + e*cosd(nu)) <= tol)
+    @constraint(model, E == 2 * atan(√((1-e)/(1+e))*tand(nu/2)))
 
     FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
 end
@@ -96,7 +95,15 @@ rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldna
 
 @variable(model, Δt)
 
-add_coast_set_boundaries!(model, orbparams_i, orbparams_f, r0, v0, r, v, Δt)
+@constraint(model, ri .== r0)
+@constraint(model, vi .== v0)
+@constraint(model, rf .== r)
+@constraint(model, vf' * vf .== v' * v)
+
+T = orbital_period(ai, GM_EARTH)
+
+
+@constraint(model, Δt == (Mf - Mi) / (2π) * T)
 model
 ##
 optimize!(model)
