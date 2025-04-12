@@ -7,6 +7,7 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
+##
 function add_orbital_elements!(model)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     r = @variable(model, [1:3], start = EARTH_EQUATORIAL_RADIUS)
@@ -75,22 +76,26 @@ function add_orbital_elements!(model)
     r, v, a, e, i, Ω, ω, nu, M, E
 end
 ## obj: dar r0, v0, deltaT, receber r, v
-#designing single maneuver inversely
+#example 3.1 curtis
+rp = 9600e3
+ra = 21000e3
+a = (rp + ra) / 2
+e = (ra - rp) / (ra + rp)
 orb0 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    7000e3,
-    0.01,
-    91.5 |> deg2rad,
-    91.5    |> deg2rad,
-    271.5     |> deg2rad,
-    263     |> deg2rad
+    a,
+    e,
+    30 |> deg2rad,
+    0    |> deg2rad,
+    0     |> deg2rad,
+    0     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
-# v0 = v0 * 10/7
-# T0 = orbital_period(orb0, GM_EARTH)
-plot_orbit(rv_to_kepler(r0, v0, orb0.t))
+orbf = @set orb0.f = 120 |> deg2rad
+r, v = kepler_to_rv(orbf)
+T = orbital_period(orb0, GM_EARTH)
+plot_orbit(orb0, orbf)
 ## CURTIS chap 3
-
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
         "max_iter" => 10000,
@@ -99,14 +104,28 @@ model = Model(
 
 
 ri, vi, ai, ei, ii, Ωi, ωi, nui, Mi, Ei = add_orbital_elements!(model)
-# rf, vf, af, ef, i_f, Ωf, ωf, nuf = add_orbital_elements!(model)
+rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = add_orbital_elements!(model)
 
 @constraint(model, ri .== r0)
 @constraint(model, vi .== v0)
+@constraint(model, rf .== r)
+@constraint(model, vf .== v)
+
+@variable(model, Δt)
+
+@constraint(model, Δt == (Mf - Mi) / (2π) * T)
+
 model
 ##
 optimize!(model)
 value.(all_variables(model))
 ##
-value(ei)
+value(ei), value(ef)
 ##
+value(ai), value(af)
+##
+value(Ei), value(Ef)
+##
+value(Mi), value(Mf)
+##
+value(model[:Δt])
