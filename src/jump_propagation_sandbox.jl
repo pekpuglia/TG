@@ -26,7 +26,7 @@ r_final, total_time, orb_postman, orb_final, v_final = final_position(
     orb0, 
     deltaV, 
     0.2, 
-    0.0
+    0.5
 )
 
 plot_orbit(orb0, orb_postman, orb_final)
@@ -51,33 +51,39 @@ model = Model(
 ΔVdir = @variable(model, -1 <= ΔVdir[1:3] <= 1, start = 0.0)
 set_start_value(ΔVdir[1], 1.0)
 
-# @constraint(model, ΔVdir' * ΔVdir == 1)
+@constraint(model, ΔVdir' * ΔVdir == 1)
 
 orbparams_i = add_orbital_elements!(model)
 
 orbparams_pre_maneuver = add_orbital_elements!(model)
-# orbparams_post_maneuver = add_orbital_elements!(model)
+orbparams_post_maneuver = add_orbital_elements!(model)
 
-# orbparams_f = add_orbital_elements!(model)
+orbparams_f = add_orbital_elements!(model)
 
-add_coast_set_boundaries!(model, 
-    orbparams_i,
-    orbparams_pre_maneuver,
-    r0, v0,
-    r_final, v_final - ΔVmag * ΔVdir, 
-    Δt_maneuver
-)
+#model evolution
 
-# add_coast_set_boundaries!(model,
-#     orbparams_post_maneuver,
-#     orbparams_f,
-#     orbparams_pre_maneuver.r,
-#     orbparams_post_maneuver.v + ΔVmag*ΔVdir,
-#     r_final, v_final,
-#     total_time - Δt_maneuver
-# )
+#starting condition
+@constraint(model, orbparams_i.r .== r0)
+@constraint(model, orbparams_i.v .== v0)
 
-# @objective(model, MIN_SENSE, ΔVmag)
+#coast 1
+Tpreman = orbital_period(orbparams_i.a, GM_EARTH)
+
+@constraint(model, Δt_maneuver == (orbparams_pre_maneuver.M - orbparams_i.M) / (2π) * Tpreman)
+
+#maneuver
+@constraint(model, orbparams_post_maneuver.r == orbparams_pre_maneuver.r)
+@constraint(model, orbparams_post_maneuver.v == orbparams_pre_maneuver.v + ΔVmag * ΔVdir)
+
+#coast 2
+Tpostman = orbital_period(orbparams_post_maneuver.a, GM_EARTH)
+@constraint(model, total_time - Δt_maneuver == (orbparams_f.M - orbparams_post_maneuver.M) / (2π) * Tpostman)
+
+#final conditions
+@constraint(model, orbparams_f.r .== r_final)
+# @constraint(model, orbparams_f.v .== v_final)
+
+@objective(model, MIN_SENSE, ΔVmag)
 
 model
 
