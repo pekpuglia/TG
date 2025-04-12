@@ -60,10 +60,24 @@ end
 
 y(z) = r1n + r2n + A*(z*S(z) - 1) / √(C(z))
 ##
-model = Model(Ipopt.Optimizer)
+function solve_for_z(delta_t, A)
+    model = Model(Ipopt.Optimizer)
 
-@variable(model, z >= 0)
+    @variable(model, z >= 0)
+    
+    @constraint(model, √GM_EARTH*delta_t == (y(z)/C(z))^(3/2)*S(z) + A*sqrt(y(z)))
+    
+    optimize!(model)
 
-@constraint(model, √GM_EARTH*delta_t == (y(z)/C(z))^(3/2)*S(z) + A*sqrt(y(z)))
+    value(z)
+end
 ##
-optimize!(model)
+z = solve_for_z(delta_t, A)
+yz = y(z)
+##
+f = 1 - yz/r1n
+g = A*√(yz/GM_EARTH)
+gdot = 1 - yz / r2n
+##
+v1 = 1/g * (r2 - f*r1)
+v2 = 1/g * (gdot * r2 - r1)
