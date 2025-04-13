@@ -19,12 +19,12 @@ orb0 = KeplerianElements(
     30 |> deg2rad,
     0    |> deg2rad,
     0     |> deg2rad,
-    0     |> deg2rad
+    180     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
 plot_orbit(orb0)
 ##
-function add_orbital_elements_fix!(model)
+function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     rscaled = @variable(model, [1:3], start = 1.0)
     r = EARTH_EQUATORIAL_RADIUS * rscaled
@@ -43,33 +43,37 @@ function add_orbital_elements_fix!(model)
     M = @variable(model, base_name = "M")
     E = @variable(model, base_name= "E")
     
-    hvec = cross(r, v)
-    h = √(hvec' * hvec)
+    R3Omega = [
+         cos(Ω) sin(Ω) 0
+        -sin(Ω) cos(Ω) 0
+        0          0        1
+    ]
 
+    R1i = [
+        1  0         0
+        0  cos(i) sin(i)
+        0 -sin(i) cos(i)
+    ]
+
+    R3omega = [
+        cos(Ω)  sin(Ω) 0
+        -sin(Ω) cos(Ω) 0
+        0          0        1
+    ]
+
+    QXxbar = R3omega * R1i * R3Omega
+
+    if given_rv
+        hvec = cross(r, v)
+        h = √(hvec' * hvec)
+    else
+        h = √(GM_EARTH*a*(1-e^2))
+    end
     #curtis chap 4
     r_perifocal = h^2/GM_EARTH * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
-    R3Omega = [
-        cos(Ω) -sin(Ω) 0
-        sin(Ω)  cos(Ω) 0
-        0           0         1
-    ]
-
-    R1i = [
-        1 0          0
-        0 cos(i) -sin(i)
-        0 sin(i)  cos(i)
-    ]
-
-    R3omega = [
-        cos(Ω) -sin(Ω) 0
-        sin(Ω)  cos(Ω) 0
-        0           0         1
-    ]
-
-    QXxbar = R3omega * R1i * R3Omega
 
     @constraint(model, r .== QXxbar' * r_perifocal)
     @constraint(model, v .== QXxbar' * v_perifocal)
@@ -92,13 +96,13 @@ r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrb
 # @constraint(model, a*(1-e) == rp)
 # @constraint(model, a*(1+e) == ra)
 
-# @constraint(model, i == deg2rad(30))
+# @constraint(model, i == orb0.i)
 
-# @constraint(model, nu == 0)
+# @constraint(model, nu == orb0.f)
 
-# @constraint(model, Ω == 0)
+# @constraint(model, Ω == orb0.Ω)
 
-# @constraint(model, ω == 0)
+# @constraint(model, ω == orb0.ω)
 
 @constraint(model, r .== r0)
 @constraint(model, v .== v0)
