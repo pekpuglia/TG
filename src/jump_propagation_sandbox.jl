@@ -24,6 +24,8 @@ orb0 = KeplerianElements(
 r0, v0 = kepler_to_rv(orb0)
 plot_orbit(orb0)
 ##
+#given rv chooses if r and v are constrained or if the constraints are
+#on the orbital elements
 function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     rscaled = @variable(model, [1:3], start = 1.0)
@@ -69,8 +71,10 @@ function add_orbital_elements_fix!(model, given_rv = true)
     else
         h = √(GM_EARTH*a*(1-e^2))
     end
+
     #curtis chap 4
-    r_perifocal = h^2/GM_EARTH * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+    #h^2/mu = p = a (1-e^2)
+    r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
@@ -90,7 +94,7 @@ model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
     "max_wall_time" => 30.0)
 )
-orbparams_i = add_orbital_elements_fix!(model)
+orbparams_i = add_orbital_elements_fix!(model, true)
 r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
 # @constraint(model, a*(1-e) == rp)
@@ -123,6 +127,8 @@ value(Ω)
 ##
 value(ω)
 ##
+value(E)
+##
 r0, value.(r)
 ##
 v0, value.(v)
@@ -132,4 +138,13 @@ solved_v = value.(v)
 plot_orbit(
     orb0,
     rv_to_kepler(solved_r, solved_v),
+    KeplerianElements(
+        orb0.t,
+        value(a),
+        value(e),
+        value(i),
+        value(Ω),
+        value(ω),
+        value(nu)
+    )
 )
