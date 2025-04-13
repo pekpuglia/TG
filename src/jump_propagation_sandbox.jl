@@ -37,11 +37,11 @@ function add_orbital_elements_fix!(model)
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
-    nu = @variable(model, start = π, base_name = "nu")
+    nu = @variable(model, base_name = "nu")
 
     #rad!!!
-    M = @variable(model, start = π, base_name = "M")
-    E = @variable(model, start = π, base_name= "E")
+    M = @variable(model, base_name = "M")
+    E = @variable(model, base_name= "E")
     
     hvec = cross(r, v)
     h = √(hvec' * hvec)
