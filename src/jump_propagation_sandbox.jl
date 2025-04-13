@@ -8,62 +8,75 @@ include("TG.jl")
 using .TG
 using LinearAlgebra
 ## example 
+rp = 9600e3
+ra = 21000e3
+a = (rp + ra) / 2
+e = (ra - rp) / (ra + rp)
+orbi = KeplerianElements(
+    date_to_jd(2023, 1, 1, 0, 0, 0),
+    a,
+    e,
+    30 |> deg2rad,
+    0    |> deg2rad,
+    0     |> deg2rad,
+    0     |> deg2rad
+)
+ri, vi = kepler_to_rv(orbi)
+Δt = 3*3600.0
 ##
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
     "max_wall_time" => 30.0)
 )
 orbparams_i = add_orbital_elements!(model, true)
-r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
+r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
-# @constraint(model, a*(1-e) == rp)
-# @constraint(model, a*(1+e) == ra)
+orbparams_f = add_orbital_elements!(model, false)
+rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
-# @constraint(model, i == orb0.i)
+@variable(model, Δt)
 
-# @constraint(model, nu == orb0.f)
+@constraint(model, r0 .== ri)
+@constraint(model, v0 .== vi)
 
-# @constraint(model, Ω == orb0.Ω)
+@constraint(model, af == a0)
+@constraint(model, ef == e0)
+@constraint(model, i_f == i0)
+@constraint(model, Ωf == Ω0)
+@constraint(model, ωf == ω0)
 
-# @constraint(model, ω == orb0.ω)
+T = orbital_period(orbi, GM_EARTH)
 
-@constraint(model, r .== r0)
-@constraint(model, v .== v0)
+@constraint(model, Δt == (Mf - M0) / (2π) * T)
+
 
 model
 ##
 optimize!(model)
 ##
-value(a), agiven
+value(a0), value(af), a
 ##
-value(e), egiven
+value(e0), value(ef), e
 ##
-value(nu)
+value(nu0), value(nuf)
 ##
-rad2deg(value(i))
+value(i0), value(i_f)
 ##
-value(Ω)
+value(Ω0), value(Ωf)
 ##
-value(ω)
+value(ω0), value(ωf)
 ##
-value(E)
+value(E0), value(Ef)
 ##
-r0, value.(r)
 ##
-v0, value.(v)
-##
-solved_r = value.(r)
-solved_v = value.(v)
+solved_r0 = value.(r0)
+solved_v0 = value.(v0)
+
+solved_rf = value.(rf)
+solved_vf = value.(vf)
+
 plot_orbit(
-    orb0,
-    rv_to_kepler(solved_r, solved_v),
-    KeplerianElements(
-        orb0.t,
-        value(a),
-        value(e),
-        value(i),
-        value(Ω),
-        value(ω),
-        value(nu)
-    )
+    orbi,
+    rv_to_kepler(solved_r0, solved_v0),
+    rv_to_kepler(solved_rf, solved_vf),
 )
