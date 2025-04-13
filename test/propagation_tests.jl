@@ -1,3 +1,70 @@
+@testset "Add orbital elements" begin
+    rp = (6378+400)*1000.0
+    ra = (6378+4000)*1000.0
+    agiven = (rp + ra) / 2
+    egiven = (ra - rp) / (ra + rp)
+    orb0 = KeplerianElements(
+        date_to_jd(2023, 1, 1, 0, 0, 0),
+        agiven,
+        egiven,
+        30 |> deg2rad,
+        0    |> deg2rad,
+        0     |> deg2rad,
+        180     |> deg2rad
+    )
+    r0, v0 = kepler_to_rv(orb0)
+
+    model = Model(
+    optimizer_with_attributes(Ipopt.Optimizer,
+    "max_wall_time" => 30.0)
+    )
+    
+    orbparams_i = add_orbital_elements!(model, false)
+    r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
+
+    @constraint(model, a*(1-e) == rp)
+    @constraint(model, a*(1+e) == ra)
+
+    @constraint(model, i == orb0.i)
+
+    @constraint(model, nu == orb0.f)
+
+    @constraint(model, Ω == orb0.Ω)
+
+    @constraint(model, ω == orb0.ω)
+
+    optimize!(model)
+
+    @test norm(value.(r) - r0) < 1
+    @test norm(value.(v) - v0) < 1
+    @test value(a) ≈ agiven
+    @test value(e) ≈ egiven
+    @test value(i) ≈ orb0.i atol = 1e-2
+    @test value(Ω) ≈ orb0.Ω atol = 1e-2
+    @test value(ω) ≈ orb0.ω atol = 1e-2
+
+    model = Model(
+        optimizer_with_attributes(Ipopt.Optimizer,
+        "max_wall_time" => 30.0)
+    )
+    
+    orbparams_i = add_orbital_elements!(model)
+    r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
+
+    @constraint(model, r .== r0)
+    @constraint(model, v .== v0)
+
+    optimize!(model)
+
+    @test norm(value.(r) - r0) < 1
+    @test norm(value.(v) - v0) < 1
+    @test value(a) ≈ agiven
+    @test value(e) ≈ egiven
+    @test value(i) ≈ orb0.i atol = 1e-2
+    @test value(Ω) ≈ orb0.Ω atol = 1e-2
+    @test value(ω) ≈ orb0.ω atol = 1e-2
+end
+
 @testset "Curtis Example 3.1" begin
     rp = 9600e3
     ra = 21000e3
