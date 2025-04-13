@@ -337,8 +337,10 @@ function add_orbital_elements!(model, given_rv = true)
     else
         h = √(GM_EARTH*a*(1-e^2))
     end
+
     #curtis chap 4
-    r_perifocal = h^2/GM_EARTH * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+    #h^2/mu = p = a (1-e^2)
+    r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
