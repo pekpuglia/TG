@@ -34,8 +34,6 @@ r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnam
 orbparams_f = add_orbital_elements!(model, false)
 rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
-@variable(model, Δt)
-
 @constraint(model, r0 .== ri)
 @constraint(model, v0 .== vi)
 
@@ -68,6 +66,9 @@ value(ω0), value(ωf)
 ##
 value(E0), value(Ef)
 ##
+(value(Mf) - value(M0)) / (2π) * T
+#Ef = 3.4794
+#nu = 193.2deg
 ##
 solved_r0 = value.(r0)
 solved_v0 = value.(v0)
