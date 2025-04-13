@@ -18,7 +18,7 @@ orb0 = KeplerianElements(
     egiven,
     30 |> deg2rad,
     0    |> deg2rad,
-    0     |> deg2rad,
+    30     |> deg2rad,
     180     |> deg2rad
 )
 r0, v0 = kepler_to_rv(orb0)
@@ -58,8 +58,8 @@ function add_orbital_elements_fix!(model, given_rv = true)
     ]
 
     R3omega = [
-        cos(Ω)  sin(Ω) 0
-        -sin(Ω) cos(Ω) 0
+        cos(ω)  sin(ω) 0
+        -sin(ω) cos(ω) 0
         0          0        1
     ]
 

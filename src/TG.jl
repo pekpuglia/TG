@@ -324,8 +324,8 @@ function add_orbital_elements!(model, given_rv = true)
     ]
 
     R3omega = [
-        cos(Ω)  sin(Ω) 0
-        -sin(Ω) cos(Ω) 0
+        cos(ω)  sin(ω) 0
+        -sin(ω) cos(ω) 0
         0          0        1
     ]
 

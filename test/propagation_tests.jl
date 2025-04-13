@@ -8,8 +8,8 @@
         agiven,
         egiven,
         30 |> deg2rad,
-        0    |> deg2rad,
-        0     |> deg2rad,
+        15    |> deg2rad,
+        60     |> deg2rad,
         180     |> deg2rad
     )
     r0, v0 = kepler_to_rv(orb0)
@@ -40,8 +40,8 @@
     @test value(a) ≈ agiven
     @test value(e) ≈ egiven
     @test value(i) ≈ orb0.i atol = 1e-2
-    @test value(Ω) ≈ orb0.Ω atol = 1e-2
-    @test value(ω) ≈ orb0.ω atol = 1e-2
+    @test mod(value(Ω), 2π) ≈ orb0.Ω atol = 1e-2
+    @test mod(value(ω), 2π) ≈ orb0.ω atol = 1e-2
 
     model = Model(
         optimizer_with_attributes(Ipopt.Optimizer,
@@ -61,8 +61,8 @@
     @test value(a) ≈ agiven
     @test value(e) ≈ egiven
     @test value(i) ≈ orb0.i atol = 1e-2
-    @test value(Ω) ≈ orb0.Ω atol = 1e-2
-    @test value(ω) ≈ orb0.ω atol = 1e-2
+    @test mod(value(Ω), 2π) ≈ orb0.Ω atol = 1e-2
+    @test mod(value(ω), 2π) ≈ orb0.ω atol = 1e-2
 end
 
 @testset "Curtis Example 3.1" begin
