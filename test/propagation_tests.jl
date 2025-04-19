@@ -100,7 +100,15 @@ end
 
     @variable(model, Δt)
 
-    add_coast_set_boundaries!(model, orbparams_i, orbparams_f, r0, v0, r, v, Δt)
+    @constraint(model, orbparams_i.r .== r0)
+    @constraint(model, orbparams_i.v .== v0)
+    @constraint(model, orbparams_f.r .== r)
+    @constraint(model, orbparams_f.v .== v)
+    
+    T = orbital_period(orbparams_i.a, GM_EARTH)
+
+
+    @constraint(model, Δt == (orbparams_f.M - orbparams_i.M) / (2π) * T)
 
     optimize!(model)
 

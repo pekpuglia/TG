@@ -356,17 +356,4 @@ function add_orbital_elements!(model, given_rv = false)
     FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
 end
 
-export add_coast_set_boundaries!
-function add_coast_set_boundaries!(model, orbi::FullOrbitalParameters, orbf::FullOrbitalParameters, ri, vi, rf, vf, Δt)
-    @constraint(model, orbi.r .== ri)
-    @constraint(model, orbi.v .== vi)
-    @constraint(model, orbf.r .== rf)
-    @constraint(model, orbf.v .== vf)
-    
-    T = orbital_period(orbi.a, GM_EARTH)
-
-
-    @constraint(model, Δt == (orbf.M - orbi.M) / (2π) * T)
-end
-
 end # module TG
