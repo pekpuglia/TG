@@ -25,7 +25,7 @@ ri, vi = kepler_to_rv(orbi)
 
 T = orbital_period(orbi, GM_EARTH)
 
-Δt = 0.7*T
+Δt = 10800.0
 ##
 function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
@@ -40,7 +40,7 @@ function add_orbital_elements_fix!(model, given_rv = true)
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
-    nu = @variable(model, base_name = "nu")
+    nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
 
     #rad!!!
     M = @variable(model, lower_bound = 0.0, base_name = "M")
