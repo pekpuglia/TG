@@ -7,7 +7,7 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
-## example 
+## example 3.2
 rp = 9600e3
 ra = 21000e3
 a = (rp + ra) / 2
@@ -116,23 +116,34 @@ model
 ##
 optimize!(model)
 ##
+#ok!
 value(a0), value(af), a
 ##
+#ok!
 value(e0), value(ef), e
 ##
-value(nu0), value(nuf)
-##
+#ok!
 value(i0), value(i_f)
 ##
+#oK!
 value(Ω0), value(Ωf)
 ##
+#ok!
 value(ω0), value(ωf)
 ##
+#ok!
+(value(Mf) - value(M0)) / (2π) * T
+##
+#wrong
+#Mf = 3.6029 rad
+value(Mf), value(M0)
+##
+#Ef = 3.4794
 value(E0), value(Ef)
 ##
-(value(Mf) - value(M0)) / (2π) * T
-#Ef = 3.4794
-#nu = 193.2deg
+#nuf = 193.2deg
+value(nu0), value(nuf)
+##
 ##
 solved_r0 = value.(r0)
 solved_v0 = value.(v0)
