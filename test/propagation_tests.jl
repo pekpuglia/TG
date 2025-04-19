@@ -149,7 +149,7 @@ end
         optimizer_with_attributes(Ipopt.Optimizer,
         "max_wall_time" => 30.0)
     )
-    orbparams_i = add_orbital_elements!(model, true)
+    orbparams_i = add_orbital_elements!(model, false)
     r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
     orbparams_f = add_orbital_elements!(model, false)
