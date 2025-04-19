@@ -19,7 +19,7 @@
     "max_wall_time" => 30.0)
     )
     
-    orbparams_i = add_orbital_elements!(model, false)
+    orbparams_i = add_orbital_elements!(model)
     r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
     @constraint(model, a*(1-e) == rp)
@@ -50,7 +50,7 @@
         "max_wall_time" => 30.0)
     )
     
-    orbparams_i = add_orbital_elements!(model, false) #don't know why
+    orbparams_i = add_orbital_elements!(model) #don't know why
     r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
     @constraint(model, r .== r0)
@@ -93,9 +93,9 @@ end
         "max_wall_time" => 30.0)
     )
 
-    orbparams_i = add_orbital_elements!(model)
+    orbparams_i = add_orbital_elements!(model, true)
     ri, vi, ai, ei, ii, Ωi, ωi, nui, Mi, Ei = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
-    orbparams_f = add_orbital_elements!(model)
+    orbparams_f = add_orbital_elements!(model, true)
     rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
     @variable(model, Δt)
@@ -149,10 +149,10 @@ end
         optimizer_with_attributes(Ipopt.Optimizer,
         "max_wall_time" => 30.0)
     )
-    orbparams_i = add_orbital_elements!(model, false)
+    orbparams_i = add_orbital_elements!(model)
     r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
-    orbparams_f = add_orbital_elements!(model, false)
+    orbparams_f = add_orbital_elements!(model)
     rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
     @constraint(model, r0 .== ri)

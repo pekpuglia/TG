@@ -292,7 +292,7 @@ struct FullOrbitalParameters
 end
 
 export add_orbital_elements!
-function add_orbital_elements!(model, given_rv = true)
+function add_orbital_elements!(model, given_rv = false)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     rscaled = @variable(model, [1:3], start = 1.0)
     r = EARTH_EQUATORIAL_RADIUS * rscaled
