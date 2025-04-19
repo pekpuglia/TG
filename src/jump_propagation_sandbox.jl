@@ -25,7 +25,7 @@ ri, vi = kepler_to_rv(orbi)
 
 T = orbital_period(orbi, GM_EARTH)
 
-Δt = 0.45*T #3*3600.0
+Δt = 0.7*T
 ##
 function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
@@ -86,7 +86,7 @@ function add_orbital_elements_fix!(model, given_rv = true)
     @constraint(model, E - e*sin(E) == M)
 
     #curtis page 144 & 145
-    @constraint(model, nu == 2 * atan(√((1+e)/(1-e))*tan(E/2)))
+    @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
 
     FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
 end
@@ -144,7 +144,7 @@ value(M0), value(Mf)
 value(E0), value(Ef)
 ##
 #nuf = 193.2deg
-value(nu0), value(nuf)
+value(nu0), rad2deg(value(nuf))
 ##
 solved_r0 = value.(r0)
 solved_v0 = value.(v0)
