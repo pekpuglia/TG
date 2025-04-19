@@ -7,25 +7,21 @@ using ForwardDiff
 include("TG.jl")
 using .TG
 using LinearAlgebra
-## example 3.2
-rp = 9600e3
-ra = 21000e3
-a = (rp + ra) / 2
-e = (ra - rp) / (ra + rp)
-orbi = KeplerianElements(
+## example
+rp = (6378+400)*1000.0
+ra = (6378+4000)*1000.0
+agiven = (rp + ra) / 2
+egiven = (ra - rp) / (ra + rp)
+orb0 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    a,
-    e,
+    agiven,
+    egiven,
     30 |> deg2rad,
-    0    |> deg2rad,
-    0     |> deg2rad,
-    0     |> deg2rad
+    15    |> deg2rad,
+    60     |> deg2rad,
+    180     |> deg2rad
 )
-ri, vi = kepler_to_rv(orbi)
-
-T = orbital_period(orbi, GM_EARTH)
-
-Δt = 10800.0
+r0, v0 = kepler_to_rv(orb0)
 ##
 function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
@@ -92,26 +88,15 @@ function add_orbital_elements_fix!(model, given_rv = true)
 end
 ##
 model = Model(
-    optimizer_with_attributes(Ipopt.Optimizer,
-    "max_wall_time" => 30.0)
+        optimizer_with_attributes(Ipopt.Optimizer,
+        "max_wall_time" => 30.0)
 )
-orbparams_i = add_orbital_elements_fix!(model, true)
-r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
-orbparams_f = add_orbital_elements_fix!(model, false)
-rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
+orbparams_i = add_orbital_elements_fix!(model)
+r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
-@constraint(model, r0 .== ri)
-@constraint(model, v0 .== vi)
-
-@constraint(model, af == a0)
-@constraint(model, ef == e0)
-@constraint(model, i_f == i0)
-@constraint(model, Ωf == Ω0)
-@constraint(model, ωf == ω0)
-
-
-@constraint(model, Δt == (Mf - M0) / (2π) * T)
+@constraint(model, r .== r0)
+@constraint(model, v .== v0)
 
 
 model
@@ -119,41 +104,26 @@ model
 optimize!(model)
 ##
 #ok!
-value(a0), value(af), a
+value(a), agiven
 ##
 #ok!
-value(e0), value(ef), e
+value(e), egiven
 ##
 #ok!
-value(i0), value(i_f)
+rad2deg(value(i))
 ##
 #oK!
-value(Ω0), value(Ωf)
+rad2deg(value(Ω))
 ##
 #ok!
-value(ω0), value(ωf)
+rad2deg(value(ω))
 ##
-#ok!
-(value(Mf) - value(M0)) / (2π) * T
+rad2deg(value(nu))
 ##
-#wrong
-#Mf = 3.6029 rad
-value(M0), value(Mf)
-##
-#Ef = 3.4794
-value(E0), value(Ef)
-##
-#nuf = 193.2deg
-value(nu0), rad2deg(value(nuf))
-##
-solved_r0 = value.(r0)
-solved_v0 = value.(v0)
-
-solved_rf = value.(rf)
-solved_vf = value.(vf)
+solved_r = value.(r)
+solved_v = value.(v)
 
 plot_orbit(
-    orbi,
-    rv_to_kepler(solved_r0, solved_v0),
-    rv_to_kepler(solved_rf, solved_vf),
+    orb0,
+    rv_to_kepler(solved_r, solved_v),
 )
