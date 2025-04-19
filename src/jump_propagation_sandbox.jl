@@ -22,7 +22,10 @@ orbi = KeplerianElements(
     0     |> deg2rad
 )
 ri, vi = kepler_to_rv(orbi)
-Δt = 3*3600.0
+
+T = orbital_period(orbi, GM_EARTH)
+
+Δt = 0.45*T #3*3600.0
 ##
 function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
@@ -107,7 +110,6 @@ rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldna
 @constraint(model, Ωf == Ω0)
 @constraint(model, ωf == ω0)
 
-T = orbital_period(orbi, GM_EARTH)
 
 @constraint(model, Δt == (Mf - M0) / (2π) * T)
 
@@ -143,7 +145,6 @@ value(E0), value(Ef)
 ##
 #nuf = 193.2deg
 value(nu0), value(nuf)
-##
 ##
 solved_r0 = value.(r0)
 solved_v0 = value.(v0)
