@@ -20,7 +20,7 @@ t_list = 0:0.1:3
 ##
 solution_types = ["start constraint", "end constraint"]
 ##
-function output_format(sol_type, exec_time, givenorb::KeplerianElements, start_orb_params::FullOrbitalParameters, end_orb_params::FullOrbitalParameters; error = nothing, converged)
+function output_format(sol_type, exec_time, deltat, givenorb::KeplerianElements, start_orb_params::FullOrbitalParameters, end_orb_params::FullOrbitalParameters; error = nothing, converged)
     given_a = givenorb.a
     given_e = givenorb.e
     given_i = givenorb.i
@@ -47,7 +47,7 @@ function output_format(sol_type, exec_time, givenorb::KeplerianElements, start_o
     end_r = value.(end_orb_params.r)
     end_v = value.(end_orb_params.v)
     
-    "Solution type: $sol_type\nSolution time: $exec_time\n"*something(error,"")*"Solved and feasible: $converged\n"*
+    "Solution type: $sol_type\nSolution time: $exec_time\n"*something(error,"")*"Solved and feasible: $converged\nΔt=$deltat\n"*
     (
         @sprintf "\t       Given orbital elements: a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" given_a given_e given_f mod(given_i, 2pi) mod(given_Ω, 2pi) mod(given_ω, 2pi)
     )*(
@@ -55,9 +55,9 @@ function output_format(sol_type, exec_time, givenorb::KeplerianElements, start_o
     )*(
         @sprintf "\t  Solved end orbital elements: a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" end_a     end_e     end_f     mod(end_i, 2pi)     mod(end_Ω, 2pi)     mod(end_ω, 2pi)
     )*
-    "\tGiven state vector: r = $given_r, v = $given_v\n"*
+    "\t  Given state vector: r = $given_r, v = $given_v\n"*
     "\tInitial state vector: r = $(start_r), v = $(start_v)\n\n"*
-    "\tFinal state vector: r = $(end_r), v = $(end_v)\n\n"
+    "\t  Final state vector: r = $(end_r), v = $(end_v)\n\n"
 end
 ##
 Nsamples = 100
@@ -93,6 +93,12 @@ open(outfile, "a") do file
         @constraint(model, i_f == i0)
         @constraint(model, Ωf == Ω0)
         @constraint(model, ωf == ω0)
+        
+        T = orbital_period(orbparams_i.a, GM_EARTH)
+        selected_t = rand(t_list)
+        Δt = selected_t * orbital_period(orb, GM_EARTH)
+
+        @constraint(model, Δt == (Mf - M0) / (2π) * T)
 
         sol_type = rand(solution_types)
         if sol_type == solution_types[1]
@@ -111,7 +117,7 @@ open(outfile, "a") do file
             error = e
         end
 
-        output = output_format(sol_type, stats.time, orb, orbparams_i, orbparams_f; error=error, converged=is_solved_and_feasible(model))
+        output = output_format(sol_type, stats.time, selected_t, orb, orbparams_i, orbparams_f; error=error, converged=is_solved_and_feasible(model))
 
         println(file, output)
         flush(file)
