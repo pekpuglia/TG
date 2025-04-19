@@ -43,8 +43,8 @@ function add_orbital_elements_fix!(model, given_rv = true)
     nu = @variable(model, base_name = "nu")
 
     #rad!!!
-    M = @variable(model, base_name = "M")
-    E = @variable(model, base_name= "E")
+    M = @variable(model, lower_bound = 0.0, base_name = "M")
+    E = @variable(model, lower_bound = 0.0, base_name= "E")
     
     R3Omega = [
          cos(Ω) sin(Ω) 0
