@@ -48,7 +48,7 @@
         "max_wall_time" => 30.0)
     )
     
-    orbparams_i = add_orbital_elements!(model)
+    orbparams_i = add_orbital_elements!(model, false) #don't know why
     r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
 
     @constraint(model, r .== r0)
