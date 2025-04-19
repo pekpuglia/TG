@@ -100,6 +100,8 @@ end
 
     optimize!(model)
 
+    @test is_solved_and_feasible(model)
+
     @test all(isapprox(value.(ri), r0, atol = 1e-3))
     @test all(isapprox(value.(vi), v0, atol = 1e-3))
 
@@ -119,4 +121,70 @@ end
     @test value(Mf) ≈ 1.3601 atol = 1e-3
 
     @test value(model[:Δt]) ≈ 4077.0 atol = 1e-1
+end
+
+@testset "Curtis Example 3.2" begin
+    rp = 9600e3
+    ra = 21000e3
+    a = (rp + ra) / 2
+    e = (ra - rp) / (ra + rp)
+    orbi = KeplerianElements(
+        date_to_jd(2023, 1, 1, 0, 0, 0),
+        a,
+        e,
+        30 |> deg2rad,
+        0    |> deg2rad,
+        0     |> deg2rad,
+        0     |> deg2rad
+    )
+    ri, vi = kepler_to_rv(orbi)
+    T = orbital_period(orbi, GM_EARTH)
+    Δt = 10800.0
+
+    model = Model(
+        optimizer_with_attributes(Ipopt.Optimizer,
+        "max_wall_time" => 30.0)
+    )
+    orbparams_i = add_orbital_elements!(model, true)
+    r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnames(FullOrbitalParameters))
+
+    orbparams_f = add_orbital_elements!(model, false)
+    rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
+
+    @constraint(model, r0 .== ri)
+    @constraint(model, v0 .== vi)
+
+    @constraint(model, af == a0)
+    @constraint(model, ef == e0)
+    @constraint(model, i_f == i0)
+    @constraint(model, Ωf == Ω0)
+    @constraint(model, ωf == ω0)
+
+
+    @constraint(model, Δt == (Mf - M0) / (2π) * T)
+
+    optimize!(model)
+
+    @test is_solved_and_feasible(model)
+
+    @test all(isapprox(value.(r0), ri, atol = 1e-3))
+    @test all(isapprox(value.(v0), vi, atol = 1e-3))
+    
+    @test value(a0) ≈ a atol = 1e-3
+    @test value(af) ≈ a atol = 1e-3
+
+    @test value(e0) ≈ e atol = 1e-3
+    @test value(ef) ≈ e atol = 1e-3
+
+    @test value(E0) ≈ 0.0 atol = 1e-6
+    @test value(Ef) ≈ 3.4794 atol = 1e-3
+
+    @test value(M0) ≈ 0.0 atol = 1e-6
+    @test value(Mf) ≈ 3.6029 atol = 1e-3
+
+    @test value(M0) ≈ 0.0 atol = 1e-6
+    @test value(Mf) ≈ 3.6029 atol = 1e-3    
+
+    @test value(nu0) ≈ 0.0 atol = 1e-6
+    @test rad2deg(value(nuf)) ≈ 193.2 atol = 1e-1
 end

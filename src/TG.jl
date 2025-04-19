@@ -305,11 +305,11 @@ function add_orbital_elements!(model, given_rv = true)
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
-    nu = @variable(model, base_name = "nu")
+    nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
 
     #rad!!!
-    M = @variable(model, base_name = "M")
-    E = @variable(model, base_name= "E")
+    M = @variable(model, lower_bound = 0.0, base_name = "M")
+    E = @variable(model, lower_bound = 0.0, base_name= "E")
     
     R3Omega = [
          cos(Ω) sin(Ω) 0
@@ -351,7 +351,7 @@ function add_orbital_elements!(model, given_rv = true)
     @constraint(model, E - e*sin(E) == M)
 
     #curtis page 144 & 145
-    @constraint(model, E == 2 * atan(√((1-e)/(1+e))*tan(nu/2)))
+    @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
 
     FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
 end
