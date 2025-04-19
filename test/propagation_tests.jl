@@ -35,6 +35,8 @@
 
     optimize!(model)
 
+    @test is_solved_and_feasible(model)
+
     @test norm(value.(r) - r0) < 1
     @test norm(value.(v) - v0) < 1
     @test value(a) ≈ agiven
@@ -55,6 +57,8 @@
     @constraint(model, v .== v0)
 
     optimize!(model)
+
+    @test is_solved_and_feasible(model)
 
     @test norm(value.(r) - r0) < 1
     @test norm(value.(v) - v0) < 1
