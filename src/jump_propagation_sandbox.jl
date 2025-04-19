@@ -22,7 +22,7 @@ orbi = KeplerianElements(
     0     |> deg2rad
 )
 ri, vi = kepler_to_rv(orbi)
-Δt = 3600.0
+Δt = 3*3600.0
 ##
 function add_orbital_elements_fix!(model, given_rv = true)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
@@ -136,7 +136,7 @@ value(ω0), value(ωf)
 ##
 #wrong
 #Mf = 3.6029 rad
-value(Mf), value(M0)
+value(M0), value(Mf)
 ##
 #Ef = 3.4794
 value(E0), value(Ef)
