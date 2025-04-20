@@ -38,9 +38,68 @@ function output_format(sol_type, time, orb::KeplerianElements, givenr, givenv, o
     "\tSolved state vector: r = $(r), v = $(v)\n\n"
 end
 ##
-Nsamples = 1000
+function add_orbital_elements_fix!(model)
+    Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+    rscaled = @variable(model, [1:3])
+    @constraint(model, rscaled' * rscaled >= 1)
+    r = EARTH_EQUATORIAL_RADIUS * rscaled
+    vscaled = @variable(model, [1:3])
+    v = Vorb_sup*vscaled
 
-outfile = "./src/elements/benchmark"
+    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS, start = 2EARTH_EQUATORIAL_RADIUS)
+    e = @variable(model, lower_bound = 0, upper_bound = 1) 
+    @constraint(model, a*(1-e) >= EARTH_EQUATORIAL_RADIUS)
+    i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
+    Ω = @variable(model, base_name = "Ω")
+    ω = @variable(model, base_name = "ω")
+    nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
+
+    #rad!!!
+    M = @variable(model, lower_bound = 0.0, base_name = "M")
+    E = @variable(model, lower_bound = 0.0, base_name= "E")
+    
+    R3Omega = [
+         cos(Ω) sin(Ω) 0
+        -sin(Ω) cos(Ω) 0
+        0          0        1
+    ]
+
+    R1i = [
+        1  0         0
+        0  cos(i) sin(i)
+        0 -sin(i) cos(i)
+    ]
+
+    R3omega = [
+        cos(ω)  sin(ω) 0
+        -sin(ω) cos(ω) 0
+        0          0        1
+    ]
+
+    QXxbar = R3omega * R1i * R3Omega
+
+    #curtis chap 4
+    #h^2/mu = p = a (1-e^2)
+    r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+    
+    h = √(GM_EARTH*a*(1-e^2))
+    v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
+
+
+    @constraint(model, r .== QXxbar' * r_perifocal)
+    @constraint(model, v .== QXxbar' * v_perifocal)
+    
+    @constraint(model, E - e*sin(E) == M)
+
+    #curtis page 144 & 145
+    @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
+
+    FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
+end
+##
+Nsamples = 100
+
+outfile = "./src/elements/test_elements_out"
 open(outfile, "w") do file
     for i in 1:Nsamples
         orb = KeplerianElements(
@@ -68,7 +127,7 @@ open(outfile, "w") do file
         )
         set_silent(model)
 
-        orbparams = add_orbital_elements!(model)
+        orbparams = add_orbital_elements_fix!(model)
         r, v, a, e, i, Ω, ω, f, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
         
         sol_type = "rv input"
