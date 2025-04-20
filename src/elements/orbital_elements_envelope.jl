@@ -140,6 +140,10 @@ open(outfile, "w") do file
         if sol_type == "rv input"
             @constraint(model, r .== given_r)
             @constraint(model, v .== given_v)
+
+            est_a = - (GM_EARTH/2) / (-GM_EARTH/norm(given_r) + given_v' * given_v / 2)
+
+            set_start_value(a, est_a)
         else
             @constraint(model, a == orb.a)
             @constraint(model, e == orb.e)
