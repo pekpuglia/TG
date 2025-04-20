@@ -41,13 +41,13 @@ end
 
 function add_orbital_elements_fix!(model, given_rv = false)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-    rscaled = @variable(model, [1:3])
+    rscaled = @variable(model, [1:3], start = 1.0)
     r = EARTH_EQUATORIAL_RADIUS * rscaled
     vscaled = @variable(model, [1:3])
-    # set_start_value(vscaled[1], 1.0)
+    set_start_value(vscaled[1], 1.0)
     v = Vorb_sup*vscaled
 
-    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS)
+    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS, start = 2EARTH_EQUATORIAL_RADIUS)
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
@@ -141,9 +141,7 @@ open(outfile, "w") do file
             @constraint(model, r .== given_r)
             @constraint(model, v .== given_v)
 
-            est_a = - (GM_EARTH/2) / (-GM_EARTH/norm(given_r) + given_v' * given_v / 2)
-
-            set_start_value(a, est_a)
+            
         else
             @constraint(model, a == orb.a)
             @constraint(model, e == orb.e)
