@@ -48,7 +48,7 @@ function add_orbital_elements_fix!(model, given_rv = false)
     v = Vorb_sup*vscaled
 
     a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS, start = 2EARTH_EQUATORIAL_RADIUS)
-    e = @variable(model, lower_bound = 0, upper_bound = 1) 
+    e = @variable(model, lower_bound = 1e-3, upper_bound = 1 - 1e-3) 
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
@@ -90,7 +90,6 @@ function add_orbital_elements_fix!(model, given_rv = false)
     r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
-
 
     @constraint(model, r .== QXxbar' * r_perifocal)
     @constraint(model, v .== QXxbar' * v_perifocal)
