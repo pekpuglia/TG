@@ -34,8 +34,8 @@ function output_format(sol_type, time, orb::KeplerianElements, givenr, givenv, o
     )*(
         @sprintf "\tSolved orbital elements: a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" a     e     f     mod(i, 2pi)     mod(Ω, 2pi)     mod(ω, 2pi)
     )*
-    "\tGiven state vector: r = $givenr, v = $givenv\n"*
-    "\tGiven state vector: r = $(r), v = $(v)\n\n"
+    "\t Given state vector: r = $givenr, v = $givenv\n"*
+    "\tSolved state vector: r = $(r), v = $(v)\n\n"
 end
 ##
 Nsamples = 100
