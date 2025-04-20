@@ -11,9 +11,9 @@ using Printf
 ##
 orb = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    10000e3,
-    0.0100,
-    0.5,
+    20000e3,
+    0.100,
+    2.5,
     4.8869,
     .1888,
     0.0000
@@ -27,8 +27,14 @@ model = Model(
     "max_wall_time" => 30.0)
 )
 Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-rscaled = @variable(model, [1:3])
-@constraint(model, rscaled' * rscaled >= 1)
+# rscaled = @variable(model, [1:3])
+# @constraint(model, rscaled' * rscaled >= 1)
+radius_scaled = @variable(model, lower_bound = 1.0, base_name = "radius")
+right_ascension = @variable(model, base_name="right_ascension")
+declination = @variable(model, lower_bound=-π/2, upper_bound=π/2, base_name="declination")
+
+rscaled = radius_scaled * [cos(right_ascension)*cos(declination); sin(right_ascension)*cos(declination); sin(declination)]
+
 r = EARTH_EQUATORIAL_RADIUS * rscaled
 vscaled = @variable(model, [1:3])
 v = Vorb_sup*vscaled
