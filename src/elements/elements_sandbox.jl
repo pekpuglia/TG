@@ -69,13 +69,12 @@ QXxbar = R3omega * R1i * R3Omega
 #h^2/mu = p = a (1-e^2)
 r_perifocal_scaled = ascaled*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
-#very bad scaling
-h = √(GM_EARTH*a*(1-e^2))
-v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
+#scaled with sqrt(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+v_perifocal_scaled = 1 / √(ascaled*(1-e^2)) * [-sin(nu); e + cos(nu); 0]
 
 
 @constraint(model, rscaled .== QXxbar' * r_perifocal_scaled)
-@constraint(model, vscaled .== QXxbar' * v_perifocal / Vorb_sup)
+@constraint(model, vscaled .== QXxbar' * v_perifocal_scaled)
 
 @constraint(model, E - e*sin(E) == M)
 
