@@ -292,7 +292,7 @@ struct FullOrbitalParameters
 end
 
 export add_orbital_elements!
-function add_orbital_elements!(model, given_rv = false)
+function add_orbital_elements!(model)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
     rscaled = @variable(model, [1:3])
     @constraint(model, rscaled' * rscaled >= 1)
@@ -331,17 +331,11 @@ function add_orbital_elements!(model, given_rv = false)
 
     QXxbar = R3omega * R1i * R3Omega
 
-    if given_rv
-        hvec = cross(r, v)
-        h = √(hvec' * hvec)
-    else
-        h = √(GM_EARTH*a*(1-e^2))
-    end
-
     #curtis chap 4
     #h^2/mu = p = a (1-e^2)
     r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
-
+    
+    h = √(GM_EARTH*a*(1-e^2))
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
 
