@@ -74,6 +74,14 @@ open(outfile, "a") do file
             rand(ω_list),
             rand(f_list),
         )
+        while true
+            if orb.a*(1-orb.e) >= EARTH_EQUATORIAL_RADIUS
+                break
+            end
+            orb = @set orb.a = rand(a_list)
+            orb = @set orb.e = rand(e_list)
+        end
+
         given_r, given_v = kepler_to_rv(orb)
 
         model = Model(
