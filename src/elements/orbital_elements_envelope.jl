@@ -127,7 +127,7 @@ open(outfile, "w") do file
         )
         set_silent(model)
 
-        orbparams = add_orbital_elements_fix!(model)
+        orbparams = add_orbital_elements!(model)
         r, v, a, e, i, Ω, ω, f, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
         
         sol_type = "rv input"
