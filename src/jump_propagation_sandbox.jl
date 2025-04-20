@@ -41,6 +41,8 @@ rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldna
 @constraint(model, Ωf == Ω0)
 @constraint(model, ωf == ω0)
 
+# fix(a0, orbi.a, force=true)
+set_start_value(a0, orbi.a)
 
 @constraint(model, Δt == (Mf - M0) / (2π) * T)
 model
