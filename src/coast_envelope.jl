@@ -109,7 +109,7 @@ open(outfile, "a") do file
         @constraint(model, Δt == (Mf - M0) / (2π) * T)
 
         sol_type = rand(solution_types)
-        if sol_type == solution_types[1]
+        if sol_type == solution_types[2]
             @constraint(model, rf .== given_r)
             @constraint(model, vf .== given_v)
         else
