@@ -4,7 +4,7 @@ using JuMP
 using Ipopt
 using Setfield
 using ForwardDiff
-include("TG.jl")
+include("../TG.jl")
 using .TG
 using LinearAlgebra
 using Random
@@ -40,7 +40,7 @@ end
 ##
 Nsamples = 100
 
-outfile = "./src/elements_out"
+outfile = "./src/elements/elements_out"
 open(outfile, "a") do file
     for i in 1:Nsamples
         orb = KeplerianElements(
@@ -52,6 +52,14 @@ open(outfile, "a") do file
             rand(ω_list),
             rand(f_list),
         )
+        while true
+            if orb.a*(1-orb.e) >= EARTH_EQUATORIAL_RADIUS
+                break
+            end
+            orb = @set orb.a = rand(a_list)
+            orb = @set orb.e = rand(e_list)
+        end
+
         given_r, given_v = kepler_to_rv(orb)
 
         model = Model(
