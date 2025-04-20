@@ -30,9 +30,9 @@ function output_format(sol_type, time, orb::KeplerianElements, givenr, givenv, o
     v = value.(orbparams.v)
     "Solution type: $sol_type\nSolution time: $time\n"*something(error,"")*"Solved and feasible: $converged\n"*
     (
-        @sprintf "\tGiven orbital elements : a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" orb.a orb.e orb.f mod(orb.i, 2pi) mod(orb.Ω, 2pi) mod(orb.ω, 2pi)
+        @sprintf "\tGiven orbital elements : a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" orb.a orb.e mod(orb.f, 2pi) mod(orb.i, 2pi) mod(orb.Ω, 2pi) mod(orb.ω, 2pi)
     )*(
-        @sprintf "\tSolved orbital elements: a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" a     e     f     mod(i, 2pi)     mod(Ω, 2pi)     mod(ω, 2pi)
+        @sprintf "\tSolved orbital elements: a = %5.4e, e = %5.4f, f = %5.4f, i = %5.4f, Ω = %5.4f, ω = %5.4f\n" a     e     mod(f, 2pi)     mod(i, 2pi)     mod(Ω, 2pi)     mod(ω, 2pi)
     )*
     "\t Given state vector: r = $givenr, v = $givenv\n"*
     "\tSolved state vector: r = $(r), v = $(v)\n\n"
@@ -136,7 +136,7 @@ open(outfile, "w") do file
         orbparams = add_orbital_elements_fix!(model)
         r, v, a, e, i, Ω, ω, f, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
         
-        sol_type = rand(solution_types)
+        sol_type = "rv input"
         if sol_type == "rv input"
             @constraint(model, r .== given_r)
             @constraint(model, v .== given_v)
