@@ -10,16 +10,16 @@ using LinearAlgebra
 ## example
 orbi = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    8.1000e+06,
-    0.0200,
-    0,
-    3.6652,
-    5.9341,
-    0.1745
+    1.0000e+07,
+    0.0100,
+    0.1,
+    4.5379,
+    3.4907,
+    2.6180
 )
 ri, vi = kepler_to_rv(orbi)
 T = orbital_period(orbi, GM_EARTH)
-Δt = 1.6T
+Δt = 1.4T
 plot_orbit(orbi)
 ##
 model = Model(
@@ -40,9 +40,6 @@ rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldna
 @constraint(model, i_f == i0)
 @constraint(model, Ωf == Ω0)
 @constraint(model, ωf == ω0)
-
-# fix(a0, orbi.a, force=true)
-set_start_value(a0, orbi.a)
 
 @constraint(model, Δt == (Mf - M0) / (2π) * T)
 model
