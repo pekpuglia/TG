@@ -41,10 +41,10 @@ end
 
 function add_orbital_elements_fix!(model, given_rv = false)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-    rscaled = @variable(model, [1:3], start = 1.0)
+    rscaled = @variable(model, [1:3])
     r = EARTH_EQUATORIAL_RADIUS * rscaled
     vscaled = @variable(model, [1:3])
-    set_start_value(vscaled[1], 1.0)
+    # set_start_value(vscaled[1], 1.0)
     v = Vorb_sup*vscaled
 
     a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS)
