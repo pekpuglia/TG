@@ -8,7 +8,7 @@ include("../TG.jl")
 using .TG
 using LinearAlgebra
 ## example
-rp = (6378+400)*1000.0
+rp = (6378+1000)*1000.0
 ra = (6378+4000)*1000.0
 agiven = (rp + ra) / 2
 egiven = (ra - rp) / (ra + rp)
@@ -32,7 +32,8 @@ function add_orbital_elements_fix!(model)
     vscaled = @variable(model, [1:3])
     v = Vorb_sup*vscaled
 
-    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS)
+    ascaled = @variable(model, lower_bound = 1.0)
+    a = EARTH_EQUATORIAL_RADIUS * ascaled
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
