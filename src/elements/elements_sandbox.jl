@@ -8,14 +8,18 @@ include("../TG.jl")
 using .TG
 using LinearAlgebra
 ## example
+rp = (6378+400)*1000.0
+ra = (6378+4000)*1000.0
+agiven = (rp + ra) / 2
+egiven = (ra - rp) / (ra + rp)
 orb = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    9.6000e+06,
-    0.0100,
-    0.6981,
-    0,
-    1.2217,
-    5.4105
+    agiven,
+    egiven,
+    30 |> deg2rad,
+    15    |> deg2rad,
+    60     |> deg2rad,
+    180     |> deg2rad
 )
 given_r, given_v = kepler_to_rv(orb)
 plot_orbit(orb)
