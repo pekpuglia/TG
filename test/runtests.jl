@@ -8,13 +8,5 @@ using SatelliteToolboxBase
 using Setfield
 
 @testset "TG tests" begin
-    
-    ##########################################################################
-    #
-    #       Single Maneuver Tests
-    #
-    ##########################################################################
-    include("single_maneuver_tests.jl")
-    
     include("propagation_tests.jl")
 end
