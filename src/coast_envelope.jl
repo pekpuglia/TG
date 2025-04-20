@@ -10,7 +10,7 @@ using LinearAlgebra
 using Random
 using Printf
 ##
-a_list = 7000e3:1000e3:40000e3
+a_list = 7000e3:100e3:10000e3
 e_list = [0.0, 0.001, 0.01, 0.02, 0.1, 0.2, 0.4, 0.7, 0.9]
 f_list = deg2rad.([0, 0.1, 1, (10:10:360)...])
 i_list = deg2rad.(0:10:180.0)
@@ -62,7 +62,7 @@ end
 ##
 Nsamples = 100
 
-outfile = "./src/coast_out"
+outfile = "./src/LEO_coast_out"
 open(outfile, "a") do file
     for i in 1:Nsamples
         orb = KeplerianElements(

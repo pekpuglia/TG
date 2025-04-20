@@ -8,22 +8,19 @@ include("TG.jl")
 using .TG
 using LinearAlgebra
 ## example
-rp = 9600e3
-ra = 21000e3
-agiven = (rp + ra) / 2
-egiven = (ra - rp) / (ra + rp)
 orbi = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    agiven,
-    egiven,
-    30 |> deg2rad,
-    0    |> deg2rad,
-    0     |> deg2rad,
-    0     |> deg2rad
+    8.1000e+06,
+    0.0200,
+    0,
+    3.6652,
+    5.9341,
+    0.1745
 )
 ri, vi = kepler_to_rv(orbi)
 T = orbital_period(orbi, GM_EARTH)
-Δt = 1.2T
+Δt = 1.6T
+plot_orbit(orbi)
 ##
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
@@ -35,8 +32,8 @@ r0, v0, a0, e0, i0, Ω0, ω0, nu0, M0, E0 = getfield.(Ref(orbparams_i), fieldnam
 orbparams_f = add_orbital_elements!(model)
 rf, vf, af, ef, i_f, Ωf, ωf, nuf, Mf, Ef = getfield.(Ref(orbparams_f), fieldnames(FullOrbitalParameters))
 
-@constraint(model, rf .== ri)
-@constraint(model, vf .== vi)
+@constraint(model, r0 .== ri)
+@constraint(model, v0 .== vi)
 
 @constraint(model, af == a0)
 @constraint(model, ef == e0)
@@ -50,22 +47,18 @@ model
 ##
 optimize!(model)
 ##
-#ok!
-value(af), agiven
+value(a0), value(af)
 ##
-#ok!
-value(ef), egiven
+value(e0), value(ef)
 ##
-#ok!
-rad2deg(value(i_f))
+value(i0), value(i_f)
 ##
 #oK!
-rad2deg(value(Ωf))
+value(Ω0), value(Ωf)
 ##
-#ok!
-rad2deg(value(ωf))
+value(ω0), value(ωf)
 ##
-rad2deg(value(nuf))
+value(nu0), value(nuf)
 ##
 solved_rf = value.(rf)
 solved_vf = value.(vf)
