@@ -300,7 +300,7 @@ function add_orbital_elements!(model, given_rv = false)
     set_start_value(vscaled[1], 1.0)
     v = Vorb_sup*vscaled
 
-    a = @variable(model, lower_bound = 0, start = EARTH_EQUATORIAL_RADIUS)
+    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS, start = 2EARTH_EQUATORIAL_RADIUS)
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
