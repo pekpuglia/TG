@@ -30,7 +30,7 @@ function add_orbital_elements_fix!(model)
 
     ascaled = @variable(model, lower_bound = 1.0)
     a = EARTH_EQUATORIAL_RADIUS * ascaled
-    e = @variable(model, lower_bound = 0, upper_bound = 1) 
+    e = @variable(model, lower_bound = 0, upper_bound = 1)
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
@@ -68,26 +68,29 @@ function add_orbital_elements_fix!(model)
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
 
-    @constraint(model, r .== QXxbar' * r_perifocal)
-    @constraint(model, v .== QXxbar' * v_perifocal)
+    @constraint(model, rscaled .== QXxbar' * r_perifocal / EARTH_EQUATORIAL_RADIUS)
+    @constraint(model, vscaled .== QXxbar' * v_perifocal / Vorb_sup)
     
     @constraint(model, E - e*sin(E) == M)
 
     #curtis page 144 & 145
     @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
 
-    FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
+    FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E), rscaled, vscaled
 end
 ##
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
     "max_wall_time" => 30.0)
 )
-orbparams = add_orbital_elements_fix!(model)
+orbparams, rsc, vsc = add_orbital_elements_fix!(model)
 r, v, a, e, i, Ω, ω, f, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
         
-@constraint(model, r .== given_r)
-@constraint(model, v .== given_v)
+@constraint(model, rsc .== (given_r/EARTH_EQUATORIAL_RADIUS))
+Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+
+@constraint(model, vsc .== (given_v/Vorb_sup))
+
 model
 ##
 optimize!(model)
