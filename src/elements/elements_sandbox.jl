@@ -24,15 +24,15 @@ orb = KeplerianElements(
 given_r, given_v = kepler_to_rv(orb)
 plot_orbit(orb)
 ##
-function add_orbital_elements_fix!(model, given_rv = false)
+function add_orbital_elements_fix!(model)
     Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-    rscaled = @variable(model, [1:3], start = 1.0)
+    rscaled = @variable(model, [1:3])
+    @constraint(model, rscaled' * rscaled >= 1)
     r = EARTH_EQUATORIAL_RADIUS * rscaled
     vscaled = @variable(model, [1:3])
-    set_start_value(vscaled[1], 1.0)
     v = Vorb_sup*vscaled
 
-    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS, start = 2EARTH_EQUATORIAL_RADIUS)
+    a = @variable(model, lower_bound = EARTH_EQUATORIAL_RADIUS)
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
     i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
     Ω = @variable(model, base_name = "Ω")
@@ -63,17 +63,11 @@ function add_orbital_elements_fix!(model, given_rv = false)
 
     QXxbar = R3omega * R1i * R3Omega
 
-    if given_rv
-        hvec = cross(r, v)
-        h = √(hvec' * hvec)
-    else
-        h = √(GM_EARTH*a*(1-e^2))
-    end
-
     #curtis chap 4
     #h^2/mu = p = a (1-e^2)
     r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
-
+    
+    h = √(GM_EARTH*a*(1-e^2))
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
 
