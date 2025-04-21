@@ -79,4 +79,6 @@ using GLMakie
 ##
 pnorm_history = norm.(p_history)
 ##
+#analisar
+#descobrir por que N não é inversível no caso Hohmann e o que fazer
 plot(t_list, pnorm_history)
