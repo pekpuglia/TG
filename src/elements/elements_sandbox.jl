@@ -11,67 +11,77 @@ using Printf
 ##
 orb = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    9.7000e+06,
-    0.0010,
-    0.1000,
-    4.1888,
-    1.3963,
-    4.7124
+    9.3000e+06,
+    0.100,
+    1.2217,
+    5.9341,
+    0.5236,
+    4.1888
 )
 given_r, given_v = kepler_to_rv(orb)
 plot_orbit(orb)
 ##
+function add_orbital_elements_fix!(model)
+    Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+    rscaled = @variable(model, [1:3])
+    @constraint(model, rscaled' * rscaled >= 1)
+    r = EARTH_EQUATORIAL_RADIUS * rscaled
+    vscaled = @variable(model, [1:3])
+    v = Vorb_sup*vscaled
+
+    ascaled = @variable(model, lower_bound = 1.0)
+    a = EARTH_EQUATORIAL_RADIUS * ascaled
+    e = @variable(model, lower_bound = 0, upper_bound = 1) 
+    i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
+    Ω = @variable(model, base_name = "Ω")
+    ω = @variable(model, base_name = "ω")
+    nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
+
+    #rad!!!
+    M = @variable(model, lower_bound = 0.0, base_name = "M")
+    E = @variable(model, lower_bound = 0.0, base_name= "E")
+    
+    QxbarX = [
+        -sin(Ω)*cos(i)*sin(ω)+cos(Ω)*cos(ω) -sin(Ω)*cos(i)*cos(ω)-cos(Ω)*sin(ω)  sin(Ω)*sin(i)
+         cos(Ω)*cos(i)*sin(ω)+sin(Ω)*cos(ω)  cos(Ω)*cos(i)*cos(ω)-sin(Ω)*sin(ω) -cos(Ω)*sin(i)
+         sin(i)*sin(ω)                               sin(i)*cos(ω)                              cos(i)
+    ]
+
+    #curtis chap 4
+    #h^2/mu = p = a (1-e^2)
+    r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+    
+    h = √(GM_EARTH*a*(1-e^2))
+    v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
+
+
+    @constraint(model, r .== QxbarX * r_perifocal)
+    @constraint(model, v .== QxbarX * v_perifocal)
+    
+    @constraint(model, E - e*sin(E) == M)
+
+    #curtis page 144 & 145
+    @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
+
+    FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
+end
+##
 # function add_orbital_elements_fix!(model)
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
-    "max_wall_time" => 30.0)
+    "max_wall_time" => 30.0,
+    "nlp_scaling_max_gradient" => 10.0
+    )
 )
 
-Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-rscaled = @variable(model, [1:3])
-@constraint(model, rscaled' * rscaled >= 1)
-r = EARTH_EQUATORIAL_RADIUS * rscaled
-vscaled = @variable(model, [1:3])
-v = Vorb_sup*vscaled
-
-ascaled = @variable(model, lower_bound = 1.0)
-a = EARTH_EQUATORIAL_RADIUS * ascaled
-e = @variable(model, lower_bound = 0, upper_bound = 1) 
-i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
-Ω = @variable(model, base_name = "Ω")
-ω = @variable(model, base_name = "ω")
-nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
-
-#rad!!!
-M = @variable(model, lower_bound = 0.0, base_name = "M")
-E = @variable(model, lower_bound = 0.0, base_name= "E")
-
-QxbarX = [
-    -sin(Ω)*cos(i)*sin(ω)+cos(Ω)*cos(ω) -sin(Ω)*cos(i)*cos(ω)-cos(Ω)*sin(ω)  sin(Ω)*sin(i)
-     cos(Ω)*cos(i)*sin(ω)+sin(Ω)*cos(ω)  cos(Ω)*cos(i)*cos(ω)-sin(Ω)*sin(ω) -cos(Ω)*sin(i)
-     sin(i)*sin(ω)                               sin(i)*cos(ω)                              cos(i)
-]
-
-#curtis chap 4
-#h^2/mu = p = a (1-e^2)
-r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
-
-h = √(GM_EARTH*a*(1-e^2))
-v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
+orbparams = add_orbital_elements_fix!(model)
+r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
 
 
-@constraint(model, r .== QxbarX * r_perifocal)
-@constraint(model, v .== QxbarX * v_perifocal)
-
-@constraint(model, E - e*sin(E) == M)
-
-#curtis page 144 & 145
-@constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
-
-@constraint(model, rscaled .== (given_r/EARTH_EQUATORIAL_RADIUS))
+@constraint(model, r .== given_r)
 Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
 
-@constraint(model, vscaled .== (given_v/Vorb_sup))
+@constraint(model, v .== given_v)
 
 model
 ##
@@ -90,8 +100,8 @@ value(ω)
 ##
 value(nu)
 ##
-solved_r = value.(rscaled)*EARTH_EQUATORIAL_RADIUS
-solved_v = value.(vscaled)*Vorb_sup
+solved_r = value.(r)
+solved_v = value.(v)
 
 plot_orbit(
     orb,
