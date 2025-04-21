@@ -11,82 +11,89 @@ using Printf
 ##
 orb = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    30000e3,
-    0.500,
-    .5,
-    4.8869,
-    .1888,
-    0.0000
+    9.7000e+06,
+    0.0010,
+    0.1000,
+    4.1888,
+    1.3963,
+    4.7124
 )
 given_r, given_v = kepler_to_rv(orb)
 plot_orbit(orb)
+##
+function add_orbital_elements_fix!(model)
+    Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+    rscaled = @variable(model, [1:3])
+    # @constraint(model, rscaled' * rscaled >= 1)
+    # radius_scaled = @variable(model, lower_bound = 1e-3, base_name = "radius")
+    # right_ascension = @variable(model, base_name="right_ascension")
+    # declination = @variable(model, lower_bound=-π/2, upper_bound=π/2, base_name="declination")
+
+    # rscaled = radius_scaled * [cos(right_ascension)*cos(declination); sin(right_ascension)*cos(declination); sin(declination)]
+
+    r = EARTH_EQUATORIAL_RADIUS * rscaled
+    vscaled = @variable(model, [1:3])
+    v = Vorb_sup*vscaled
+
+    ascaled = @variable(model, lower_bound = 1e-3)
+    a = EARTH_EQUATORIAL_RADIUS * ascaled
+    e = @variable(model, lower_bound = 0, upper_bound = 1)
+    i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
+    Ω = @variable(model, base_name = "Ω")
+    ω = @variable(model, base_name = "ω")
+    nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
+
+    #rad!!!
+    M = @variable(model, lower_bound = 0.0, base_name = "M")
+    E = @variable(model, lower_bound = 0.0, base_name= "E")
+
+    R3Omega = [
+            cos(Ω) sin(Ω) 0
+        -sin(Ω) cos(Ω) 0
+        0          0        1
+    ]
+
+    R1i = [
+        1  0         0
+        0  cos(i) sin(i)
+        0 -sin(i) cos(i)
+    ]
+
+    R3omega = [
+        cos(ω)  sin(ω) 0
+        -sin(ω) cos(ω) 0
+        0          0        1
+    ]
+
+    QXxbar = R3omega * R1i * R3Omega
+
+    #curtis chap 4
+    #h^2/mu = p = a (1-e^2)
+    r_perifocal_scaled = ascaled*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+
+    #scaled with sqrt(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+    v_perifocal_scaled = 1 / √(ascaled*(1-e^2)) * [-sin(nu); e + cos(nu); 0]
+
+
+    @constraint(model, rscaled .== QXxbar' * r_perifocal_scaled)
+    @constraint(model, vscaled .== QXxbar' * v_perifocal_scaled)
+
+    @constraint(model, E - e*sin(E) == M)
+
+    #curtis page 144 & 145
+    @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
+            
+    rscaled, vscaled, a, e, i, Ω, ω, nu, M, E
+end
 ##
 # function add_orbital_elements_fix!(model)
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
     "max_wall_time" => 30.0)
 )
-Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-# rscaled = @variable(model, [1:3])
-# @constraint(model, rscaled' * rscaled >= 1)
-radius_scaled = @variable(model, lower_bound = 1.0, base_name = "radius")
-right_ascension = @variable(model, base_name="right_ascension")
-declination = @variable(model, lower_bound=-π/2, upper_bound=π/2, base_name="declination")
 
-rscaled = radius_scaled * [cos(right_ascension)*cos(declination); sin(right_ascension)*cos(declination); sin(declination)]
+rscaled, vscaled, a, e, i, Ω, ω, nu, M, E = add_orbital_elements_fix!(model)
 
-r = EARTH_EQUATORIAL_RADIUS * rscaled
-vscaled = @variable(model, [1:3])
-v = Vorb_sup*vscaled
-
-ascaled = @variable(model, lower_bound = 1e-3)
-a = EARTH_EQUATORIAL_RADIUS * ascaled
-e = @variable(model, lower_bound = 0, upper_bound = 1)
-i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
-Ω = @variable(model, base_name = "Ω")
-ω = @variable(model, base_name = "ω")
-nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
-
-#rad!!!
-M = @variable(model, lower_bound = 0.0, base_name = "M")
-E = @variable(model, lower_bound = 0.0, base_name= "E")
-
-R3Omega = [
-        cos(Ω) sin(Ω) 0
-    -sin(Ω) cos(Ω) 0
-    0          0        1
-]
-
-R1i = [
-    1  0         0
-    0  cos(i) sin(i)
-    0 -sin(i) cos(i)
-]
-
-R3omega = [
-    cos(ω)  sin(ω) 0
-    -sin(ω) cos(ω) 0
-    0          0        1
-]
-
-QXxbar = R3omega * R1i * R3Omega
-
-#curtis chap 4
-#h^2/mu = p = a (1-e^2)
-r_perifocal_scaled = ascaled*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
-
-#scaled with sqrt(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-v_perifocal_scaled = 1 / √(ascaled*(1-e^2)) * [-sin(nu); e + cos(nu); 0]
-
-
-@constraint(model, rscaled .== QXxbar' * r_perifocal_scaled)
-@constraint(model, vscaled .== QXxbar' * v_perifocal_scaled)
-
-@constraint(model, E - e*sin(E) == M)
-
-#curtis page 144 & 145
-@constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
-        
 @constraint(model, rscaled .== (given_r/EARTH_EQUATORIAL_RADIUS))
 Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
 
@@ -109,8 +116,8 @@ value(ω)
 ##
 value(nu)
 ##
-solved_r = value.(r)
-solved_v = value.(v)
+solved_r = value.(rscaled)*EARTH_EQUATORIAL_RADIUS
+solved_v = value.(vscaled)*Vorb_sup
 
 plot_orbit(
     orb,
@@ -185,17 +192,20 @@ open(outfile, "w") do file
         )
         set_silent(model)
 
-        orbparams, rsc, vsc = add_orbital_elements_fix!(model)
-        r, v, a, e, i, Ω, ω, f, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
-                
+        rscaled, vscaled, a, e, i, Ω, ω, nu, M, E = add_orbital_elements_fix!(model)                
         
+        Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+        orbparams = FullOrbitalParameters(
+            rscaled*EARTH_EQUATORIAL_RADIUS,
+            vscaled*Vorb_sup,
+            a, e, i, Ω, ω, nu, M, E
+        )
         
         sol_type = "rv input"
         if sol_type == "rv input"
-            @constraint(model, rsc .== (given_r/EARTH_EQUATORIAL_RADIUS))
-            Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-    
-            @constraint(model, vsc .== (given_v/Vorb_sup))
+            @constraint(model, rscaled .== (given_r/EARTH_EQUATORIAL_RADIUS))
+            
+            @constraint(model, vscaled .== (given_v/Vorb_sup))
         else
             @constraint(model, a == orb.a)
             @constraint(model, e == orb.e)
