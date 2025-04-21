@@ -3,7 +3,8 @@ using JuMP
 using Ipopt
 using SatelliteToolboxBase
 include("TG.jl")
-##
+using .TG
+## curtis 5.2
 r1 = [
     5000
     10000
@@ -18,27 +19,6 @@ r2 = [
 
 delta_t = 3600
 ##
-#prograde trajectories
-
-r1n = norm(r1)
-r2n = norm(r2)
-
-c = cross(r1, r2)
-d = dot(r1, r2)
-
-delta_theta = begin
-    dtheta = acos(d / (r1n*r2n))
-    
-    if c[3] >= 0
-        dtheta
-    else
-        2π - dtheta
-    end
-end
-##
-A = sin(delta_theta) * sqrt(r1n*r2n / (1 - cos(delta_theta)))
-##
-#z = alpha xi^2
 function S(z)
     # if z > 0
     (√(z) - sin(√z)) / (z ^ (3/2))
@@ -59,29 +39,61 @@ function C(z)
     # end
 end
 
-y(z) = r1n + r2n + A*(z*S(z) - 1) / √(C(z))
-##
-function solve_for_z(delta_t, A)
+# function y(z, r1n, r2n, A)
+#     r1n + r2n + A*(z*S(z) - 1) / √(C(z))
+# end
+
+function solve_for_z(delta_t, A, r1n, r2n)
     model = Model(Ipopt.Optimizer)
 
-    @variable(model, z >= 0)
+    z = @variable(model, z >= 0)
     
-    @constraint(model, √GM_EARTH*delta_t == (y(z)/C(z))^(3/2)*S(z) + A*sqrt(y(z)))
+    y = r1n + r2n + A*(z*S(z) - 1) / √(C(z))
+
+    @constraint(model, √GM_EARTH*delta_t == (y/C(z))^(3/2)*S(z) + A*sqrt(y))
     
     optimize!(model)
 
-    value(z)
+    value(z), value(y)
+end
+
+function lambert(r1, r2, deltat)
+    r1n = norm(r1)
+    r2n = norm(r2)
+
+    c = cross(r1, r2)
+    d = dot(r1, r2)
+
+    delta_theta = begin
+        dtheta = acos(d / (r1n*r2n))
+        
+        if c[3] >= 0
+            dtheta
+        else
+            2π - dtheta
+        end
+    end
+
+    A = sin(delta_theta) * sqrt(r1n*r2n / (1 - cos(delta_theta)))
+
+    z, y = solve_for_z(delta_t, A, r1n, r2n)
+
+    f = 1 - y/r1n
+    g = A*√(y/GM_EARTH)
+    gdot = 1 - y / r2n
+
+    v1 = 1/g * (r2 - f*r1)
+    v2 = 1/g * (gdot * r2 - r1)
+
+    v1, v2
 end
 ##
-z = solve_for_z(delta_t, A)
-yz = y(z)
+v1, v2 = lambert(r1, r2, delta_t)
 ##
-f = 1 - yz/r1n
-g = A*√(yz/GM_EARTH)
-gdot = 1 - yz / r2n
+orb1 = rv_to_kepler(r1, v1)
+orb2 = rv_to_kepler(r2, v2)
 ##
-v1 = 1/g * (r2 - f*r1)
-v2 = 1/g * (gdot * r2 - r1)
+plot_orbit(orb1, orb2)
 ##
 orb1 = rv_to_kepler(r1, v1)
 orb2 = rv_to_kepler(r2, v2)
