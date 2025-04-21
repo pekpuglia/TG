@@ -30,6 +30,43 @@ using SatelliteToolboxBase
     @test all(isapprox.(v1, [-5.9925, 1.9254, 3.2456]*1e3, rtol=1e-2))
     @test all(isapprox.(v2, [-3.3125, -4.1966, -0.38529]*1e3, rtol=1e-2))
 end
+
+@testset "Glandorf tests" begin
+    r1 = [
+        5000
+        10000
+        2100
+    ]*1e3
+
+    v1 = [
+        -5992.495019799777
+        1925.3667119503089
+        3245.638049455475
+    ]
+
+    r2 = [
+        -14600
+        2500
+        7000
+    ]*1e3
+
+    v2 = [
+        -3312.458504221757
+        -4196.619006657186
+        -385.2890588564801
+    ]
+
+    delta_t = 3600
+
+    P = P_glandorf(r1, v1, 0)
+    Pinv = Pinv_glandorf(r1, v1, 0)
+    @test all(isapprox.(eigen(P*Pinv).values, 1.0, atol=1e-4))
+
+    Phi = P_glandorf(r2, v2, delta_t)*Pinv_glandorf(r1, v1, 0)
+    Phi_other = P_glandorf(r2, v2, delta_t+10)*Pinv_glandorf(r1, v1, 10)
+
+    @test all(isapprox.(Phi, Phi_other, rtol=1e-3))
+end
 # @testset "Single Maneuver Models" begin
 #     @testset "LEO case" begin
 #         LEOorb = KeplerianElements(
