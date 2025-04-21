@@ -11,9 +11,9 @@ using Printf
 ##
 orb = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    20000e3,
-    0.100,
-    2.5,
+    30000e3,
+    0.500,
+    .5,
     4.8869,
     .1888,
     0.0000
@@ -39,7 +39,7 @@ r = EARTH_EQUATORIAL_RADIUS * rscaled
 vscaled = @variable(model, [1:3])
 v = Vorb_sup*vscaled
 
-ascaled = @variable(model, lower_bound = 1.0)
+ascaled = @variable(model, lower_bound = 1e-3)
 a = EARTH_EQUATORIAL_RADIUS * ascaled
 e = @variable(model, lower_bound = 0, upper_bound = 1)
 i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
