@@ -312,25 +312,11 @@ function add_orbital_elements!(model)
     M = @variable(model, lower_bound = 0.0, base_name = "M")
     E = @variable(model, lower_bound = 0.0, base_name= "E")
     
-    R3Omega = [
-         cos(Ω) sin(Ω) 0
-        -sin(Ω) cos(Ω) 0
-        0          0        1
+    QxbarX = [
+        -sin(Ω)*cos(i)*sin(ω)+cos(Ω)*cos(ω) -sin(Ω)*cos(i)*cos(ω)-cos(Ω)*sin(ω)  sin(Ω)*sin(i)
+         cos(Ω)*cos(i)*sin(ω)+sin(Ω)*cos(ω)  cos(Ω)*cos(i)*cos(ω)-sin(Ω)*sin(ω) -cos(Ω)*sin(i)
+         sin(i)*sin(ω)                               sin(i)*cos(ω)                              cos(i)
     ]
-
-    R1i = [
-        1  0         0
-        0  cos(i) sin(i)
-        0 -sin(i) cos(i)
-    ]
-
-    R3omega = [
-        cos(ω)  sin(ω) 0
-        -sin(ω) cos(ω) 0
-        0          0        1
-    ]
-
-    QXxbar = R3omega * R1i * R3Omega
 
     #curtis chap 4
     #h^2/mu = p = a (1-e^2)
@@ -340,8 +326,8 @@ function add_orbital_elements!(model)
     v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
 
-    @constraint(model, r .== QXxbar' * r_perifocal)
-    @constraint(model, v .== QXxbar' * v_perifocal)
+    @constraint(model, r .== QxbarX * r_perifocal)
+    @constraint(model, v .== QxbarX * v_perifocal)
     
     @constraint(model, E - e*sin(E) == M)
 
