@@ -38,6 +38,9 @@ function orbital_period(orb::KeplerianElements, m0)
     2π√(orb.a^3/m0)
 end
 
+include("./lambert.jl")
+include("./glandorf.jl")
+
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
 
