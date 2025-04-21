@@ -299,7 +299,7 @@ function add_orbital_elements!(model)
     r = EARTH_EQUATORIAL_RADIUS * rscaled
     vscaled = @variable(model, [1:3])
     v = Vorb_sup*vscaled
-
+    
     ascaled = @variable(model, lower_bound = 1.0)
     a = EARTH_EQUATORIAL_RADIUS * ascaled
     e = @variable(model, lower_bound = 0, upper_bound = 1) 
@@ -307,7 +307,7 @@ function add_orbital_elements!(model)
     Ω = @variable(model, base_name = "Ω")
     ω = @variable(model, base_name = "ω")
     nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
-
+    
     #rad!!!
     M = @variable(model, lower_bound = 0.0, base_name = "M")
     E = @variable(model, lower_bound = 0.0, base_name= "E")
@@ -317,34 +317,34 @@ function add_orbital_elements!(model)
         -sin(Ω) cos(Ω) 0
         0          0        1
     ]
-
+    
     R1i = [
         1  0         0
         0  cos(i) sin(i)
         0 -sin(i) cos(i)
     ]
-
+    
     R3omega = [
         cos(ω)  sin(ω) 0
         -sin(ω) cos(ω) 0
         0          0        1
     ]
-
+    
     QXxbar = R3omega * R1i * R3Omega
-
+    
     #curtis chap 4
     #h^2/mu = p = a (1-e^2)
-    r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+    r_perifocal_scaled = ascaled*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
     
-    h = √(GM_EARTH*a*(1-e^2))
-    v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
-
-
-    @constraint(model, r .== QXxbar' * r_perifocal)
-    @constraint(model, v .== QXxbar' * v_perifocal)
+    # h = 
+    v_perifocal_scaled = 1 / √(ascaled*(1-e^2)) * [-sin(nu); e + cos(nu); 0]
+    
+    
+    @constraint(model, rscaled .== QXxbar' * r_perifocal_scaled)
+    @constraint(model, vscaled .== QXxbar' * v_perifocal_scaled)
     
     @constraint(model, E - e*sin(E) == M)
-
+    
     #curtis page 144 & 145
     @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
 
