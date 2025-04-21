@@ -46,36 +46,22 @@ nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
 M = @variable(model, lower_bound = 0.0, base_name = "M")
 E = @variable(model, lower_bound = 0.0, base_name= "E")
 
-R3Omega = [
-     cos(Ω) sin(Ω) 0
-    -sin(Ω) cos(Ω) 0
-    0          0        1
+QxbarX = [
+    -sin(Ω)*cos(i)*sin(ω)+cos(Ω)*cos(ω) -sin(Ω)*cos(i)*cos(ω)-cos(Ω)*sin(ω)  sin(Ω)*sin(i)
+     cos(Ω)*cos(i)*sin(ω)+sin(Ω)*cos(ω)  cos(Ω)*cos(i)*cos(ω)-sin(Ω)*sin(ω) -cos(Ω)*sin(i)
+     sin(i)*sin(ω)                               sin(i)*cos(ω)                              cos(i)
 ]
-
-R1i = [
-    1  0         0
-    0  cos(i) sin(i)
-    0 -sin(i) cos(i)
-]
-
-R3omega = [
-    cos(ω)  sin(ω) 0
-    -sin(ω) cos(ω) 0
-    0          0        1
-]
-
-QXxbar = R3omega * R1i * R3Omega
 
 #curtis chap 4
 #h^2/mu = p = a (1-e^2)
-r_perifocal_scaled = ascaled*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
 
 h = √(GM_EARTH*a*(1-e^2))
 v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
 
 
-@constraint(model, rscaled .== QXxbar' * r_perifocal_scaled)
-@constraint(model, v .== QXxbar' * v_perifocal)
+@constraint(model, r .== QxbarX * r_perifocal)
+@constraint(model, v .== QxbarX * v_perifocal)
 
 @constraint(model, E - e*sin(E) == M)
 
@@ -180,20 +166,14 @@ open(outfile, "w") do file
         )
         set_silent(model)
 
-        rscaled, vscaled, a, e, i, Ω, ω, nu, M, E = add_orbital_elements_fix!(model)                
-        
-        Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
-        orbparams = FullOrbitalParameters(
-            rscaled*EARTH_EQUATORIAL_RADIUS,
-            vscaled*Vorb_sup,
-            a, e, i, Ω, ω, nu, M, E
-        )
+        orbparams = add_orbital_elements!(model)
+        r, v, a, e, i, Ω, ω, nu, M, E = getfield.(Ref(orbparams), fieldnames(FullOrbitalParameters))
         
         sol_type = "rv input"
         if sol_type == "rv input"
-            @constraint(model, rscaled .== (given_r/EARTH_EQUATORIAL_RADIUS))
+            @constraint(model, r .== given_r)
             
-            @constraint(model, vscaled .== (given_v/Vorb_sup))
+            @constraint(model, v .== given_v)
         else
             @constraint(model, a == orb.a)
             @constraint(model, e == orb.e)
