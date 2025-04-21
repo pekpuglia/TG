@@ -4,64 +4,6 @@ using Ipopt
 using SatelliteToolboxBase
 include("TG.jl")
 using .TG
-## curtis 5.2
-r1 = [
-    5000
-    10000
-    2100
-]*1e3
-
-r2 = [
-    -14600
-    2500
-    7000
-]*1e3
-
-delta_t = 3600
-## add test for this
-v1, v2 = lambert(r1, r2, delta_t)
-##
-orb1 = rv_to_kepler(r1, v1)
-orb2 = rv_to_kepler(r2, v2)
-##
-plot_orbit(orb1, orb2)
-##
-circ = KeplerianElements(
-    orb1.t,
-    8000e3,
-    0,
-    0.3,
-    0.3,
-    0.3,
-    0
-)
-opp = KeplerianElements(
-    orb1.t,
-    8000e3,
-    0,
-    0.3,
-    0.3,
-    0.3,
-    π
-)
-##
-plot_orbit(circ, opp)
-##
-rcirc, vcirc = kepler_to_rv(circ)
-ropp, vopp = kepler_to_rv(opp)
-T = orbital_period(circ, GM_EARTH)
-##
-vcirc_solved, vopp_solved = lambert(rcirc, ropp, T/2)
-##
-plot_orbit(
-    circ,
-    rv_to_kepler(rcirc, vcirc_solved)
-)
-##
-plot_orbit(
-    opp,
-    rv_to_kepler(ropp, vopp_solved)
-)
 ##
 #GLANDORF expressions
 
