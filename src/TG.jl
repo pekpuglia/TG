@@ -38,6 +38,8 @@ function orbital_period(orb::KeplerianElements, m0)
     2π√(orb.a^3/m0)
 end
 
+orbital_period(a, m0) = 2π√(a^3/m0)
+
 include("./lambert.jl")
 include("./glandorf.jl")
 
