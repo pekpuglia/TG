@@ -123,3 +123,24 @@ p_y = getindex.(p_history, 2)
 p_z = getindex.(p_history, 3)
 ##
 lines(p_x, p_y, p_z)
+## porkchop plot over 1 synodic period
+T1 = orbital_period(a1, GM_EARTH)
+T2 = orbital_period(a2, GM_EARTH)
+Tsyn = T1*T2 / abs(T2 - T1)
+##
+N = 3
+time_offsets = range(-Tsyn/3, Tsyn/3, N) |> collect
+#wrong - have to propagate
+orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets]
+orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2)[3].tbd.orbk for t in time_offsets]
+##
+porkchop(orb1, orb2) = (orb2.t > orb1.t) ? LambertTransfer1(orb1, orb2) : nothing
+transfer_porkchop = porkchop.(orb1_porkchop, permutedims(orb2_porkchop))
+##
+i = 1
+j = 3
+plot_orbit(transfer_porkchop[i, j].transfer_propagator.tbd.orb₀, transfer_porkchop[i, j].orb1, transfer_porkchop[i, j].orb2)
+##
+nancost = cost.(transfer_porkchop) .|> (x -> isnothing(x) ? NaN : x)
+##
+contourf(time_offsets, time_offsets, nancost)
