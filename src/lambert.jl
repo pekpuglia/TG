@@ -33,6 +33,7 @@ function solve_for_z(delta_t, A, r1n, r2n)
     value(z), value(y)
 end
 export lambert
+#sukhanov 7.6 -> r1, r2 colin
 #curtis chap 5
 function lambert(r1, r2, deltat)
     r1n = norm(r1)
