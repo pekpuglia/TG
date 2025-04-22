@@ -18,15 +18,15 @@ function plot_orbit(orbs::KeplerianElements...)
     fig = Figure()
     ax3d = Axis3(fig[1, 1])
     
-    for orb in orbs
+    for (orb, c) in zip(orbs, Makie.wong_colors())
         orbit = ((@set orb.f = theta) for theta in θ) .|> kepler_to_rv .|> first |> stack
         current_pos, current_velocity = kepler_to_rv(orb)
         velocity_arrow_base = current_pos
         velocity_arrow_tip = velocity_arrow_base + current_velocity / √sum(current_velocity .^ 2) * 0.4 * √sum(current_pos .^ 2)
         velocity_arrow_data = [velocity_arrow_base velocity_arrow_tip] |> Matrix
-        lines!(ax3d, orbit[1, :], orbit[2, :], orbit[3, :], color=:red)
-        scatter!(ax3d, current_pos, markersize=20)
-        lines!(ax3d, velocity_arrow_data[1, :], velocity_arrow_data[2, :], velocity_arrow_data[3, :])
+        lines!(ax3d, orbit[1, :], orbit[2, :], orbit[3, :], color=c)
+        scatter!(ax3d, current_pos, markersize=20, color=c)
+        lines!(ax3d, velocity_arrow_data[1, :], velocity_arrow_data[2, :], velocity_arrow_data[3, :], color=c)
     end
     
     wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
