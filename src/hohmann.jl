@@ -5,6 +5,7 @@ using .TG
 using Setfield
 using LinearAlgebra
 ##
+extra_phase = 10
 orb1 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
     7000e3,
@@ -12,7 +13,7 @@ orb1 = KeplerianElements(
     51 |> deg2rad,
     0    |> deg2rad,
     0     |> deg2rad,
-    -20     |> deg2rad
+    -extra_phase     |> deg2rad
 )
 
 orb2 = KeplerianElements(
@@ -22,22 +23,16 @@ orb2 = KeplerianElements(
     51 |> deg2rad,
     0    |> deg2rad,
     0     |> deg2rad,
-    200     |> deg2rad
+    180+extra_phase     |> deg2rad
 )
 ## hohmann might cause N to be non invertible
 transfer_a = (orb1.a + orb2.a) / 2
-# transfer_e = (orb2.a - orb1.a) / (orb1.a + orb2.a)
-# transfer_start = KeplerianElements(
-#     date_to_jd(2023, 1, 1, 0, 0, 0),
-#     transfer_a,
-#     transfer_e,
-#     51 |> deg2rad,
-#     0    |> deg2rad,
-#     0     |> deg2rad,
-#     0     |> deg2rad
-# )
-# transfer_end = @set transfer_start.f = π
-transfer_time = 2π√(transfer_a^3 / GM_EARTH) / 2
+
+transfer_orbit_time = 2π√(transfer_a^3 / GM_EARTH) / 2
+
+min_transfer_time = transfer_orbit_time + extra_phase/360 * orbital_period(orb1, GM_EARTH)
+max_transfer_time = transfer_orbit_time + extra_phase/360 * orbital_period(orb2, GM_EARTH)
+transfer_time = max_transfer_time
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
