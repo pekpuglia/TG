@@ -6,7 +6,7 @@ using Setfield
 using LinearAlgebra
 using GLMakie
 ## estimate of transfer_time
-extra_phase = 0
+extra_phase = -30
 hohmann_start_phase_frac = 0.5
 a1 = 7000e3
 a2 = 8000e3
@@ -49,8 +49,6 @@ hohmann_start = KeplerianElements(
 )
 hohmann_end = @set hohmann_start.f = π
 ##
-plot_orbit(orb1, orb2, hohmann_start, hohmann_end)
-##
 function Phi_time(propagator, t)
     r, v = Propagators.propagate!(propagator, t)
     r0, v0 = kepler_to_rv(propagator.tbd.orb₀)
@@ -72,7 +70,13 @@ function LambertTransfer1(orb1::KeplerianElements, orb2::KeplerianElements)
     r2, v2             = kepler_to_rv(orb2)
     vt_start, vt_end = lambert(r1, r2, (orb2.t - orb1.t)*86400)
     
-    propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(r1, vt_start))
+    orbt1, orbt2 = try
+        rv_to_kepler(r1, vt_start), rv_to_kepler(r2, vt_end)
+    catch ArgumentError
+        return LambertTransfer1(orb1, orb2, nothing, nothing, nothing, nothing)
+    end
+
+    propagator = Propagators.init(Val(:TwoBody), orbt1)
 
     deltaV0 = vt_start - v1
     deltaVf = v2 - vt_end
@@ -100,14 +104,22 @@ end
 transfer_start(lt::LambertTransfer1) = rv_to_kepler(kepler_to_rv(orb1)[1], lt.v_transfer_start)
 transfer_end(lt::LambertTransfer1) = rv_to_kepler(kepler_to_rv(orb2)[1], lt.v_transfer_end)
 
-cost(lt::LambertTransfer1) = norm(lt.v_transfer_start - kepler_to_rv(orb1)[2]) + norm(lt.v_transfer_end - kepler_to_rv(orb2)[2])
+function cost(lt::LambertTransfer1)
+    if isnothing(lt.v_transfer_start)
+        NaN
+    else
+        norm(lt.v_transfer_start - kepler_to_rv(orb1)[2]) + norm(lt.v_transfer_end - kepler_to_rv(orb2)[2])
+    end
+end
 
 p(lt::LambertTransfer1, t) = Phi_time(lt.transfer_propagator, t)[1:3, :] * lt.p0_p0dot
 pdot(lt::LambertTransfer1, t) = Phi_time(lt.transfer_propagator, t)[4:6, :] * lt.p0_p0dot
 ##
 transfer = LambertTransfer1(orb1, orb2)
 ##
-plot_orbit(orb1, orb2,transfer_start(transfer))
+f = plot_orbit(orb1, orb2,transfer_start(transfer))
+##
+save("./src/late_hohmann.png", f)
 ##
 t_list = transfer_time * (0.0:0.01:1.0)
 p_history = p.(Ref(transfer), t_list)
@@ -116,7 +128,8 @@ pnorm_history = norm.(p_history)
 ##
 #analisar
 #descobrir por que N não é inversível no caso Hohmann e o que fazer
-lines(t_list, pnorm_history)
+f = lines(t_list, pnorm_history)
+save("./src/late_hohmann_p_history.png", f)
 ##
 p_x = getindex.(p_history, 1)
 p_y = getindex.(p_history, 2)
@@ -128,19 +141,19 @@ T1 = orbital_period(a1, GM_EARTH)
 T2 = orbital_period(a2, GM_EARTH)
 Tsyn = T1*T2 / abs(T2 - T1)
 ##
-N = 3
-time_offsets = range(-Tsyn/3, Tsyn/3, N) |> collect
-#wrong - have to propagate
-orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets]
-orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2)[3].tbd.orbk for t in time_offsets]
+N = 10
+time_offsets1 =  range(-T1/6, T1/6, N)
+time_offsets2 = range(-T2/6, T2/6, N)
+orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets1]
+orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2)[3].tbd.orbk for t in time_offsets2]
 ##
 porkchop(orb1, orb2) = (orb2.t > orb1.t) ? LambertTransfer1(orb1, orb2) : nothing
 transfer_porkchop = porkchop.(orb1_porkchop, permutedims(orb2_porkchop))
 ##
-i = 1
-j = 3
-plot_orbit(transfer_porkchop[i, j].transfer_propagator.tbd.orb₀, transfer_porkchop[i, j].orb1, transfer_porkchop[i, j].orb2)
+cost(x::Nothing) = NaN
 ##
-nancost = cost.(transfer_porkchop) .|> (x -> isnothing(x) ? NaN : x)
-##
-contourf(time_offsets, time_offsets, nancost)
+f = Figure()
+ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of transfer")
+cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_porkchop))
+Colorbar(f[1, 2], cont)
+f
