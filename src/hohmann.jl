@@ -6,7 +6,7 @@ using Setfield
 using LinearAlgebra
 using GLMakie
 ## estimate of transfer_time
-extra_phase = -30
+extra_phase = 0
 hohmann_start_phase_frac = 0.5
 a1 = 7000e3
 a2 = 8000e3
@@ -141,7 +141,7 @@ T1 = orbital_period(a1, GM_EARTH)
 T2 = orbital_period(a2, GM_EARTH)
 Tsyn = T1*T2 / abs(T2 - T1)
 ##
-N = 10
+N = 100
 time_offsets1 =  range(-T1/6, T1/6, N)
 time_offsets2 = range(-T2/6, T2/6, N)
 orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets1]
@@ -157,3 +157,4 @@ ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of trans
 cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_porkchop))
 Colorbar(f[1, 2], cont)
 f
+save("./src/porckchop_hohmann.png", f)
