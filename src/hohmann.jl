@@ -142,8 +142,8 @@ T2 = orbital_period(a2, GM_EARTH)
 Tsyn = T1*T2 / abs(T2 - T1)
 ##
 N = 100
-time_offsets1 =  range(-T1/6, T1/6, N)
-time_offsets2 = range(-T2/6, T2/6, N)
+time_offsets1 =  range(-T1/5, T1/5, N)
+time_offsets2 = range(-T2/5, T2/5, N)
 orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets1]
 orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2)[3].tbd.orbk for t in time_offsets2]
 ##
@@ -157,4 +157,5 @@ ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of trans
 cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_porkchop))
 Colorbar(f[1, 2], cont)
 f
-save("./src/porckchop_hohmann.png", f)
+##
+save("./src/porckchop_hohmann2.png", f)
