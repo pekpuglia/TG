@@ -106,7 +106,14 @@ function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing, epoch = nothin
         ndir = cross(orbit_normal, r1dir)
 
         vi = r1dir*vr + vn*ndir
-        _, vf, _ = Propagators.propagate(Val(:TwoBody), t, rv_to_kepler(r1, vi))
+        
+        vnf = r1n*vn/r2n
+
+        vrf = √(h - vnf^2 + 2GM_EARTH/r2n)
+
+        ndirf = cross(orbit_normal, r2/r2n)
+
+        vf = r2/r2n*vrf + vnf*ndirf
     end
     vi, vf
 end
