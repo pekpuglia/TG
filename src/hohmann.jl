@@ -188,5 +188,9 @@ ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of trans
 cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_grid))
 Colorbar(f[1, 2], cont)
 f
+## TODO
+# add retrograde maneuver?/exclude weird retrograde cases
+# optimize initial coast
+# better time frames
 ##
 save("./src/better_porkchop.png", f)
