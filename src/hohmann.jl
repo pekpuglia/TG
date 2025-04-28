@@ -11,7 +11,7 @@ using Ipopt
 extra_phase = 0
 hohmann_start_phase_frac = 0.5
 a1 = 7000e3
-a2 = 8000e3
+a2 = 10000e3
 
 hohmann_time = orbital_period((a1+a2)/2, GM_EARTH) / 2
 initial_coast_time = max(hohmann_start_phase_frac * extra_phase / 360 * orbital_period(a1, GM_EARTH), 0)
@@ -22,7 +22,7 @@ transfer_time = initial_coast_time + hohmann_time + terminal_coast_time
 ##
 orb1 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
-    7000e3,
+    a1,
     0.0,
     51 |> deg2rad,
     30    |> deg2rad,
@@ -32,7 +32,7 @@ orb1 = KeplerianElements(
 
 orb2 = KeplerianElements(
     orb1.t + transfer_time / 86400,
-    8000e3,
+    a2,
     0.0,
     51 |> deg2rad,
     30    |> deg2rad,
@@ -47,7 +47,7 @@ c3(x) = (√x - sin(√x))/(x*√x)
 
 u(x, rho) = √(1 - rho*c1(x)/√c2(x))
 
-function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing, epoch = nothing)
+function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing)
     r1n = norm(r1)
     r2n = norm(r2)
 
@@ -86,15 +86,15 @@ function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing, epoch = nothin
         g = t - GM_EARTH*ssol^3*c3(xsol)
         gdot = 1 - GM_EARTH*ssol^2*c2(xsol)/r2n
 
-        vi = 1/g * (r2 - f*r1)
-        vf = 1/g * (gdot * r2 - r1)
+        v1 = 1/g * (r2 - f*r1)
+        v2 = 1/g * (gdot * r2 - r1)
     else
         #colinear case
-        vr = -r1n*c1(xsol) / (ssol*c2(xsol))
-
         h = - GM_EARTH*c2(xsol)*xsol / ((r1n+r2n)*u(xsol, value(rho)))
 
-        vn = √(h - vr^2 + 2GM_EARTH/r1n)
+        vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
+
+        vn1 = √(h - vr1^2 + 2GM_EARTH/r1n)
 
         orbit_normal = [
             sin(RAAN)*sin(i)
@@ -103,24 +103,25 @@ function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing, epoch = nothin
         ]
 
         r1dir = r1 / r1n
-        ndir = cross(orbit_normal, r1dir)
+        ndir1 = cross(orbit_normal, r1dir)
 
-        vi = r1dir*vr + vn*ndir
+        v1 = r1dir*vr1 + vn1*ndir1
         
-        vnf = r1n*vn/r2n
+        vn2 = r1n*vn1/r2n
 
-        vrf = √(h - vnf^2 + 2GM_EARTH/r2n)
+        vr2 = √(h - vn2^2 + 2GM_EARTH/r2n)
 
-        ndirf = cross(orbit_normal, r2/r2n)
+        r2dir = r2/r2n
+        ndirf = cross(orbit_normal, r2dir)
 
-        vf = r2/r2n*vrf + vnf*ndirf
+        v2 = r2dir*vr2 + vn2*ndirf
     end
-    vi, vf
+    v1, v2
 end
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
-v1sol, v2sol = sukhanov_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN = orb1.Ω, i=orb1.i, epoch=orb1.t)
+v1sol, v2sol = sukhanov_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN = orb1.Ω, i=orb1.i)
 ##
 plot_orbit(
     rv_to_kepler(r1, v1sol),
