@@ -7,7 +7,7 @@ u(x, rho) = √(1 - rho*c1(x)/√c2(x))
 
 export lambert
 #sukhanov 7
-function lambert(r1, r2, t; RAAN = nothing, i = nothing)
+function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
     r1n = norm(r1)
     r2n = norm(r2)
 
@@ -30,9 +30,21 @@ function lambert(r1, r2, t; RAAN = nothing, i = nothing)
     rho = √(2*r1n*r2n) / (r1n + r2n) * cos(phi/2)
 
     model = Model(Ipopt.Optimizer)
-    
+    if setsilent
+        set_silent(model)
+    end
+
+    #7.52 - x initial condition
+    um = √(1-√2*abs(rho))
+
+    eps0 = (π/(2/3*um^3+sigma-rho*um))^(1//3)*um
+
+    z0 = π-eps0
+
+    x0 = 2*z0^2
+
     #sukhanov 7.32 says x>0 elliptic orbit
-    x = @variable(model, lower_bound = 0)
+    x = @variable(model, lower_bound = 0, start = x0)
 
     @constraint(model, c3(x)/c2(x)^(3/2)*u(x, rho)^3 + rho*u(x, rho) == sigma)
 

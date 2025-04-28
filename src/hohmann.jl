@@ -42,7 +42,7 @@ orb2 = KeplerianElements(
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
-v1sol, v2sol = lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN = orb1.Ω, i=orb1.i)
+v1sol, v2sol = lambert(r1, r2, (orb2.t - orb1.t)*86400, false, RAAN = orb1.Ω, i=orb1.i)
 ##
 plot_orbit(
     rv_to_kepler(r1, v1sol),
