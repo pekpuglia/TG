@@ -163,8 +163,8 @@ _, _, prop = Propagators.propagate(Val(:TwoBody), -transfer_time, orb2)
 orb2_init = prop.tbd.orbk
 ##
 N = 100
-time_offsets1 =  range(0, Tsyn, N)
-time_offsets2 = range(0, Tsyn, N)
+time_offsets1 =  range(0, 2T2, N)
+time_offsets2 = range(0, 2T2, N)
 orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets1]
 orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2_init)[3].tbd.orbk for t in time_offsets2]
 ##
@@ -184,7 +184,7 @@ end
 transfer_grid = porkchop_transfer.(orb1_porkchop, permutedims(orb2_porkchop))
 ##
 f = Figure()
-ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of transfer")
+ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of transfer", aspect=1.0)
 cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_grid))
 Colorbar(f[1, 2], cont)
 f
