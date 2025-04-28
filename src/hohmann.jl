@@ -40,84 +40,9 @@ orb2 = KeplerianElements(
     180+extra_phase     |> deg2rad
 )
 ## sukhanov 
-c0(x) = cos(√x)
-c1(x) = sin(√x)/√x
-c2(x) = (1-cos(√x))/x
-c3(x) = (√x - sin(√x))/(x*√x)
-
-u(x, rho) = √(1 - rho*c1(x)/√c2(x))
-
-function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing)
-    r1n = norm(r1)
-    r2n = norm(r2)
 
 
-    c = cross(r1, r2)
-    d = dot(r1, r2)
-    #prograde trajectories
-    phi = begin
-        dphi = acos(clamp(d / (r1n*r2n), -1, 1))
-        
-        if c[3] >= 0
-            dphi
-        else
-            2π - dphi
-        end
-    end
 
-    sigma = √GM_EARTH / (r1n + r2n)^(3/2) * t
-
-    rho = √(2*r1n*r2n) / (r1n + r2n) * cos(phi/2)
-
-    model = Model(Ipopt.Optimizer)
-    
-    #sukhanov 7.32 says x>0 elliptic orbit
-    x = @variable(model, lower_bound = 0)
-
-    @constraint(model, c3(x)/c2(x)^(3/2)*u(x, rho)^3 + rho*u(x, rho) == sigma)
-
-    optimize!(model)
-
-    xsol = value(x)
-    ssol = value(√((r1n+r2n)/(GM_EARTH*c2(x)))*u(x, rho))
-    
-    if norm(c) / (r1n*r2n) > 1e-6
-        f = 1 - GM_EARTH*ssol^2*c2(xsol)/r1n
-        g = t - GM_EARTH*ssol^3*c3(xsol)
-        gdot = 1 - GM_EARTH*ssol^2*c2(xsol)/r2n
-
-        v1 = 1/g * (r2 - f*r1)
-        v2 = 1/g * (gdot * r2 - r1)
-    else
-        #colinear case
-        h = - GM_EARTH*c2(xsol)*xsol / ((r1n+r2n)*u(xsol, value(rho)))
-
-        vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
-
-        vn1 = √(h - vr1^2 + 2GM_EARTH/r1n)
-
-        orbit_normal = [
-            sin(RAAN)*sin(i)
-            -cos(RAAN)*sin(i)
-            cos(i)
-        ]
-
-        r1dir = r1 / r1n
-        ndir1 = cross(orbit_normal, r1dir)
-
-        v1 = r1dir*vr1 + vn1*ndir1
-        
-        vn2 = r1n*vn1/r2n
-
-        vr2 = √(h - vn2^2 + 2GM_EARTH/r2n)
-
-        r2dir = r2/r2n
-        ndirf = cross(orbit_normal, r2dir)
-
-        v2 = r2dir*vr2 + vn2*ndirf
-    end
-    v1, v2
-end
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
