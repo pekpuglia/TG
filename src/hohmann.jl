@@ -9,13 +9,13 @@ using JuMP
 using Ipopt
 ## estimate of transfer_time
 extra_phase = 0
-hohmann_start_phase_frac = 0
+hohmann_start_phase_frac = 1
 a1 = 7000e3
 a2 = 8000e3
 
 hohmann_time = orbital_period((a1+a2)/2, GM_EARTH) / 2
-initial_coast_time = max(hohmann_start_phase_frac * extra_phase / 360 * orbital_period(a1, GM_EARTH), 0)
-terminal_coast_time = max((extra_phase*(1 - hohmann_start_phase_frac)) / 360 * orbital_period(a2, GM_EARTH), 0)
+initial_coast_time = hohmann_start_phase_frac * extra_phase / 360 * orbital_period(a1, GM_EARTH)
+terminal_coast_time = (extra_phase*(1 - hohmann_start_phase_frac)) / 360 * orbital_period(a2, GM_EARTH)
 
 transfer_time = initial_coast_time + hohmann_time + terminal_coast_time
 
@@ -37,103 +37,12 @@ orb2 = KeplerianElements(
     orb1.i,
     orb1.Ω,
     orb1.ω,
-    180+extra_phase     |> deg2rad
+    deg2rad(180+extra_phase) + orb1.f
 )
-##
-using TG: c1, c2, c3, u
-function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing)
-    r1n = norm(r1)
-    r2n = norm(r2)
-
-
-    c = cross(r1, r2)
-    d = dot(r1, r2)
-    #prograde trajectories
-    phi = begin
-        dphi = acos(clamp(d / (r1n*r2n), -1, 1))
-        
-        if c[3] >= 0
-            dphi
-        else
-            2π - dphi
-        end
-    end
-
-    sigma = √GM_EARTH / (r1n + r2n)^(3/2) * t
-
-    rho = √(2*r1n*r2n) / (r1n + r2n) * cos(phi/2)
-
-    model = Model(Ipopt.Optimizer)
-    
-    #sukhanov 7.32 says x>0 elliptic orbit
-    x = @variable(model, lower_bound = 0)
-
-    @constraint(model, c3(x)/c2(x)^(3/2)*u(x, rho)^3 + rho*u(x, rho) == sigma)
-
-    optimize!(model)
-
-    xsol = value(x)
-    println(xsol)
-    ssol = value(√((r1n+r2n)/(GM_EARTH*c2(x)))*u(x, rho))
-    println(ssol)
-    
-    if norm(c) / (r1n*r2n) > 1e-6
-        println("non colinear")
-
-        f = 1 - GM_EARTH*ssol^2*c2(xsol)/r1n
-        g = t - GM_EARTH*ssol^3*c3(xsol)
-        gdot = 1 - GM_EARTH*ssol^2*c2(xsol)/r2n
-
-        v1 = 1/g * (r2 - f*r1)
-        v2 = 1/g * (gdot * r2 - r1)
-    else
-        println("colinear")
-        #colinear case
-        h = - GM_EARTH*c2(xsol)*xsol / ((r1n+r2n)*u(xsol, value(rho))^2)
-
-        #c1 should be very close to 0 around x = pi^2
-        #to ensure correctness vr is set to 0 when x-pi^2<1e-6
-        if abs(xsol-pi^2) < 1e-6
-            vr1 = 0
-        else
-            vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
-        end
-
-        vn1 = √(h - vr1^2 + 2GM_EARTH/r1n)
-
-        orbit_normal = [
-            sin(RAAN)*sin(i)
-            -cos(RAAN)*sin(i)
-            cos(i)
-        ]
-
-        r1dir = r1 / r1n
-        ndir1 = cross(orbit_normal, r1dir)
-
-        v1 = r1dir*vr1 + vn1*ndir1
-        
-        vn2 = r1n*vn1/r2n
-
-        vr2_squared = (h - vn2^2 + 2GM_EARTH/r2n)
-
-        if abs(vr2_squared) < 1e-6
-            vr2_squared = 0.0
-        end
-
-        vr2 = √vr2_squared
-
-        r2dir = r2/r2n
-        ndirf = cross(orbit_normal, r2dir)
-
-        v2 = r2dir*vr2 + vn2*ndirf
-    end
-    v1, v2
-end
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
-v1sol, v2sol = sukhanov_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN = orb1.Ω, i=orb1.i)
-dot(v1sol, r1/norm(r1))
+v1sol, v2sol = lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN = orb1.Ω, i=orb1.i)
 ##
 plot_orbit(
     rv_to_kepler(r1, v1sol),
@@ -216,6 +125,10 @@ function cost(lt::LambertTransfer1)
     end
 end
 
+function cost(::Nothing)
+    NaN
+end
+
 p(lt::LambertTransfer1, t) = Phi_time(lt.transfer_propagator, t)[1:3, :] * lt.p0_p0dot
 pdot(lt::LambertTransfer1, t) = Phi_time(lt.transfer_propagator, t)[4:6, :] * lt.p0_p0dot
 ##
@@ -246,21 +159,34 @@ T1 = orbital_period(a1, GM_EARTH)
 T2 = orbital_period(a2, GM_EARTH)
 Tsyn = T1*T2 / abs(T2 - T1)
 ##
+_, _, prop = Propagators.propagate(Val(:TwoBody), -transfer_time, orb2)
+orb2_init = prop.tbd.orbk
+##
 N = 100
-time_offsets1 =  range(-T1/5, T1/5, N)
-time_offsets2 = range(-T2/5, T2/5, N)
+time_offsets1 =  range(0, Tsyn, N)
+time_offsets2 = range(0, Tsyn, N)
 orb1_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb1)[3].tbd.orbk for t in time_offsets1]
-orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2)[3].tbd.orbk for t in time_offsets2]
+orb2_porkchop = [Propagators.propagate(Val(:TwoBody), t, orb2_init)[3].tbd.orbk for t in time_offsets2]
 ##
-porkchop(orb1, orb2) = (orb2.t > orb1.t) ? LambertTransfer1(orb1, orb2) : nothing
-transfer_porkchop = porkchop.(orb1_porkchop, permutedims(orb2_porkchop))
+function porkchop_transfer(orb1, orb2)
+    if orb1.t >= orb2.t
+        return nothing
+    else
+        try
+            return LambertTransfer1(orb1, orb2)
+        catch DomainError
+            @info "Hyperbolic trajectory skipped"
+            return nothing
+        end
+    end
+end
 ##
-cost(x::Nothing) = NaN
+transfer_grid = porkchop_transfer.(orb1_porkchop, permutedims(orb2_porkchop))
 ##
 f = Figure()
 ax = Axis(f[1, 1], xlabel= "departure", ylabel = "arrival", title="Cost of transfer")
-cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_porkchop))
+cont = contourf!(ax, time_offsets1, time_offsets2, cost.(transfer_grid))
 Colorbar(f[1, 2], cont)
 f
 ##
-save("./src/porckchop_hohmann2.png", f)
+save("./src/better_porkchop.png", f)
