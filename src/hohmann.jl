@@ -114,7 +114,13 @@ function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing)
         
         vn2 = r1n*vn1/r2n
 
-        vr2 = √(h - vn2^2 + 2GM_EARTH/r2n)
+        vr2_squared = (h - vn2^2 + 2GM_EARTH/r2n)
+
+        if abs(vr2_squared) < 1e-6
+            vr2_squared = 0.0
+        end
+
+        vr2 = √vr2_squared
 
         r2dir = r2/r2n
         ndirf = cross(orbit_normal, r2dir)
