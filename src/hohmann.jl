@@ -8,7 +8,7 @@ using GLMakie
 using JuMP
 using Ipopt
 ## estimate of transfer_time
-extra_phase = -60
+extra_phase = 0
 hohmann_start_phase_frac = 0.5
 a1 = 7000e3
 a2 = 8000e3
@@ -25,7 +25,7 @@ orb1 = KeplerianElements(
     7000e3,
     0.0,
     51 |> deg2rad,
-    0    |> deg2rad,
+    30    |> deg2rad,
     0     |> deg2rad,
     0     |> deg2rad
 )
@@ -35,7 +35,7 @@ orb2 = KeplerianElements(
     8000e3,
     0.0,
     51 |> deg2rad,
-    0    |> deg2rad,
+    30    |> deg2rad,
     0     |> deg2rad,
     180+extra_phase     |> deg2rad
 )
@@ -47,7 +47,7 @@ c3(x) = (√x - sin(√x))/(x*√x)
 
 u(x, rho) = √(1 - rho*c1(x)/√c2(x))
 
-function sukhanov_lambert(r1, r2, t)
+function sukhanov_lambert(r1, r2, t; RAAN = nothing, i = nothing, epoch = nothing)
     r1n = norm(r1)
     r2n = norm(r2)
 
@@ -81,18 +81,39 @@ function sukhanov_lambert(r1, r2, t)
     xsol = value(x)
     ssol = value(√((r1n+r2n)/(GM_EARTH*c2(x)))*u(x, rho))
     
-    f = 1 - GM_EARTH*ssol^2*c2(xsol)/r1n
-    g = t - GM_EARTH*ssol^3*c3(xsol)
-    gdot = 1 - GM_EARTH*ssol^2*c2(xsol)/r2n
+    if norm(c) / (r1n*r2n) > 1e-6
+        f = 1 - GM_EARTH*ssol^2*c2(xsol)/r1n
+        g = t - GM_EARTH*ssol^3*c3(xsol)
+        gdot = 1 - GM_EARTH*ssol^2*c2(xsol)/r2n
 
-    v1 = 1/g * (r2 - f*r1)
-    v2 = 1/g * (gdot * r2 - r1)
-    v1, v2
+        vi = 1/g * (r2 - f*r1)
+        vf = 1/g * (gdot * r2 - r1)
+    else
+        #colinear case
+        vr = -r1n*c1(xsol) / (ssol*c2(xsol))
+
+        h = - GM_EARTH*c2(xsol)*xsol / ((r1n+r2n)*u(xsol, value(rho)))
+
+        vn = √(h - vr^2 + 2GM_EARTH/r1n)
+
+        orbit_normal = [
+            sin(RAAN)*sin(i)
+            -cos(RAAN)*sin(i)
+            cos(i)
+        ]
+
+        r1dir = r1 / r1n
+        ndir = cross(orbit_normal, r1dir)
+
+        vi = r1dir*vr + vn*ndir
+        _, vf, _ = Propagators.propagate(Val(:TwoBody), t, rv_to_kepler(r1, vi))
+    end
+    vi, vf
 end
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
-v1sol, v2sol = sukhanov_lambert(r1, r2, (orb2.t - orb1.t)*86400)
+v1sol, v2sol = sukhanov_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN = orb1.Ω, i=orb1.i, epoch=orb1.t)
 ##
 plot_orbit(
     rv_to_kepler(r1, v1sol),
