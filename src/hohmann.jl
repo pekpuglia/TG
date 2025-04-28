@@ -193,5 +193,6 @@ f
 # optimize initial coast
 # better time frames
 # check sigma > sigma_par
+#adicionar ifs nas funções de stumpff
 ##
 save("./src/better_porkchop.png", f)
