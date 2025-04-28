@@ -192,5 +192,6 @@ f
 # add retrograde maneuver?/exclude weird retrograde cases
 # optimize initial coast
 # better time frames
+# check sigma > sigma_par
 ##
 save("./src/better_porkchop.png", f)
