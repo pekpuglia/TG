@@ -50,9 +50,15 @@ function lambert(r1, r2, t; RAAN = nothing, i = nothing)
         v2 = 1/g * (gdot * r2 - r1)
     else
         #colinear case
-        h = - GM_EARTH*c2(xsol)*xsol / ((r1n+r2n)*u(xsol, value(rho)))
+        h = - GM_EARTH*c2(xsol)*xsol / ((r1n+r2n)*u(xsol, value(rho))^2)
 
-        vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
+        #c1 should be very close to 0 around x = pi^2
+        #to ensure correctness vr is set to 0 when x-pi^2<1e-6
+        if abs(xsol-pi^2) < 1e-6
+            vr1 = 0
+        else
+            vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
+        end
 
         vn1 = √(h - vr1^2 + 2GM_EARTH/r1n)
 
