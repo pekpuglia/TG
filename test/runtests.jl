@@ -25,10 +25,10 @@ using SatelliteToolboxBase
 
     delta_t = 3600
 
-    v1, v2 = lambert(r1, r2, delta_t)
+    lamb = lambert(r1, r2, delta_t)
 
-    @test all(isapprox.(v1, [-5.9925, 1.9254, 3.2456]*1e3, rtol=1e-2))
-    @test all(isapprox.(v2, [-3.3125, -4.1966, -0.38529]*1e3, rtol=1e-2))
+    @test all(isapprox.(lamb.v1, [-5.9925, 1.9254, 3.2456]*1e3, rtol=1e-2))
+    @test all(isapprox.(lamb.v2, [-3.3125, -4.1966, -0.38529]*1e3, rtol=1e-2))
 end
 
 @testset "Glandorf tests" begin

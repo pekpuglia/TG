@@ -7,6 +7,19 @@ u(x, rho) = √(1 - rho*c1(x)/√c2(x))
 
 export lambert
 #sukhanov 7
+struct LambertResult
+    is_elliptic
+    sigma
+    sigma_par
+    r1
+    v1
+    r2
+    v2
+    t
+    propagator
+end
+
+#sukhanov 7
 function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
     r1n = norm(r1)
     r2n = norm(r2)
@@ -28,6 +41,12 @@ function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
     sigma = √GM_EARTH / (r1n + r2n)^(3/2) * t
 
     rho = √(2*r1n*r2n) / (r1n + r2n) * cos(phi/2)
+
+    sigma_par = 1/3*(√2 + rho)*√(1-√2*rho)
+
+    if sigma <= sigma_par
+        return LambertResult(false, sigma, sigma_par, r1, nothing, r2, nothing, t, nothing)
+    end
 
     model = Model(Ipopt.Optimizer)
     if setsilent
@@ -100,5 +119,11 @@ function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
 
         v2 = r2dir*vr2 + vn2*ndirf
     end
-    v1, v2
+
+    try
+        propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(r1, v1))
+        LambertResult(true, sigma, sigma_par, r1, v1, r2, v2, t, propagator)
+    catch ArgumentError #no idea where this comes from
+        LambertResult(false, sigma, sigma_par, r1, v1, r2, v2, t, nothing)
+    end
 end
