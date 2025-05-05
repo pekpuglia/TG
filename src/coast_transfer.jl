@@ -6,7 +6,7 @@ struct CoastTransfer
     p0_p0dot
 end
 
-function CoastTransfer(orb1::KeplerianElements, orb2::KeplerianElements; prograde=true)
+function CoastTransfer(orb1::KeplerianElements, orb2::KeplerianElements, prograde)
     r2, v2             = kepler_to_rv(orb2)
     r1, v1             = kepler_to_rv(orb1)
     deltat = (orb2.t - orb1.t)*86400
@@ -43,8 +43,8 @@ end
 
 #min of prograde, retrograde
 function CoastTransfer(orb1::KeplerianElements, orb2::KeplerianElements)
-    prograde   = CoastTransfer(orb1, orb2, prograde=true)
-    retrograde = CoastTransfer(orb1, orb2, prograde=false)
+    prograde   = CoastTransfer(orb1, orb2, true)
+    retrograde = CoastTransfer(orb1, orb2, false)
 
     if prograde.lambert.is_elliptic && retrograde.lambert.is_elliptic
         if cost(prograde) <= cost(retrograde)
