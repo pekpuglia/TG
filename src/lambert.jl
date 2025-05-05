@@ -5,7 +5,7 @@ c3(x) = (√x - sin(√x))/(x*√x)
 
 u(x, rho) = √(1 - rho*c1(x)/√c2(x))
 
-export lambert
+export LambertResult, lambert
 #sukhanov 7
 struct LambertResult
     is_elliptic
@@ -20,7 +20,7 @@ struct LambertResult
 end
 
 #sukhanov 7
-function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
+function lambert(r1, r2, t; prograde=true, RAAN = nothing, i = nothing, setsilent=true)
     r1n = norm(r1)
     r2n = norm(r2)
 
@@ -31,10 +31,18 @@ function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
     phi = begin
         dphi = acos(clamp(d / (r1n*r2n), -1, 1))
         
-        if c[3] >= 0
-            dphi
+        if prograde
+            if c[3] >= 0
+                dphi
+            else
+                2π - dphi
+            end
         else
-            2π - dphi
+            if c[3] < 0
+                dphi
+            else
+                2π - dphi
+            end
         end
     end
 
@@ -122,6 +130,7 @@ function lambert(r1, r2, t, setsilent=true; RAAN = nothing, i = nothing)
 
     try
         propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(r1, v1))
+        rv_to_kepler(r2, v2) # sometimes fails - don't know why
         LambertResult(true, sigma, sigma_par, r1, v1, r2, v2, t, propagator)
     catch ArgumentError #no idea where this comes from
         LambertResult(false, sigma, sigma_par, r1, v1, r2, v2, t, nothing)
