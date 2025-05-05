@@ -42,6 +42,7 @@ orbital_period(a, m0) = 2π√(a^3/m0)
 
 include("./lambert.jl")
 include("./glandorf.jl")
+include("./coast_transfer.jl")
 
 noNaNs(x::Real) = true
 noNaNs(x::ForwardDiff.Dual) = !any(isnan, ForwardDiff.partials(x))
