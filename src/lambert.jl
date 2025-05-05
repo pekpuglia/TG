@@ -99,7 +99,13 @@ function lambert(r1, r2, t; prograde=true, RAAN = nothing, i = nothing, setsilen
             vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
         end
 
-        vn1 = √(h - vr1^2 + 2GM_EARTH/r1n) #should change prograde/retrograde
+        try
+            vn1 = √(h - vr1^2 + 2GM_EARTH/r1n) #should change prograde/retrograde
+        catch e
+            if e isa DomainError
+                return LambertResult(false, sigma, sigma_par, r1, nothing, r2, nothing, t, nothing)
+            end
+        end
 
         orbit_normal = [
             sin(RAAN)*sin(i)
