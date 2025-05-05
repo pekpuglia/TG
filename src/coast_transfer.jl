@@ -81,3 +81,8 @@ end
 
 p(lt::CoastTransfer, t) = Phi_time(lt.lambert.propagator, t)[1:3, :] * lt.p0_p0dot
 pdot(lt::CoastTransfer, t) = Phi_time(lt.lambert.propagator, t)[4:6, :] * lt.p0_p0dot
+
+export plot_transfer
+function plot_transfer(lt::CoastTransfer)
+    plot_orbit(lt.orb1, lt.orb2, lt.lambert.propagator.tbd.orbk)
+end

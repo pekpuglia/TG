@@ -107,9 +107,6 @@ lines(p_x, p_y, p_z)
 # Colorbar(f[1, 2], cont)
 # f
 # ##
-# function plot_transfer(lt::CoastTransfer)
-#     plot_orbit(lt.orb1, lt.orb2, lt.lambert.propagator.tbd.orbk)
-# end
 ## TODO
 # optimize initial coast
 # better time frames
