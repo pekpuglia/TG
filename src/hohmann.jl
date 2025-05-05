@@ -212,10 +212,10 @@ struct LambertTransfer2
     p0_p0dot
 end
 
-function LambertTransfer2(orb1::KeplerianElements, orb2::KeplerianElements)
-    r1, v1             = kepler_to_rv(orb1)
+function LambertTransfer2(orb1::KeplerianElements, orb2::KeplerianElements; prograde=true)
     r2, v2             = kepler_to_rv(orb2)
-    lamb = angle_choice_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN=orb1.Ω, i=orb1.i)
+    r1, v1             = kepler_to_rv(orb1)
+    lamb = angle_choice_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN=orb1.Ω, i=orb1.i, prograde=prograde)
 
     if !lamb.is_elliptic
         return LambertTransfer2(orb1, orb2, lamb, nothing)
@@ -244,6 +244,26 @@ function LambertTransfer2(orb1::KeplerianElements, orb2::KeplerianElements)
     end
 
     LambertTransfer2(orb1, orb2, lamb, [p0; p0dot])
+end
+
+#min of prograde, retrograde
+function LambertTransfer2(orb1::KeplerianElements, orb2::KeplerianElements)
+    prograde   = LambertTransfer2(orb1, orb2, prograde=true)
+    retrograde = LambertTransfer2(orb1, orb2, prograde=false)
+
+    if prograde.lambert.is_elliptic && retrograde.lambert.is_elliptic
+        if cost(prograde) <= cost(retrograde)
+            prograde
+        else
+            retrograde
+        end
+    elseif prograde.lambert.is_elliptic && !retrograde.lambert.is_elliptic
+        prograde
+    elseif !prograde.lambert.is_elliptic && retrograde.lambert.is_elliptic
+        retrograde
+    else
+        prograde
+    end
 end
 
 transfer_start(lt::LambertTransfer2) = lt.lambert.propagator.tbd.orb₀
