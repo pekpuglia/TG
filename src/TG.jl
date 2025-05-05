@@ -35,7 +35,7 @@ end
 
 export orbital_period
 function orbital_period(orb::KeplerianElements, m0)
-    2π√(orb.a^3/m0)
+    orbital_period(orb.a,m0)
 end
 
 orbital_period(a, m0) = 2π√(a^3/m0)
@@ -278,7 +278,67 @@ function final_position(orb0, deltaV, period_fraction1, period_fraction2)
 
     r_final, v_final, orbp_postman = Propagators.propagate(Val(:TwoBody), period_fraction2*T_postman, orb_postman)
     total_time = orbp_preman.tbd.Δt + orbp_postman.tbd.Δt
-    r_final, total_time, orb_postman, orbp_postman.tbd.orbk, v_final/norm(v_final)
+    r_final, total_time, orb_postman, orbp_postman.tbd.orbk, v_final
+end
+
+export FullOrbitalParameters
+struct FullOrbitalParameters
+    r
+    v
+    a
+    e
+    i
+    Ω
+    ω
+    nu
+    M
+    E # excluir?
+end
+
+export add_orbital_elements!
+function add_orbital_elements!(model)
+    Vorb_sup = √(GM_EARTH/EARTH_EQUATORIAL_RADIUS)
+    rscaled = @variable(model, [1:3])
+    @constraint(model, rscaled' * rscaled >= 1)
+    r = EARTH_EQUATORIAL_RADIUS * rscaled
+    vscaled = @variable(model, [1:3])
+    v = Vorb_sup*vscaled
+
+    ascaled = @variable(model, lower_bound = 1.0)
+    a = EARTH_EQUATORIAL_RADIUS * ascaled
+    e = @variable(model, lower_bound = 0, upper_bound = 1) 
+    i = @variable(model, lower_bound = 0, upper_bound = π, base_name = "i")
+    Ω = @variable(model, base_name = "Ω")
+    ω = @variable(model, base_name = "ω")
+    nu = @variable(model, lower_bound = -2π, upper_bound = 2π, base_name = "nu")
+
+    #rad!!!
+    M = @variable(model, lower_bound = 0.0, base_name = "M")
+    E = @variable(model, lower_bound = 0.0, base_name= "E")
+    
+    QxbarX = [
+        -sin(Ω)*cos(i)*sin(ω)+cos(Ω)*cos(ω) -sin(Ω)*cos(i)*cos(ω)-cos(Ω)*sin(ω)  sin(Ω)*sin(i)
+         cos(Ω)*cos(i)*sin(ω)+sin(Ω)*cos(ω)  cos(Ω)*cos(i)*cos(ω)-sin(Ω)*sin(ω) -cos(Ω)*sin(i)
+         sin(i)*sin(ω)                               sin(i)*cos(ω)                              cos(i)
+    ]
+
+    #curtis chap 4
+    #h^2/mu = p = a (1-e^2)
+    r_perifocal = a*(1-e^2) * 1/(1+e*cos(nu)) * [cos(nu); sin(nu); 0]
+    
+    h = √(GM_EARTH*a*(1-e^2))
+    v_perifocal = GM_EARTH / h * [-sin(nu); e + cos(nu); 0]
+
+
+    @constraint(model, r .== QxbarX * r_perifocal)
+    @constraint(model, v .== QxbarX * v_perifocal)
+    
+    @constraint(model, E - e*sin(E) == M)
+
+    #curtis page 144 & 145
+    @constraint(model, nu == 2 * atan(√(1+e)*sin(E/2), √(1-e)*cos(E/2)))
+
+    FullOrbitalParameters(r, v, a, e, i, Ω, ω, nu, M, E)
 end
 
 end # module TG
