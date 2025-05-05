@@ -67,3 +67,10 @@ function Pinv_glandorf(R, V, t)
         -F[3]*H'             F[1]*H'
     ]
 end
+
+function Phi_time(propagator, t)
+    r, v = Propagators.propagate!(propagator, t)
+    r0, v0 = kepler_to_rv(propagator.tbd.orb₀)
+    Phi = P_glandorf(r, v, t) * Pinv_glandorf(r0, v0, 0)
+    Phi
+end
