@@ -8,7 +8,7 @@ using GLMakie
 using JuMP
 using Ipopt
 ## estimate of transfer_time
-extra_phase = 0
+extra_phase = +60
 hohmann_start_phase_frac = 1
 a1 = 7000e3
 a2 = 8000e3
@@ -42,12 +42,12 @@ orb2 = KeplerianElements(
 ##
 r1, v1             = kepler_to_rv(orb1)
 r2, v2             = kepler_to_rv(orb2)
-v1sol, v2sol = lambert(r1, r2, (orb2.t - orb1.t)*86400, false, RAAN = orb1.Ω, i=orb1.i)
+lambsol = angle_choice_lambert(r1, r2, (orb2.t - orb1.t)*86400, setsilent=false, prograde=false, RAAN = orb1.Ω, i=orb1.i)
 ##
 plot_orbit(
-    rv_to_kepler(r1, v1sol),
+    rv_to_kepler(r1, lambsol.v1),
     rv_to_kepler(r1, v1),
-    rv_to_kepler(r2, v2sol),
+    rv_to_kepler(r2, lambsol.v2),
     rv_to_kepler(r2, v2),
 )
 ##
@@ -89,7 +89,7 @@ struct LambertResult
 end
 
 #sukhanov 7
-function parab_time_lambert(r1, r2, t; prograde=true, RAAN = nothing, i = nothing, setsilent=true)
+function angle_choice_lambert(r1, r2, t; prograde=true, RAAN = nothing, i = nothing, setsilent=true)
     r1n = norm(r1)
     r2n = norm(r2)
 
@@ -100,10 +100,18 @@ function parab_time_lambert(r1, r2, t; prograde=true, RAAN = nothing, i = nothin
     phi = begin
         dphi = acos(clamp(d / (r1n*r2n), -1, 1))
         
-        if c[3] >= 0
-            dphi
+        if prograde
+            if c[3] >= 0
+                dphi
+            else
+                2π - dphi
+            end
         else
-            2π - dphi
+            if c[3] < 0
+                dphi
+            else
+                2π - dphi
+            end
         end
     end
 
@@ -207,7 +215,7 @@ end
 function LambertTransfer2(orb1::KeplerianElements, orb2::KeplerianElements)
     r1, v1             = kepler_to_rv(orb1)
     r2, v2             = kepler_to_rv(orb2)
-    lamb = parab_time_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN=orb1.Ω, i=orb1.i)
+    lamb = angle_choice_lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN=orb1.Ω, i=orb1.i)
 
     if !lamb.is_elliptic
         return LambertTransfer2(orb1, orb2, lamb, nothing)
