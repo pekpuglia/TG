@@ -9,7 +9,8 @@ end
 function CoastTransfer(orb1::KeplerianElements, orb2::KeplerianElements; prograde=true)
     r2, v2             = kepler_to_rv(orb2)
     r1, v1             = kepler_to_rv(orb1)
-    lamb = lambert(r1, r2, (orb2.t - orb1.t)*86400, RAAN=orb1.Ω, i=orb1.i, prograde=prograde)
+    deltat = (orb2.t - orb1.t)*86400
+    lamb = lambert(r1, r2, deltat, RAAN=orb1.Ω, i=orb1.i, prograde=prograde)
 
     if !lamb.is_elliptic
         return CoastTransfer(orb1, orb2, lamb, nothing)
@@ -23,7 +24,7 @@ function CoastTransfer(orb1::KeplerianElements, orb2::KeplerianElements; prograd
     p0 = deltaV0 / norm(deltaV0)
     pf = deltaVf / norm(deltaVf)
 
-    Phi = P_glandorf(r2, lamb.v2, transfer_time) * Pinv_glandorf(r1, lamb.v1, 0)
+    Phi = Phi_time(propagator, deltat)
     M = Phi[1:3, 1:3]
     N = Phi[1:3, 4:6]
 
