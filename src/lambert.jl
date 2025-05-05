@@ -95,11 +95,11 @@ function lambert(r1, r2, t; prograde=true, RAAN = nothing, i = nothing, setsilen
         #to ensure correctness vr is set to 0 when x-pi^2<1e-6
         if abs(xsol-pi^2) < 1e-6
             vr1 = 0
-        else
+        else #doesn't work
             vr1 = -r1n*c1(xsol) / (ssol*c2(xsol))
         end
 
-        vn1 = √(h - vr1^2 + 2GM_EARTH/r1n)
+        vn1 = √(h - vr1^2 + 2GM_EARTH/r1n) #should change prograde/retrograde
 
         orbit_normal = [
             sin(RAAN)*sin(i)
