@@ -30,8 +30,9 @@ orb2 = KeplerianElements(
     orb1.i,
     orb1.Ω,
     orb1.ω,
-    deg2rad(190) + orb1.f
+    deg2rad(180) + orb1.f
 )
+plot_orbit(orb1, orb2)
 ##
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -84,7 +85,11 @@ function add_coast_segment(model, deltat, N, ind)
 end
 ##
 N=10
-model = Model(Ipopt.Optimizer)
+model = Model(
+    optimizer_with_attributes(Ipopt.Optimizer,
+    "max_iter" => 10_000
+    )
+)
 
 t1 = @variable(model, base_name="t1", lower_bound=0, upper_bound=transfer_time)
 t2 = @variable(model, base_name="t2", lower_bound=0, upper_bound=transfer_time)
@@ -105,6 +110,7 @@ rcoast2, vcoast2 = add_coast_segment(model, t2, N, 2)
 rcoast3, vcoast3 = add_coast_segment(model, transfer_time-t1-t2, N, 3)
 
 for i = 1:(N+1)
+    #generate initial condition w lambert?
     set_start_value.(rcoast1[:, i], r1)
     set_start_value.(rcoast2[:, i], r1)
     set_start_value.(rcoast3[:, i], r2)
