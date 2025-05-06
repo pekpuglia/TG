@@ -60,25 +60,37 @@ r_history = hcat(r...)
 scatter(r_history[1, :], r_history[2, :], r_history[3, :])
 ##
 rf = r[end]
+
+##
+function add_coast_segment(model, deltat, N, ind)
+    #[(x, y, z), time instants]
+    r = @variable(model, [1:3, 1:N+1], base_name="r_coast_$ind")
+    v = @variable(model, [1:3, 1:N+1], base_name="v_coast_$ind")
+
+
+    for i = 1:(N+1)
+        @constraint(model, r[:, i]' * r[:, i] >= EARTH_EQUATORIAL_RADIUS^2)
+        @constraint(model, cross(r[:, i], v[:, i])[3] >=0)
+    end
+
+    for i = 1:N
+        @constraint(model, RK4(X -> two_body_dyn(X, GM_EARTH), [r[:, i]; v[:, i]], deltat/N) .== [r[:, i+1]; v[:, i+1]])
+    end
+
+    r, v
+end
 ##
 model = Model(Ipopt.Optimizer)
 
-r = @variable(model, [1:3, 1:N+1], base_name="r")
+r, v = add_coast_segment(model, tmax, N, 1)
 
 for i = 1:(N+1)
     set_start_value.(r[:, i], r1)
-    # @constraint(model, r[:, i]' * r[:, i] >= EARTH_EQUATORIAL_RADIUS^2)
 end
 
-v = @variable(model, [1:3, 1:N+1], base_name="v")
 
 @constraint(model, r[:, 1] .== r1)
 @constraint(model, r[:, end] .== rf)
-
-for i = 1:N
-    # @constraint(model, cross(r[:, i], v[:, i])[3] >= )
-    @constraint(model, RK4(X -> two_body_dyn(X, GM_EARTH), [r[:, i]; v[:, i]], dt) .== [r[:, i+1]; v[:, i+1]])
-end
 ##
 optimize!(model)
 ##
