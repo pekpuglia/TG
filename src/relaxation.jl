@@ -4,6 +4,7 @@ using JuMP
 using Ipopt
 using TG
 using GLMakie
+using LinearAlgebra
 ##
 a1 = 7000e3
 
@@ -66,7 +67,7 @@ r = @variable(model, [1:3, 1:N+1], base_name="r")
 
 for i = 1:(N+1)
     set_start_value.(r[:, i], r1)
-    @constraint(model, r[:, i]' * r[:, i] >= EARTH_EQUATORIAL_RADIUS^2)
+    # @constraint(model, r[:, i]' * r[:, i] >= EARTH_EQUATORIAL_RADIUS^2)
 end
 
 v = @variable(model, [1:3, 1:N+1], base_name="v")
@@ -75,6 +76,7 @@ v = @variable(model, [1:3, 1:N+1], base_name="v")
 @constraint(model, r[:, end] .== rf)
 
 for i = 1:N
+    # @constraint(model, cross(r[:, i], v[:, i])[3] >= )
     @constraint(model, RK4(X -> two_body_dyn(X, GM_EARTH), [r[:, i]; v[:, i]], dt) .== [r[:, i+1]; v[:, i+1]])
 end
 ##
