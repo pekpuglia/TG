@@ -30,7 +30,7 @@ orb2 = KeplerianElements(
     orb1.i,
     orb1.Ω,
     orb1.ω,
-    deg2rad(180) + orb1.f
+    deg2rad(190) + orb1.f
 )
 ##
 r1, v1 = kepler_to_rv(orb1)
@@ -107,11 +107,12 @@ rcoast3, vcoast3 = add_coast_segment(model, transfer_time-t1-t2, N, 3)
 for i = 1:(N+1)
     set_start_value.(rcoast1[:, i], r1)
     set_start_value.(rcoast2[:, i], r1)
-    set_start_value.(rcoast3[:, i], r1)
+    set_start_value.(rcoast3[:, i], r2)
 end
 
 
 @constraint(model, rcoast1[:, 1] .== r1)
+@constraint(model, vcoast1[:, 1] .== v1)
 
 @constraint(model, rcoast2[:, 1] .== rcoast1[:, end])
 deltaV1 = deltaV1mag * deltaV1dir
@@ -124,6 +125,7 @@ deltaV2 = deltaV2mag * deltaV2dir
 
 
 @constraint(model, rcoast3[:, end] .== r2)
+@constraint(model, vcoast3[:, end] .== v2)
 
 @objective(model, MIN_SENSE, deltaV1mag + deltaV2mag)
 ##
@@ -131,4 +133,10 @@ optimize!(model)
 ##
 solved_r = [value.(rcoast1) value.(rcoast2) value.(rcoast3)]
 ##
-scatter(solved_r[1, :], solved_r[2, :], solved_r[3, :])
+f = Figure()
+ax3d = Axis3(f[1, 1])
+
+scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :])
+scatter!(ax3d, solved_r[1, (N+1):(N+1):end], solved_r[2, (N+1):(N+1):end], solved_r[3, (N+1):(N+1):end], markersize=20, color=:red)
+
+f
