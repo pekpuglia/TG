@@ -96,11 +96,14 @@ r, v = add_coast_segment(model, transfer_time, N, "lamb")
 
 for i = 1:size(r)[2]
     set_start_value.(r[:, i], r1)
+    set_start_value.(v[:, i], v1)
 end
+
 ##
 optimize!(model)
 ##
 lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
+lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
 plot_orbit(orb1, orb2, lamb1)
 ##
 N=10
@@ -128,14 +131,6 @@ rcoast1, vcoast1 = add_coast_segment(model, t1, N, 1)
 rcoast2, vcoast2 = add_coast_segment(model, t2, N, 2)
 rcoast3, vcoast3 = add_coast_segment(model, transfer_time-t1-t2, N, 3)
 
-for i = 1:(N+1)
-    #generate initial condition w lambert?
-    set_start_value.(rcoast1[:, i], r1)
-    set_start_value.(rcoast2[:, i], r1)
-    set_start_value.(rcoast3[:, i], r2)
-end
-
-
 @constraint(model, rcoast1[:, 1] .== r1)
 @constraint(model, vcoast1[:, 1] .== v1)
 
@@ -153,6 +148,32 @@ deltaV2 = deltaV2mag * deltaV2dir
 @constraint(model, vcoast3[:, end] .== v2)
 
 @objective(model, MIN_SENSE, deltaV1mag + deltaV2mag)
+
+#start condition
+#lambert maneuver
+set_start_value(t1, 0)
+set_start_value(t2, transfer_time)
+
+dv1 = value.(v[:, 1]) - v1
+set_start_value(deltaV1mag, norm(dv1))
+set_start_value.(deltaV1dir, dv1/norm(dv1))
+
+dv2 = value.(v[:, end]) - v2
+set_start_value(deltaV2mag, norm(dv2))
+set_start_value.(deltaV2dir, dv2/norm(dv2))
+
+for i = 1:(N+1)
+    #generate initial condition w lambert?
+    set_start_value.(rcoast1[:, i], r1)
+    set_start_value.(vcoast1[:, i], v1)
+    
+    ri, vi = Propagators.propagate!(lamb_prop, transfer_time*(i-1)/N)
+    set_start_value.(rcoast2[:, i], ri)
+    set_start_value.(vcoast2[:, i], vi)
+    
+    set_start_value.(rcoast3[:, i], r2)
+    set_start_value.(vcoast3[:, i], v2)
+end
 ##
 optimize!(model)
 ##
