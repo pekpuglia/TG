@@ -11,7 +11,7 @@ a2 = 9000e3
 
 hohmann_time = orbital_period((a1+a2)/2, GM_EARTH) / 2
 
-transfer_time = hohmann_time
+transfer_time = hohmann_time + 1000
 
 orb1 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -22,6 +22,7 @@ orb1 = KeplerianElements(
     0     |> deg2rad,
     60     |> deg2rad
 )
+prop1 = Propagators.init(Val(:TwoBody), orb1)
 
 orb2 = KeplerianElements(
     orb1.t + transfer_time / 86400,
@@ -32,6 +33,7 @@ orb2 = KeplerianElements(
     orb1.ω,
     deg2rad(210) + orb1.f
 )
+prop2 = Propagators.init(Val(:TwoBody), orb2)
 plot_orbit(orb1, orb2)
 ##
 r1, v1 = kepler_to_rv(orb1)
@@ -91,11 +93,17 @@ model = Model(Ipopt.Optimizer)
 
 r, v = add_coast_segment(model, transfer_time, N, "lamb")
 
-@constraint(model, r[:, 1] .== r1)
-@constraint(model, r[:, end] .== r2)
+dt10 = 1/3*transfer_time
+dt20 = 1/3*transfer_time
+
+r1_lamb = Propagators.propagate!(prop1, dt10)[1]
+r2_lamb = Propagators.propagate!(prop2, dt10+dt20-transfer_time)[1]
+
+@constraint(model, r[:, 1] .== r1_lamb)
+@constraint(model, r[:, end] .== r2_lamb)
 
 for i = 1:size(r)[2]
-    set_start_value.(r[:, i], r1)
+    set_start_value.(r[:, i], r1_lamb)
     set_start_value.(v[:, i], v1)
 
     @constraint(model, cross(r[:, i], v[:, i])[3] >= 0)
@@ -152,8 +160,8 @@ deltaV2 = deltaV2mag * deltaV2dir
 
 #start condition
 #lambert maneuver
-set_start_value(dt1, 0)
-set_start_value(dt2, transfer_time)
+set_start_value(dt1, dt10)
+set_start_value(dt2, dt20)
 
 dv1 = value.(v[:, 1]) - v1
 set_start_value(deltaV1mag, norm(dv1))
@@ -164,15 +172,17 @@ set_start_value(deltaV2mag, norm(dv2))
 set_start_value.(deltaV2dir, dv2/norm(dv2))
 
 for i = 1:(N+1)
-    set_start_value.(rcoast1[:, i], r1)
-    set_start_value.(vcoast1[:, i], v1)
+    r1i, v1i = Propagators.propagate!(prop1, dt10*(i-1)/N)
+    set_start_value.(rcoast1[:, i], r1i)
+    set_start_value.(vcoast1[:, i], v1i)
     
-    ri, vi = Propagators.propagate!(lamb_prop, transfer_time*(i-1)/N)
-    set_start_value.(rcoast2[:, i], ri)
-    set_start_value.(vcoast2[:, i], vi)
+    r2i, v2i = Propagators.propagate!(lamb_prop, dt20*(i-1)/N)
+    set_start_value.(rcoast2[:, i], r2i)
+    set_start_value.(vcoast2[:, i], v2i)
     
-    set_start_value.(rcoast3[:, i], r2)
-    set_start_value.(vcoast3[:, i], v2)
+    r3i, v3i = Propagators.propagate!(prop2, (transfer_time-dt10-dt20)*((i-1)/N - 1))
+    set_start_value.(rcoast3[:, i], r3i)
+    set_start_value.(vcoast3[:, i], v3i)
 end
 ##
 optimize!(model)
