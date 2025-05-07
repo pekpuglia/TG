@@ -84,6 +84,25 @@ function add_coast_segment(model, deltat, N, ind)
     r, v
 end
 ##
+#solve lambert problem to use as initial condition
+N = 10
+
+model = Model(Ipopt.Optimizer)
+
+r, v = add_coast_segment(model, transfer_time, N, "lamb")
+
+@constraint(model, r[:, 1] .== r1)
+@constraint(model, r[:, end] .== r2)
+
+for i = 1:size(r)[2]
+    set_start_value.(r[:, i], r1)
+end
+##
+optimize!(model)
+##
+lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
+plot_orbit(orb1, orb2, lamb1)
+##
 N=10
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
