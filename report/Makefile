@@ -2,30 +2,25 @@
 # gerados por latexmk.
 #
 # Mantenha sincronizado com o valor em .gitignore
-FILE = tese
-OUT_DIR = output
-TEMP_DIR = tmp
-TEX = pdflatex
-BIB = bibtex
-TEX_FLAGS = --aux-directory=$(TEMP_DIR) -output-directory=$(OUT_DIR)
-LATEXMK_FLAGS = -pdf -synctex=1 --shell-escape -auxdir=$(TEMP_DIR) -outdir=$(OUT_DIR)
+OUT_DIR ?= latex.out
 
+# Opções passadas para latexmk.
+LATEXMK_FLAGS ?= -pdf
 
-.PHONY:	all pdf bib clean
+TEX_SRCS := $(shell find . -type f -name "*.tex")
+BIB_SRCS := $(shell find . -type f -name "*.bib")
+IMG_SRCS := $(shell find . -type f -name "*.jpg" -or -name "*.png" -or -name "*.eps")
 
-all: complete
+SRCS := $(TEX_SRCS) $(BIB_SRCS) $(IMG_SRCS)
 
-complete:
-	latexmk -pdflatex="$(TEX)" $(LATEXMK_FLAGS) $(FILE).tex
+# Compilar a versão final do PDF.
+pdf: $(OUT_DIR)/tese.pdf
 
-pdf:
-	$(TEX) $(TEX_FLAGS) $(FILE).tex
+clean:
+	@rm -rf $(OUT_DIR)
 
-bib: $(TEMP_DIR)/$(FILE).aux
-	$(BIB) $(TEMP_DIR)/$(FILE)
+$(OUT_DIR)/tese.pdf: $(SRCS)
+	@rm -rf $(OUT_DIR)
+	@latexmk $(LATEXMK_FLAGS) -output-directory=$(OUT_DIR) tese.tex
 
-clean-win:
-	@del /f /a /s $(TEMP_DIR)
-
-clean-linux-mac:
-	rm -r $(TEMP_DIR)/*
+PHONY: pdf clean

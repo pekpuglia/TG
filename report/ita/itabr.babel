@@ -59,7 +59,7 @@
           Gradua{\c{c}}{\~a}o do Instituto Tecnol{\'o}gico de Aeron{\'a}utica, como parte dos requisitos para conclus{\~a}o do 
 	  curso de \itaworkcourse}.}
 	  
-\gdef\itathesisapprovedmemberstgbabel{Essa publica{\c{c}}{\~a}o foi aceita como Relat{\'o}rio Final de Trabalho de Gradua{\c{c}}{\~a}o}
+\gdef\itathesisapprovedmemberstgbabel{Essa publica{\c{c}}{\~a}o foi aceita como Relat{\'o}rio Final de Iniciação científica}
 																			% outra possibilidade: Trabalho aprovado em sua vers\~{a}o final pelos abaixo assinados:
 \gdef\itacountrytgbabel{Brasil}
 
@@ -144,8 +144,8 @@
 \gdef\bossgendermfbabel{mf}                               					 % masc ou fem
 \gdef\bosscoursegendermfbabel{mf}                         					 % masc ou fem
 
-\gdef\finalpaperbabel{Trabalho de Gradua{\c{c}}{\~a}o}							 % Trabalho de Graduação
-\gdef\itatglevelbabel{Trabalho de Conclus{\~a}o de Curso (Gradua{\c{c}}{\~a}o)}
+\gdef\finalpaperbabel{Trabalho de Graduação}							 % Trabalho de Graduação
+\gdef\itatglevelbabel{Trabalho de Graduação}
 																																		 % Trabalho de Conclusão de Curso (Graduação)
 
 %--------------------------------------------------------
@@ -159,20 +159,20 @@
 	\@publyear. Orientador\ifthenelse{\equal{\advisorgendermf}{masc}}{}{a}: \itaadvisortitle\ \itaadvisorname. \@ifundefined{@coadvisor}{}{Coorientador\ifthenelse{\equal{\coadvisorgendermf}{masc}}{}{a}:
 	\@itacoadvisortitle\ \@itacoadvisorname.}\par
 	\vspace{\baselineskip}
-	\@cipkw\ I. Instituto Tecnol\'{o}gico de Aeron\'{a}utica. II.~\@title.\par}
+	\@cipkw\ I. Instituto Tecnol\'{o}gico de Aeron\'{a}utica. II.~T\'{\i}tulo.\par}
 	
-\gdef\itaciptgdata1babel {\itaworklevel\ de \itaoptioncourse\ -- Curso de \itaworkcourse -- Instituto Tecnol\'{o}gico de Aeron\'{a}utica,
+\gdef\itaciptgdata1babel {Trabalho de Graduação -- Curso de \itaworkcourse -- Instituto Tecnol\'{o}gico de Aeron\'{a}utica,
 	\@publyear. Orientador\ifthenelse{\equal{\advisorgendermf}{masc}}{}{a}: \itaadvisortitle\ \itaadvisorname. \@ifundefined{@coadvisor}{}{Coorientador\ifthenelse{\equal{\coadvisorgendermf}{masc}}{}{a}:
 	\@itacoadvisortitle\ \@itacoadvisorname.}\par
 	\vspace{\baselineskip}
-	\@cipkw\ I. Instituto Tecnol\'{o}gico de Aeron\'{a}utica. II.~\@title.\par}
+	\@cipkw\ I. Instituto Tecnol\'{o}gico de Aeron\'{a}utica. II.~T\'{\i}tulo.\par}
 
 \gdef\itarefbibnamecipbabel{REFER\^{E}NCIA BIBLIOGR\'{A}FICA}
 
 \gdef\itacip2babel {\itaworklevel\ de \itaoptioncourse\ -- Instituto Tecnol\'{o}gico de Aeron\'{a}utica, 
         S\~{a}o Jos\'{e} dos Campos.}
 				
-\gdef\itaciptg2babel {Trabalho de Conclus{\~a}o de Curso (Gradua{\c{c}}{\~a}o) -- Instituto Tecnol\'{o}gico de Aeron\'{a}utica, 
+\gdef\itaciptg2babel {Iniciação Científica -- Instituto Tecnol\'{o}gico de Aeron\'{a}utica, 
         S\~{a}o Jos\'{e} dos Campos.}
 
 \gdef\itacedirnamebabel{CESS\~{A}O DE DIREITOS}
@@ -186,6 +186,6 @@
 	parte desta \ifthenelse{\equal{\itaoptionlevel}{quali}}{exame de qualifica{\c{c}}{\~a}o}{\ifthenelse{\equal{\itaoptionlevel}{msc}}{disserta{\c{c}}{\~a}o}{tese}} pode ser reproduzida sem a autoriza{\c{c}}{\~a}o \ifthenelse{\equal{\authorgendermf}{masc}}{do autor}{da autora}.}
 
 \gdef\itacesdirtgtextbabel{{\'E} concedida ao Instituto Tecnol{\'o}gico de Aeron{\'a}utica permiss{\~a}o 
-        para reproduzir c{\'o}pias deste trabalho de gradua{\c{c}}{\~a}o e para emprestar ou vender c{\'o}pias somente para prop{\'o}sitos 
+        para reproduzir c{\'o}pias desta iniciação científica e para emprestar ou vender c{\'o}pias somente para prop{\'o}sitos 
 	acad{\^e}micos e cient{\'\i}ficos. \ifthenelse{\equal{\authorgendermf}{masc}}{O autor}{A autora} reserva outros direitos de  publica{\c{c}}{\~a}o e nenhuma 
-	parte deste trabalho de gradua{\c{c}}{\~a}o pode ser reproduzida sem a autoriza{\c{c}}{\~a}o \ifthenelse{\equal{\authorgendermf}{masc}}{do autor}{da autora}.}
+	parte desta iniciação científica pode ser reproduzida sem a autoriza{\c{c}}{\~a}o \ifthenelse{\equal{\authorgendermf}{masc}}{do autor}{da autora}.}

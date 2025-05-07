@@ -18,7 +18,7 @@
 %%%              Overleaf: https://pt.overleaf.com/latex/templates/thesis-template-aeronautics-institute-of-technology-ita/yhfrqqydpygk
 %%%
 %%%   Contribuia você também!
-%%%              GitHub:   https://github.com/gabriellnuness/Template_Thesis_ITA
+%%%              GitHub:   https://github.com/AlejandroRios/Template_Thesis_ITA
 %%%
 %%%  IMPORTANTE: O texto contido neste exemplo nao significa absolutamente nada.  :-)
 %%%              O intuito aqui eh demonstrar os comandos criados na classe e suas
@@ -48,14 +48,15 @@
 %   \documentclass[dsc, eng]{ita}
 %		\documentclass[dsc, eng, dv]{ita}
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\documentclass[dsc]{ita}    % ITA.cls based on standard book.cls
+\documentclass[tg]{ita}    % ITA.cls based on standard book.cls
 % Quando alterar a classe, por exemplo de [msc] para [msc, eng]) rode mais uma vez o botão BUILD OUTPUT caso haja erro
+\usepackage[utf8]{inputenc}
 \usepackage{ae}
 \usepackage{graphicx}
 \usepackage{epsfig}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{subfig}
+\usepackage{subcaption}
 \usepackage{multirow}
 \usepackage{float}
 \usepackage{amsthm}
@@ -68,9 +69,6 @@
 \usepackage{float}
 \usepackage{placeins}
 
-
-%HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-\addbibresource{Referencias/referencias.bib}
 
 %HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 %\usepackage{subfigure}
@@ -93,17 +91,16 @@
 % Identificacoes (se o trabalho for em inglês, insira os dados em inglês)
 % Para entradas abreviadas de Professora (Profa.) em português escreva: Prof$^\textnormal{a}$.
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\course{Aerospace Engineering}  % Programa de PG ou Curso de Graduação
+\course{Engenheria Aeroespacial}  % Programa de PG ou Curso de Graduação
 %\area{Aircraft Design} % Área de concentração na PG (Não utilizado no caso de TG)
 
 % Autor do trabalho: Nome Sobrenome
 \authorgender{masc}                     %sexo: masc ou fem
 \author{Pedro Kuntz}{Puglia}
-\itaauthoraddress{Rua H8X, Ap. XXX}{12.228-46?}{São José dos Campos--SP}
+\itaauthoraddress{Rua H8C, Ap. 303}{12.228- 462}{São José dos Campos- SP}
 
 % Titulo da Tese/Dissertação
 \title{Orbital Maneuver Optimization}
-
 % Orientador
 \advisorgender{masc}                    % masc ou fem
 \advisor{Prof.~Dr.}{Willer Gomes dos Santos}{ITA}
@@ -113,71 +110,67 @@
 \coadvisor{Prof.}{Emilien Flayac}{ISAE-SUPAERO}
 
 % Pró-reitor da Pós-graduação
-\bossgender{masc}												% masc ou fem
-\boss{Prof.~Dr.}{John von Neumann}
+% \bossgender{masc}												% masc ou fem
+% \boss{Prof.~Dr.}{John von Neumann}
 
 %Coordenador do curso no caso de TG
-\bosscoursegender{masc}									% masc ou fem
-\bosscourse{Prof.~Dr.}{John Walker}
+\bosscoursegender{fem}									% masc ou fem
+\bosscourse{Profa.~Dra.}{Cristiane Martins}
 
 % Palavras-Chaves informadas pela Biblioteca -> utilizada na CIP
 \kwcip{Optimization}
-\kwcip{control}
-\kwcip{orbital mechanics}
+\kwcip{Control}
+\kwcip{Orbital Mechanics}
 
 % membros da banca examinadora
 
-\examiner{Prof. Dr.}{Alan Turing}{Presidente}{ITA}
-\examiner{Prof. Dr.}{Linus Torwald}{}{UXXX}
-\examiner{Prof. Dr.}{Richard Stallman}{}{UYYY}
-\examiner{Prof. Dr.}{Donald Duck}{}{DYSNEY}
-\examiner{Prof. Dr.}{Mickey Mouse}{}{DISNEY}
+% \examiner{Prof. Dr.}{Alan Turing}{Presidente}{ITA}
+% \examiner{Prof. Dr.}{Linus Torwald}{}{UXXX}
+% \examiner{Prof. Dr.}{Richard Stallman}{}{UYYY}
+% \examiner{Prof. Dr.}{Donald Duck}{}{DYSNEY}
+% \examiner{Prof. Dr.}{Mickey Mouse}{}{DISNEY}
 
 % Data da defesa (mês em maiúsculo, se trabalho em inglês, e minúsculo se trabalho em português)
-\date{23}{novembro}{2022}
+\date{??}{junho}{2025}
 
 % Número CDU - (somente para TG)
 \cdu{???.??}
 
 % Glossario
-\makenoidxglossaries % to use glossaries pkg
+\makeglossary
 \frontmatter
-
-
-\input{PreTextuais/listaabreviaturas.tex}
-\input{PreTextuais/listasimbolos.tex}
 
 \begin{document}
 \input{PreTextuais/main}
 
 \mainmatter
+
+%todo
+%resumo, abstract
+
 % Os capitulos comecam aqui
+\chapter{\textbf{INTRODUÇÃO}}
+\input{text/intro.tex}
 
-\chapter{Planning}
-\input{Cap1/cap1}
+\chapter{\textbf{METODOLOGIA}}
+\input{text/metodologia.tex}
 
-% \chapter{Modelagem Dinâmica de Cupins Cibernéticos}
-% \input{Cap2/cap2}
+\chapter{\textbf{RESULTADOS E DISCUSSÃO}}
+\input{text/resultados.tex}
 
-% \chapter{Controle Robusto de Concretos Caóticos}
-% \input{Cap3/cap3}
-
-% \chapter{Conclusão}
-% \input{Cap4/cap4}
-
+\chapter{\textbf{CONCLUSÃO}}
+\input{text/conclusao.tex}
 % REFERENCIAS BIBLIOGRAFICAS
 \renewcommand\bibname{\itareferencesnamebabel} %renomear título do capítulo referências
-\printbibliography
+\bibliography{Referencias/referencias}
 
 % Apendices
 \appendix
-\chapter{Tópicos de Dilema Linear} %opcional
-\input{ApeA/apendiceA}
+\chapter{Histórico de desenvolvimento do motor foguete}\label{sec:app}
+\input{text/apendice.tex}
 
 % Anexos
 \annex
-\chapter{Exemplo de um Primeiro Anexo} %opcional
-\input{AneA/anexoA}
 
 % Glossario
 %\itaglossary
@@ -190,7 +183,7 @@
 \FRDitaorgaointerno{Instituto Tecnológico de Aeronáutica -- ITA}
 %Exemplo no caso de pós-graduação: Instituto Tecnol{\'o}gico de Aeron{\'a}utica -- ITA
 \FRDitapalavrasautor{Cupim; Cimento; Estruturas}
-\FRDitapalavrasresult{Cupim; Dilema; Construção}
+\FRDitapalavrasresult{Propulsão; Gás Frio; Vetorização de empuxo;}
 %Exemplo no caso de graduação (TG):
 %\FRDitapalavraapresentacao{Trabalho de Graduação, ITA, São José dos Campos, 2015. \NumPenultimaPagina\ páginas.}
 %Exemplo no caso de pós-graduação (msc, dsc):

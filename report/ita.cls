@@ -40,7 +40,7 @@
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{ita}[2006/03/10 v2.0 Classe de documento com padrões do ITA]
 
-\newcommand{\itaclassfile}[1]{ita/#1}
+\newcommand{\itaclassfile}[1]{./ita/#1}
 
 % % --------------------------------------------------------------------
 % %  Verificação se alvo será gerado pelo PDFLaTeX ou não
@@ -132,7 +132,7 @@
 \if@eng
    \RequirePackage[english]{babel}
 \else
-   \RequirePackage[english,brazilian]{babel}
+   \RequirePackage[english,portuges,brazil]{babel}
 \fi
 
  \if@eng
@@ -156,16 +156,8 @@
 
 %==============================================================================
 %%% Glossário
-\RequirePackage{csquotes}
-\RequirePackage[acronym, toc, nogroupskip, sanitizesort]{glossaries}
-\RequirePackage{xcolor}
-\glsenablehyper
-\colorlet{currenttext}{.} % get current color with xcolor pkg
-\renewcommand*{\glstextformat}[1]{\textcolor{currenttext}{#1}} % making link color same as text
-% increasing distance between symbol and description
-\glssetwidest{consectetuer}
-\setglossarystyle{alttree}
-
+\usepackage{makeglo}
+\renewcommand{\glossmaxlabelwidth}{\hspace{3cm}}
 
 %% opcoes de cores
 %% linkcolor=blue,citecolor=gray,urlcolor=cyan
@@ -181,19 +173,7 @@
 %\RequirePackage[debug,a4paper,pagebackref=true,breaklinks,bookmarksopen=true,colorlinks=true,linkcolor=bblue,citecolor=bblue,urlcolor=bblue,bookmarksnumbered=true,hyperindex=true,verbose=true]{hyperref} %% essencial %% gera pdf/dvi com links
 
 %% LINKS ALTERADOS PARA COR PRETA
-\RequirePackage[
-  debug,
-  a4paper,
-  pagebackref=false,
-  breaklinks,
-  bookmarksopen=true,
-  colorlinks=true,
-  linkcolor=black,
-  citecolor=black,
-  urlcolor=black,
-  bookmarksnumbered=true,
-  hyperindex=true,
-  verbose=true]{hyperref}
+\RequirePackage[debug,a4paper,pagebackref=true,breaklinks,bookmarksopen=true,colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black,bookmarksnumbered=true,hyperindex=true,verbose=true]{hyperref}
 %==============================================================================
 
 \ifpdf
@@ -214,30 +194,8 @@
 
 %==============================================================================
 %%% ABNTeX ...
-% \RequirePackage[alf,abnt-emphasize=bf,abnt-etal-cite=2,abnt-etal-list=0,abnt-etal-text=it]{abntcite}
+\RequirePackage[alf,abnt-emphasize=bf,abnt-etal-cite=2,abnt-etal-list=0,abnt-etal-text=it]{abntcite}
 %\RequirePackage{natbib}
-% \RequirePackage[alf, abnt-emphasize=bf, abnt-etal-text=it]{abntex2cite}
-
-%%% biblatex ...
-\RequirePackage[
-    style=biblatex-abnt/abnt,
-    repeatfields, % removes dashed in repeated ref
-    extrayear, % 2012a  in bibliography as well
-    bibstyle=biblatex-abnt/abnt,
-    citestyle=biblatex-abnt/abnt,
-    maxcitenames=4,
-    maxbibnames=99,
-    giveninits=true,%abbreviate first name
-    sortcites=true,
-    doi=true,
-    uniquename=mininit, % to distinguish same author
-    uniquelist=minyear, % to distinguish same author and same year
-    backref=true,
-    % natbib=true,
-    % citetracker=true,
-    ]{biblatex}
-
-
 
 %==============================================================================
 % ALTERAR TAMANHO DA FONTE DOS TÍTULOS
@@ -423,7 +381,7 @@
 			\end{spacing}
 	 \else
 			\begin{spacing}{1.5}
-			S\~{a}o Jos\'{e} dos Campos, \@publday de \@publmonth\ de \@publyear
+			S\~{a}o Jos\'{e} dos Campos, \@publmonth\ de \@publyear
 			\end{spacing}
 	 \fi
 
@@ -438,9 +396,9 @@
 	 \thispagestyle{empty}  %suprime o cabeçalho e numeração da página
    \noindent
 
-	 \begin{flushright}% Número de CDU
-   \MakeUppercase{\footnotesize CDU \cdunumber}
-	 \end{flushright}
+	%  \begin{flushright}% Número de CDU
+  %  \MakeUppercase{\footnotesize CDU \cdunumber}
+	%  \end{flushright}
 
    \center
 
@@ -639,11 +597,7 @@
 		    \noindent\@authorlast, \@authorfirst\par
                     \@title\ / \@authorfirst\ \@authorlast.\\
                     \noindent São José dos Campos, \@publyear.\par
-                    \if@eng
-                      \NumPenultimaPagina p.\par
-                    \else
-                      \NumPenultimaPagina f.\par
-                    \fi
+                    \NumPenultimaPagina f.\par
 		    \vspace{\baselineskip}
 		    \ifthenelse{\equal{\itaoptionlevel}{tg}}
 							{\itaciptgdata1babel}
@@ -665,13 +619,7 @@
           \textbf{\itarefbibnamecipbabel} \par
 			\begin{onehalfspacing}
           {\setlength{\baselineskip}{0.7\baselineskip}
-          \MakeUppercase{\@authorlast}, \@authorfirst. \textbf{\@title}. \@publyear.
-            \if@eng
-              \NumPenultimaPagina p. 
-            \else
-              \NumPenultimaPagina f. 
-            \fi
-            \ifthenelse{\equal{\itaoptionlevel}{tg}}{\itaciptg2babel}{\itacip2babel} \\}
+          \MakeUppercase{\@authorlast}, \@authorfirst. \textbf{\@title}. \@publyear.                     \NumPenultimaPagina f. \ifthenelse{\equal{\itaoptionlevel}{tg}}{\itaciptg2babel}{\itacip2babel} \\}
        \end{onehalfspacing}
 }
 % Cessao de Direitos
@@ -1193,6 +1141,17 @@
 %==============================================================================
 \setcounter{secnumdepth}{4}
 
+%==============================================================================
+%%% Glossario
+%==============================================================================
+\newcommand{\itaglossary}{
+\cleardoublepage
+\thispagestyle{empty}%
+\@mkboth{\MakeUppercase{\itaglossarynamebabel}}%
+        {\MakeUppercase{\itaglossarynamebabel}}%
+\gdef\glossaryname{\itaglossarynamebabel}
+\refstepcounter{chapter}
+}
 
 %==============================================================================
 % %%% Centralizar e ajustar os espacamentos dos captions das figuras e tabelas
