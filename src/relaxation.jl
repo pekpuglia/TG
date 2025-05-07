@@ -30,7 +30,7 @@ orb2 = KeplerianElements(
     orb1.i,
     orb1.Ω,
     orb1.ω,
-    deg2rad(180) + orb1.f
+    deg2rad(210) + orb1.f
 )
 plot_orbit(orb1, orb2)
 ##
@@ -97,8 +97,9 @@ r, v = add_coast_segment(model, transfer_time, N, "lamb")
 for i = 1:size(r)[2]
     set_start_value.(r[:, i], r1)
     set_start_value.(v[:, i], v1)
-end
 
+    @constraint(model, cross(r[:, i], v[:, i])[3] >= 0)
+end
 ##
 optimize!(model)
 ##
