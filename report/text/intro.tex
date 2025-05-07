@@ -1,9 +1,55 @@
-\section{Definição do Problema}
+\section{Context}
 
-\section{Hipóteses}
 
-\section{Objetivos}
+
+primeiro satelite manobravel
+
+
+discutir manobra interplanetária vs órbita terrestre
+
+GOCE
+
+daedalus
+
+Space exploration relies on clever resource management, since satellites have a finite amount of resources (propellant and other consumables) to fulfill their mission. Up to this date, all space hardware is expendable, that is, when the consumables required for mission maintenance are finished, the mission ends, marking the end of the exploration of a very expensive engineered system. Thus the need for optimization arises in this domain.
+
+Contrary to science fiction, where spaceships seem to be constantly propelled by their thrusters, real life satellites change their courses in discrete moments of maximum thrust application, surrounded by (usually long) coasting periods. This is due to the relatively high power delivered by traditional rocket engines, which can, in the matter of seconds or minutes, greatly alter a satelite's orbit. Certain more modern propulsion systems, such as electric rocket engines, are somewhat of an exception; this technicality will be discussed in further sections.
+
+Orbital maneuvers are necessary in all stages of a satellite's lifecycle. In the beginning of a mission, the satellite is released by the launch vehicle in an orbit that is usually not the mission's orbit. Therefore, an \textit{injection maneuver} is necessary to bring the satellite into an operational orbit. This is usually the biggest maneuver a satellite must execute during its lifecycle, consuming a high fraction of its propellant storage CITE\@. 
+
+During a mission, the satellite must perform sporadic \textit{maintenance maneuvers}, which are small course correction maneuvers to mitigate external perturbations such as atmospheric drag, oblateness effects (if undesired), influence of celestial bodies, and solar radiation pressure. Their frequency and magnitude vary depending on mission requirements, and in industrial applications, must not conflict with other, possibly simultaneous events (such as observation of a ground target), as well as taking into account pointing constraints, since a spacecraft might have sensitive sensors that must not be pointed at the sun, or have solar panels that need uninterrupted illumination. Those are by far the most common type of maneuver, and a loose, non-exhaustive classification arises naturally.
+
+The simplest type of maneuver is that of \textit{orbit raising}, which consists in bringing the satellite from a (often circular) orbit and increasing its semimajor-axis (and thus, its period) until a desired value is reached. This maneuver is commonly found in LEO applications, due to the presence of atmospheric drag; notably, it is performed by the ISS about once a month CITE\@. From a theoretical standpoint, it presents a simple, introductory case, often restricted to two dimensions instead of three. There are plenty of theoretical results about it, most notably the Hohmann transfer, a two-impulse maneuver which is known to be the two-impulse optimal from a plethora of theoretical tools. Other more elaborate results include the bielliptic transfer, which can be shown to surpass Hohmann's performance in certain conditions by allowing a third impulse. Another scenario that falls under this category is that of high orbit injections, such as LEO to GEO or LEO to MEO. 
+
+A second type of maneuver is a \textit{plane change} maneuver. Satellites move (approximately) in a plane which contains its position and velocity vectors and the center of Earth. By changing the direction of the velocity, this plane may be change. Common cases include an inclination change during orbital insertion, which may be required if the inclination of the target orbit is different to the latitude of the launch center CITE\@. Another plane change instance is that of a change in the right ascension of the ascending node (RAAN), which is especially useful for SSOs. SSO injection requires that the orbit be placed approximately perpendicular to the Sun; this requires careful positioning of the ascending node. Another interesting case is that of a combined plane change and orbit raising maneuver, such as that starting from an inclined LEO orbit targeting a GEO (thus, equatorial) orbit. A clever combination of both requirements can allow for great performance gains as compared to sequential maneuvers.
+
+A final type of maneuver is the \textit{phasing} maneuver. This maneuver consists in changing the position occupied by the satellite within the same orbit at a certain  time. This maneuver is very important for \textit{orbital rendez-vous}, where not only it is required that two vessels share the same orbit, but also they must have the same position and velocity at the same time. Another application for this type of maneuver is that of \textit{rideshare injection}, where a swarm of satellites is carried by a launcher hub and they must be distributed around a shared orbit, with certain angular intervals in between. The execution of such a maneuver usually involves placing the satellite in an intermediate orbit with slightly different period than the initial one, and waiting multiple revolutions for the convergence of the satellite and the (mobile) target. A notable, recurring example of this is the rendez-vous of the Soyuz capsule with the ISS, which can take up to 3 days CITE\@.
+
+Finally, at the end-of-life, there are legal constraints on where a satelite may be disposed of. LEO missions have a deadline for deorbiting into Earth's atmosphere, while GEO satellites are usually placed into a cemetery orbit which does not intersect the highly prized GEO region. As an end-of-life procedure, feasibility is of utmost importance, while ensuring optimality increases the lifespan of the mission.
+
+\section{Problem statement}
+
+This work aims to develop modern numerical methods for orbital maneuver optimization in Earth orbit. Combinations of propulsive and orbital models are to be paired with adequate numerical schemes and theoretical tools to produce feasible maneuvers that also satisfy certain optimality conditions. The main deliverable shall be a code package capable of generating and optimizing maneuvers between an initial and final orbital state, for an allowed time of flight in between, as well as the mathematical formulation and derivation of such a problem.
+
+The main models to be studied are those of two body Keplerian dynamics and impulsive maneuvers, as they offer the most opportunities for validation with analytical results. Further models to be studied, if time allows it, are continuous thrust propulsion models and two body dynamics with oblateness perturbations (J2 effects).
+
+It is desired to validate the numerical algorithms with certain known analytical results, such as the Hohmann transfer, reproduce certain methods from the literature, and apply some of the formalism of optimal control (in the form of primer vector theory) to the solutions obtained. 
+
+It is not in the scope of this work to compare different numerical schemes; a sufficient one shall be found and exploited throughout. However, a novel, experimental method for optimal control synthesis based on polynomial optimization may be attempted if time allows it CITE\@.
+
+The problem of orbital maneuvers is very general and it is possible to abstract it from the specifics of a particular satellite's hardware by reasoning with position and (changes in) velocity. Therefore, application cases shall be representative of classes of maneuvers, instead of restricting their application to the specifics of one mission. This works focuses on Earth exploration activities, thus excluding lunar and interplanetary transfers.
+
+
+\section{Hypotheses}
+
+All hardware restrictions such as need for contact with a ground station, pointing constraints, mission objectives (such as observation of a ground target), and possibility of hardware failure and imprecisions are neglected. Attitude dynamics are assumed to be as fast as needed and always precise. Further assumptions depend on the propulsion and orbital model chosen and shall be discussed in future sections.
+
+\section{Objectives}
+
+The objective of this work is 
 
 \section{Justificativa}
+
+brasil começa a ter satélites em LEO
 
 \section{Organização do trabalho}
