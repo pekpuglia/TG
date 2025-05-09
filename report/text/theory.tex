@@ -1,8 +1,90 @@
-\section{Controle Ótimo}
+\section{Optimal Control}
+
+Optimal control is the area of control theory which tries to find the best control action to satisfy some requirements, such as altering a system's state in some way desired way. Here, "best" is defined as maximizing or minimizing some performance metric. In practice, and in particular in the scope of this work, this can be interpreted as attaining a target orbit in a certain amount of time, while minimizing fuel consumption.
+
+The mathematical nature of an optimal control problem varies greatly depending on the nature of the system, the requirements, and the objective. Here, a selected subset of this vast theory shall be presented. Suppose a continuous time dynamical system operating on times \(t \in [0, t_f]\), where \(t_f \in \mathbb{R}\), given by
+
+\begin{equation}
+    \dot X(t) = f(X(t), u(t))
+\end{equation}
+where \(X(t): \mathbb{R} \rightarrow \mathbb{R}^n\) is the state vector trajectory describing the system state, \(u(t): \mathbb{R} \rightarrow \mathbb{R}^m\) is the control vector trajectory and \(f: \mathbb{R}^n \times \mathbb{R}^m \rightarrow \mathbb{R}^n\) is the function describing its temporal dynamics. At the initial time, the system is supposed to be in a given state \(X_i\) such that 
+\begin{equation}
+    X(0) = X_i
+\end{equation}
+and at the final time \(t_f\), it is desired that the system have a state \(X_f\) such that
+\begin{equation}
+    X(t_f) = X_f.
+\end{equation}
+
+To complete the optimal control problem, a performance metric needs to be introduced. In general, any functional of the form \(J[X(t), u(t)]\) may be taken as this performance metric; however, a common form with desireable properties, which shall be adopted in this work, is given by
+\begin{equation}
+    J[X(t), u(t)] = h(X(t_f)) + \int_0^{t_f} L(X(t), u(t)) dt
+\end{equation}
+where the functions \(h(X)\) and \(L(X, u)\) are respectively called the \textit{terminal cost} and the \textit{temporal cost} functions.\
+
+The optimal control problem is then that of finding a control trajectory \(u(t)\) that minimizes (or maximizes) the performance metric. Here the problem shall be presented as a minimization problem; but the formulation is perfectly analogous for a maximization problem. That said, the complete optimal control problem may be stated as finding \(u(t)\) such that
+
+\begin{equation}
+    u(t) \in \arg \min_{u(t), X(t)} J[X(t), u(t)]
+\end{equation}
+subject to
+\begin{align}
+    \dot X(t) &= f(X(t), u(t)) \\
+    X(0) &= X_i \\
+    X(t_f) &= X_f
+\end{align}
+
+In general, this is a very hard problem. Add introduction on Hamiltonian.
 
 \section{Orbital Mechanics}
 
+Orbital mechanics concerns itself with the motion of bodies in space subject to gravitational and disturbance forces. A variety of models exist, differing in precision and availability of analytical tools. The simpler the model, the more analytical tools are available, and the smaller the precision. The simplest model of all, and the basis for all others, is the two body problem, where a central massive body is supposed to be stationary while a moving satellite is subject to its gravitational attraction, also known as Keplerian motion. 
+
+\subsection{Two Body Motion}
+
+Let \(r\) be the 3-dimensional position of a satellite, and \(\mu \) the gravitational parameter of the central body. The dynamics of the satellite's position are given by
+\begin{equation}
+    \ddot{r} = -\frac{\mu}{\lVert r \rVert^3} r,
+\end{equation}
+thus configuring a 6-dimensional state vector \(X = \begin{bmatrix}
+    r^T & v^T
+\end{bmatrix}^T\), where \(v\) is the satellite's velocity. It is proven that no analytical solution exists for this differential equation; however, much is known about its solutions.
+
+In this model, the possible trajectories are known to be conics, and therefore restricted to a plane. For bound satellites, that is, those in orbit around the central body, this trajectory is an ellipse where the central body lies on one of its foci. Mathematically, a ``bound'' satellite is one whose specific energy (mechanical energy over mass of the satellite), given by
+\begin{equation}
+    \epsilon = -\frac{\mu}{\lVert r \rVert} + \frac{v^2}{2},
+\end{equation}
+is negative. The trajectory is closed, and the movement is periodic with period
+\begin{equation}
+    T = 2\pi \sqrt{\frac{a^3}{\mu}}
+\end{equation}
+where \(a\) is the semi-major axis of the ellipse.
+
+In this case, an alternative state vector may be introduced in the form of the Keplerian elements. These are:
+\begin{itemize}
+    \item \(a\): semi-major axis of the ellipse;
+    \item \(e\): excentricity of the ellipse;
+    \item \(i\): inclination of the orbit's plane with respect to the Equatorial plane;
+    \item \(\Omega \): right ascension of the ascending node, that is, angle between FIND REFERENCE DIRECTION and the direction where the satellite crosses the Equatorial plane from South to North;
+    \item \(\omega \): argument of perigee, or angle, in the plane of the orbit, between the ascending node and the perigee (point of smallest distance to the central body);
+    \item \(\theta \): true anomaly, or angle between the perigee and the current position of the satellite.
+\end{itemize}
+
+These elements are related to the Cartesian state vector through ADD PERIFOCAL EQUATIONS.
+
+In this formulation, all elements but the true anomaly are constant in time. The true anomaly can be related to time implictly through two other quantities, the mean anomaly \(M\) and the excentric anomaly \(E\):
+
+\begin{align} 
+        M &= 2\pi \frac{t - t_p}{T} \\
+        E - e \sin{E} &= M \label{eq:kepler_equation}\\
+        \tan{\frac{\theta}{2}} &= \sqrt{\frac{1+e}{1-e}} \tan{\frac{E}{2}} \label{eq:true_exc_anom}
+\end{align}
+where \(t_p\) is the time of the last perigee passage. By computing the mean anomalies in an initial and a final time, and solving the notorious Kepler's equation~\eqref{eq:kepler_equation}, and finally finding a suitable true anomaly with~\eqref{eq:true_exc_anom}, a semi-analytical temporal solution can be found. The process of finding the position of a satellite in the future is called \textit{orbit propagation}.
+
+
 \subsection{Lambert's Problem}
+
+
 
 \section{Orbital Maneuvers}
 Conway
