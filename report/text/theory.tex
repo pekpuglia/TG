@@ -73,7 +73,7 @@ Let \(r\) be the 3-dimensional position of a satellite, and \(\mu \) the gravita
 \end{equation}
 thus configuring a 6-dimensional state vector \(X = \begin{bmatrix}
     r^T & v^T
-\end{bmatrix}^T\), where \(v\) is the satellite's velocity. It is proven that no analytical solution exists for this differential equation; however, much is known about its solutions.
+\end{bmatrix}^T\), where \(v\) is the satellite's velocity. The system contains a singularity at the states with \(\lVert r \rVert = 0\), which configures a non-convex domain. In practice, this point is rarely encountered as it lies inside of the central body, thus far from the regions of interest. It is proven that no analytical solution exists for this differential equation; however, much is known about its solutions.
 
 In this model, the possible trajectories are known to be conics, and therefore restricted to a plane. For bound satellites, that is, those in orbit around the central body, this trajectory is an ellipse where the central body lies on one of its foci. Mathematically, a ``bound'' satellite is one whose specific energy (mechanical energy over mass of the satellite), given by
 \begin{equation}
