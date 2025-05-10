@@ -17,12 +17,14 @@ where the inequality is understood to hold component-wise.
 
 At the initial time, the system is supposed to be in a given state \(X_i\) such that 
 \begin{equation} \label{eq:generic_initial_constraint}
-    X(0) = X_i
+    X(0) = X_i.
 \end{equation}
-and at the final time \(t_f\), it is desired that the system have a state \(X_f\) such that
+
+At the final time \(t_f\), some components of the final state vector are specified, while others are subject to optimization. Let the index set \(\mathcal{K}\) be the set of state variables that are fixed at the final time, such that
 \begin{equation} \label{eq:generic_final_constraint}
-    X(t_f) = X_f.
+    X_k(t_f) = X_{fk}, k\in \mathcal{K}
 \end{equation}
+for some given values \(X_{fk}\).
 
 To complete the optimal control problem, a performance metric needs to be introduced. In general, any functional of the form \(J[X(t), u(t)]\) may be taken as this performance metric; however, a common form with desireable properties, which shall be adopted in this work, is given by
 \begin{equation} \label{eq:generic_cost}
@@ -39,12 +41,13 @@ subject to
 \begin{align}
     \dot X(t) &= f(X(t), u(t)) \\
     X(0) &= X_i \\
-    X(t_f) &= X_f
+    X_k(t_f) &= X_{fk}, k\in \mathcal{K}
 \end{align}
 
 In general, this is a very hard problem. The optimization variable \(u(t)\) is not merely a vector of parameters but a whole trajectory of them; thus, the search space is enormous. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}, which shall be discussed later. There are however tools for extracting necessary conditions for the solution of this problem at all points in time. These are known as \textit{indirect methods}.
 
 One of this tools is the Hamiltonian, a quantity that describes the ensemble of objectives and constraints. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in equation~\eqref{eq:generic_dyn}, constraints in the forms of~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as
+%add h!!!!
 \begin{equation}
     H(X(t), u(t), \lambda(t)) = L(X, u) + \lambda{(t)}^T f(X, u)
 \end{equation}
@@ -52,6 +55,10 @@ One of this tools is the Hamiltonian, a quantity that describes the ensemble of 
 for all times \(t\), state and control vectors \(X  \) and \(u\) along a trajectory.\ \( \lambda(t) \) is the costate trajectory, a new set of variables introduced as the continuous-time equivalent of Lagrangian multipliers. These new variables are subject to the differential equation
 \begin{equation}
     \dot \lambda = - \left( \frac{\partial H}{\partial X} \right)^T = -\left( \frac{\partial f}{\partial X} \right)^T \lambda - \left( \frac{\partial L}{\partial X} \right)^T
+\end{equation}
+and boundary conditions
+\begin{equation}
+    \lambda_k(t_f) = \frac{\partial h(X(t_f))}{\partial X_k}, k \notin \mathcal{K}
 \end{equation}
 
 To complete the Hamiltonian approach, Pontryagin's Minimum Principle is introduced. It states that a necessary condition for attaining the minimum in equation~\eqref{eq:argmin_cost} is that, at all times \(t\), and along the optimal trajectory,
@@ -127,20 +134,24 @@ When a satellite is able to maneuver, the Keplerian dynamics of equation~\eqref{
     \ddot r = -\frac{\mu}{\lvert r \rVert^3}r + \frac{F}{m}.
 \end{equation}
 
-The generation of thrust \(F\) is tied to the consumption of propellant, \(-\dot m\), according to some propulsion model; this work relies on the impulsive propulsion model.
+The generation of thrust \(F\) is tied to the consumption of propellant, according to some propulsion model. Three main models exist. The first is the continuous specific impulse continuous thrust model, adequate for chemical engines. The second is the impulsive thrust model, the limiting case of the previous model where a burn is considered to happen instantly. And the last one is the variable specific impulse model, which models electric rocket engines and shall not be explored in this work.
 
-The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. Suppose a satellite has an orbital state \(X_i\) and is required to maneuver to a state \(X_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used. A convenient way of expressing this is that it is desired to maximize the final mass of the spacecraft:
+The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. Suppose a satellite has an orbital state \(X_i\) and is required to maneuver to a state \(X_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used. A convenient way of expressing this is that it is desired to maximize the final mass of the spacecraft, with constraints:
 \begin{align}
     \max_{F(t)}&\quad m(t_f) \label{eq:max_final_mass} \\
     X(0) &= X_i \\
     X(t_f) &= X_f
 \end{align}
 
+\subsection{Constant specific impulse model}
+
+
+
 \subsection{Impulsive propulsion model}
 
 % \subsubsection{Impulsive thrust}
 
-The most traditional propulsion model supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's equation, 
+A very simple propulsion model that allows for easier solution of the orbital maneuvering problem supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's equation, 
 \begin{equation}
     \Delta v = v_e \ln{\left(\frac{m_i}{m_f}\right)},
 \end{equation}
@@ -190,3 +201,4 @@ Thus, in the impulsive case, the problem is \textit{independent of spacecraft ma
 
 \subsection{Primer vector theory}
 
+The application of optimal control theory to orbital maneuvers dates back to Lawden CITE, who introduced the concept of the \textit{primer vector}, which is closely tied to the costate.
