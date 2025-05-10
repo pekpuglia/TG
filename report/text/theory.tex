@@ -68,7 +68,7 @@ Orbital mechanics concerns itself with the motion of bodies in space subject to 
 \subsection{Two Body Motion}
 
 Let \(r\) be the 3-dimensional position of a satellite, and \(\mu \) the gravitational parameter of the central body. The dynamics of the satellite's position are given by
-\begin{equation}
+\begin{equation} \label{eq:kepler_dyn}
     \ddot{r} = -\frac{\mu}{\lVert r \rVert^3} r,
 \end{equation}
 thus configuring a 6-dimensional state vector \(X = \begin{bmatrix}
@@ -118,8 +118,66 @@ Many formulations exist, including CURTIS, SUKHANOV, and numerical integration. 
 % try battin vaughan? 
 
 \section{Orbital Maneuvers}
-Conway
+
+When a satellite is able to maneuver, the Keplerian dynamics of equation~\eqref{eq:kepler_dyn} need to be augmented with the thrust control vector \(F\), which applies a propulsion force on the satellite. Supposing that \(m\) is the total current mass of the spacecraft, the dynamics are given by
+\begin{equation}
+    \ddot r = -\frac{\mu}{\lvert r \rVert^3}r + \frac{F}{m}.
+\end{equation}
+
+The generation of thrust \(F\) is tied to the consumption of propellant, \(-\dot m\), according to some propulsion model to be discussed in the next section.
+
+The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. Suppose a satellite has an orbital state \(X_i\) and is required to maneuver to a state \(X_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used. A convenient way of expressing this is that it is desired to maximize the final mass of the spacecraft:
+\begin{align}
+    \max_{F(t)}&\quad m(t_f) \label{eq:max_final_mass} \\
+    X(0) &= X_i \\
+    X(t_f) &= X_f
+\end{align}
+
 \subsection{Propulsion models}
+
+\subsubsection{Impulsive thrust}
+
+The most traditional propulsion model supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's equation, 
+\begin{equation}
+    \Delta v = v_e \ln{\left(\frac{m_i}{m_f}\right)},
+\end{equation}
+where \(\Delta v\) is the magnitude of an instantaneous change in velocity, \(v_e\) is the engine's exhaust velocity (which is treated as a known parameter), \(m_i\) is the initial spacecraft amss and \(m_f\), the final mass. Supposing a burn happens at time \(t_b\), the propulsion model can then be expressed through a Dirac delta as
+\begin{equation}
+    \left.\frac{F}{m}\right\vert_{t = t_b} = \delta(t - t_b) V_e \ln{\left(\frac{m(t_b^-)}{m(t_b^+)} \right)} = \delta(t - t_b) \Delta v,
+\end{equation}
+which yields a velocity discontinuity
+\begin{equation}
+    \lVert v(t_b^+) - v(t_b^-) \rVert = V_e \ln{\left(\frac{m(t_b^-)}{m(t_b^+)}\right)} = \Delta v.
+\end{equation}
+
+Now, considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting segments related by the change in velocity \(\Delta \vec v_j\) associated with the j-th burn. Considering burn times \(t_j\), with \(t_f \geq t_{j+1} \geq t_j \geq 0\), and the initial and final times \(0\) and \(t_f\), the system is subject to boundary conditions
+\begin{align}
+    X(0) &= X_i \\
+    r(t_j^+) &= r(t_j^-),& \forall j=1,\dots,n \\
+    v(t_j^+) &= v(t_j^-) + \Delta \vec v_j,& \forall j=1,\dots,n \\
+    X(t_f) &= X_f
+\end{align}
+and to dynamical equation~\eqref{eq:kepler_dyn} in the intermediate times. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta v_j\). DOF discussion
+
+
+Tsiolkovsky's equation can also be applied between the initial time and the final time, thus relating mass at time \(t_f\) with the total velocity change, which is the sum of all \(n\) burns executed during the transfer:
+\begin{equation}
+    m(t_f) = m(0) \exp{\left(-\frac{\sum_{i=1}^{n}\Delta v_i}{v_e}\right)}
+\end{equation}
+
+Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref{eq:max_final_mass} is equivalent to minimizing the sum of magnitudes of impulses used during the transfer:
+\begin{equation}
+    \min \sum_{i=1}^{n} \Delta v_i.
+\end{equation}
+
+Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed later) can help determine the number of impulses needed.
+
+\subsubsection{Finite constant specific impulse thrust}
+
+
+impulsive thrust as a limiting case
+
+\subsubsection{Finite variable specific impulse thrust}
 
 \subsection{Primer vector theory}
 
