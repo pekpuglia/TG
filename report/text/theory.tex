@@ -136,7 +136,7 @@ When a satellite is able to maneuver, the Keplerian dynamics of equation~\eqref{
 
 The generation of thrust \(F\) is tied to the consumption of propellant, according to some propulsion model. Three main models exist. The first is the continuous specific impulse continuous thrust model, adequate for chemical engines. The second is the impulsive thrust model, the limiting case of the previous model where a burn is considered to happen instantly. And the last one is the variable specific impulse model, which models electric rocket engines and shall not be explored in this work.
 
-The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. Suppose a satellite has an orbital state \(X_i\) and is required to maneuver to a state \(X_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used. A convenient way of expressing this is that it is desired to maximize the final mass of the spacecraft, with constraints:
+The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. Suppose a satellite has an orbital state \(X_i\) and is required to maneuver to an orbital state \(X_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used. A convenient way of expressing this is that it is desired to maximize the final mass of the spacecraft, with constraints:
 \begin{align}
     \max_{F(t)}&\quad m(t_f) \label{eq:max_final_mass} \\
     X(0) &= X_i \\
@@ -145,6 +145,43 @@ The application of optimal control to the field of orbital maneuvering is mainly
 
 \subsection{Constant specific impulse model}
 
+Chemical and cold gas thrusters are characterized by an exhaust velocity \(v_e\) at which the propellant flow is ejected from the spacecraft. With a propellant flow rate \(\dot m_p\), the thrust \(F\) is given by
+\begin{equation}
+   \lVert F \rVert = v_e \dot m_p
+\end{equation}
+
+The propellant flow is deducted from the spacecraft's mass; therefore it can be stated that \(\dot m = - \dot m_p\). Thus, in this model, the spacecraft's mass is a seventh state variable. A new state vector \(X_m = \begin{bmatrix}
+    r^T & v^T & m 
+\end{bmatrix}^T\) is defined and subject to the dynamics
+\begin{equation}
+    \begin{bmatrix}
+        \dot r \\ \dot v \\ \dot m
+    \end{bmatrix} = \begin{bmatrix}
+        v \\ -\frac{\mu}{\lVert r \rVert^3}r + \frac{F}{m} \\ -\frac{\lVert F \rVert}{v_e}
+    \end{bmatrix}
+\end{equation}
+
+In addition, thrusters have limited flow rates, which imposes a maximum thrust magnitude \(F_{\max}\):
+\begin{equation}
+    \lVert F \rVert \leq F_{\max}
+\end{equation}
+
+The objective~\eqref{eq:max_final_mass} can be developed for this model by integrating \(\dot m\) as
+\begin{equation}
+    m(t_f) = m(0) - \int_0^{t_f} \frac{\lVert F \rVert}{v_e} dt
+\end{equation}
+
+Let \(\Gamma\) be the acceleration due to thrust such that \(\Gamma = \frac{F}{m}\). The literature CITE CONWAY then suggests considering that the propellant consumption is small compared to the total mass of the satellite, such that it can be stated that
+\begin{equation}
+    m(t_f) \approx m(0) - \frac{m(0)}{v_e}\int_0^{t_f} \lVert \Gamma \rVert dt
+\end{equation}
+
+Therefore the objective can be restated as
+\begin{equation}
+    \min_{\Gamma(t)} \int_0^{t_f} \lVert \Gamma \rVert dt.
+\end{equation}
+
+If the control variable is set to be \(\Gamma\) instead of \(F\), this leads to a mass-independent problem. This approximation leads to primer vector theory, and is therefore important. However, the assumption of constant mass should be challenged.
 
 
 \subsection{Impulsive propulsion model}
@@ -190,7 +227,7 @@ Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref
     \min \sum_{i=1}^{n} \Delta v_i.
 \end{equation}
 
-Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed later) can help determine the number of impulses needed CITE INTERACTIVE PRIMER VECTOR.
+Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed later) can help determine the number of impulses needed CITE INTERACTIVE PRIMER VECTOR.
 
 % \subsubsection{Finite constant specific impulse thrust}
 
