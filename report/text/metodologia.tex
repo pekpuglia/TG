@@ -13,11 +13,18 @@ Let \(X_{\text{next}} = f_{RK}(X_{\text{prev}}, \Delta t)\) be the (two-body) dy
 \begin{equation}
     X_{k+1} = f_{RK}(X_k, \frac{t_p}{N}), k = 1, \dots, N.
 \end{equation}
-This leaves \(\dim X = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
+This leaves \(\dim X = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
 
 \section{Nonlinear solver}
 
+Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{JuMP}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation. It is well suited 
 
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=\textwidth]{img/techstack.png}
+    \caption{Relationship of code components}
+    \label{fig:tech_stack}
+\end{figure}
 
 \section{Lambert problem formulations}
 
