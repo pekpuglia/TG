@@ -1,7 +1,7 @@
 
 All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, along with its full formulation.
 
-\section{Orbit Propagation}
+\section{Orbit Propagation}\label{sec:orbit_propagation}
 
 The implementation of an orbit propagator concerns itself with the implementation of the function \(p_o(X, t)\) introduced in equation~\eqref{eq:orbit_propagator}. Two different cases are to be considered: "explicit" propagation, where numerical inputs are available and a numerical output is desired; and "implicit" propagation, where the propagation step is a part of a larger solver.
 
@@ -36,10 +36,25 @@ Finally, Ipopt is built with sparsity in mind. Complex calculations should be br
     \label{fig:tech_stack}
 \end{figure}
 
-\section{Lambert problem formulations}
+\section{Lambert problem implementation}
+
+The formulations stated in the previous chapter make for one-dimensional nonlinear programs, which leads to high performance. However, they do not handle the singularity case of \(r_1 \parallel r_2\), which is of particular importance to orbital maneuvers as they often happen at periapsis and apoapsis. Sukhanov's formulation actually gives expressions for the initial radial and normal velocity when the input positions are collinear; the plane of the orbit should then be adequately chosen afterwards. However, this was found to be very numerically sensitive and another algorithm was used in the rest of this work. An implicit orbit propagation algorithm, as described in Section~\ref{sec:orbit_propagation} is setup with boundary conditions
+
+%change to X_{rk}, X_{vk}
+%atualizar seção de teoria
+%acahr notação melhor
+\begin{align}
+    (X_{1i})_{1 \leq i \leq 3} &= r_1 \\
+    (X_{(N+1)i})_{1 \leq i \leq 3} &= r_2
+\end{align}
+which account for the 6 boundary conditions needed. In order to help convergence in the collinear case (and neighboring cases), two inequality constraints may be added:
+\begin{align}
+    X_{rk}^T X_{rk} &\geq R_{\text{Earth}}^2 \\
+    X_{rk} \times X_{vk} &\geq 0
+\end{align}
+where the second constraint must be inverted if the desired orbit is retrograde. 
 
 
-
-\section{Optimal impulsive maneuver problem statement} \label{sec:impulsive_statement}
+\section{Optimal impulsive maneuver problem statement}\label{sec:impulsive_statement}
 
 algo usado
