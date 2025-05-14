@@ -112,7 +112,7 @@ In this formulation, all elements but the true anomaly are constant in time. The
         \tan{\frac{\theta}{2}} &= \sqrt{\frac{1+e}{1-e}} \tan{\frac{E}{2}} \label{eq:true_exc_anom}
 \end{align}
 where \(t_p\) is the time of the last perigee passage. By computing the mean anomalies in an initial and a final time, and solving the notorious Kepler's equation~\eqref{eq:kepler_equation}, and finally finding a suitable true anomaly with~\eqref{eq:true_exc_anom}, a semi-analytical temporal solution can be found. The process of finding the position of a satellite in the future is called \textit{orbit propagation}. Define an orbit propagator as a funcion \(p_o(X_i, t)\) such that
-\begin{equation}
+\begin{equation} \label{eq:orbit_propagator}
     X_f = p_o(X_i, t)
 \end{equation}
 where \(X_f\) is the satellite's final state after a time \(t\), with initial state \(X_i\).
