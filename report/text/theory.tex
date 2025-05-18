@@ -261,16 +261,7 @@ The costate is subject to the adjoint equations given in block matrix form as
         \lambda_r \\ \lambda_v
     \end{bmatrix}
 \end{equation}
-which is linear in the costate variables. Therefore, the adjoint equations admit a solution through the form of a state transition matrix \(\Phi(t - t_0)\) such that
-\begin{equation}
-    \begin{bmatrix}
-        \lambda_r(t) \\ \lambda_v(t)
-    \end{bmatrix} = \Phi(t - t_0) \begin{bmatrix}
-        \lambda_r(t_0) \\ \lambda_v(t_0)
-    \end{bmatrix}.
-\end{equation}
-
-For an inverse square gravitational field, a closed form for \(\Phi(t-t_0)\) exists~\cite{glandorf_transition_matrix}. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations. EXPLAIN M N T MATRICES? later in implementation maybe
+which is linear in the costate variables. 
 
 Rearranging the Hamiltonian to factor \(\gamma \), 
 \begin{equation}
@@ -299,6 +290,18 @@ This direction, the \textit{optimal thrust direction} given by \(-\lambda_v\) is
         \text{intermediate}&, \text{otherwise}
     \end{cases}
 \end{equation}
+
+The primer vector differential equations can be deducted from the adjoint equations and, due to linearity, admit a solution through the form of a state transition matrix \(\Phi(t - t_0)\) such that
+\begin{equation}
+    \begin{bmatrix}
+        p(t) \\ \dot p(t)
+    \end{bmatrix} = \Phi(t - t_0) \begin{bmatrix}
+        p(t_0) \\ \dot p(t_0)
+    \end{bmatrix}.
+\end{equation}
+
+For an inverse square gravitational field, a closed form for \(\Phi(t-t_0)\) exists~\cite{glandorf_transition_matrix}. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations. EXPLAIN M N T MATRICES? later in implementation maybe
+
 
 This theory can be extended to impulsive maneuvers by considering that since impulses are instantaneous, and the primer vector trajectory is continuous, \(\lVert p \rVert \leq 1\), and impulses happen at the instants when equality is attained.
 
