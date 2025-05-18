@@ -51,7 +51,7 @@ One of this tools is the Hamiltonian, a quantity that describes the ensemble of 
     H(X(t), u(t), \lambda(t)) = L(X, u) + \lambda{(t)}^T f(X, u)
 \end{equation}
 
-for all times \(t\), state and control vectors \(X  \) and \(u\) along a trajectory.\ \( \lambda(t) \) is the costate trajectory, a new set of variables introduced as the continuous-time equivalent of Lagrangian multipliers. These new variables are subject to the differential equation
+for all times \(t\), state and control vectors \(X  \) and \(u\) along a trajectory.\ \( \lambda(t) \) is the costate trajectory, a new set of variables introduced as the continuous-time equivalent of Lagrangian multipliers. These new variables are subject to the adjoint equations
 \begin{equation}
     \dot \lambda = - \left( \frac{\partial H}{\partial X} \right)^T = -\left( \frac{\partial f}{\partial X} \right)^T \lambda - \left( \frac{\partial L}{\partial X} \right)^T
 \end{equation}
@@ -75,9 +75,9 @@ Orbital mechanics concerns itself with the motion of bodies in space subject to 
 
 Let \(r\) be the 3-dimensional position of a satellite, and \(\mu \) the gravitational parameter of the central body. The dynamics of the satellite's position are given by~\cite{curtis2015orbital}
 \begin{equation} \label{eq:kepler_dyn}
-    \ddot{r} = -\frac{\mu}{\lVert r \rVert^3} r,
+    \ddot{r} = g(r) = -\frac{\mu}{\lVert r \rVert^3} r,
 \end{equation}
-thus configuring a 6-dimensional state vector \(X = \begin{bmatrix}
+where \(g(r)\) represents the gravitational acceleration field, thus configuring a 6-dimensional state vector \(X = \begin{bmatrix}
     r^T & v^T
 \end{bmatrix}^T\), where \(v\) is the satellite's velocity. The system contains a singularity at the states with \(\lVert r \rVert = 0\), which configures a non-convex domain. In practice, this point is rarely encountered as it lies inside of the central body, thus far from the regions of interest. It is proven that no analytical solution exists for this differential equation; however, much is known about its solutions.
 
@@ -178,9 +178,10 @@ Let \(\Gamma\) be the acceleration due to thrust such that \(\Gamma = \frac{F}{m
 \end{equation}
 
 Therefore the objective can be restated as
-\begin{equation}
-    \min_{\Gamma(t)} \int_0^{t_f} \lVert \Gamma \rVert dt.
+\begin{equation}\label{eq:obj_continuous_thrust}
+    \min_{\Gamma(t)} \int_0^{t_f} \lVert \Gamma \rVert dt
 \end{equation}
+subject to \(\lVert \Gamma(t) \rVert \leq \gamma_{\max}\) at all times, with \(\gamma_{\max} = \frac{F_{\max}}{m(0)}\).
 
 If the control variable is set to be \(\Gamma\) instead of \(F\), this leads to a mass-independent problem. This approximation leads to primer vector theory, and is therefore important. However, the assumption of constant mass should be challenged.
 
@@ -228,8 +229,83 @@ Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref
     \min \sum_{i=1}^{n} \Delta v_i.
 \end{equation}
 
-Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed later) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
+Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed in the next section) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
 
 \subsection{Primer vector theory}
 
-The application of optimal control theory to orbital maneuvers dates back to Lawden CITE, who introduced the concept of the \textit{primer vector}, which is closely tied to the costate.
+MENTION CONTINUITY OF PRIMER VECTOR SOMEWHERE
+
+The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\cite{Conway_2010}.
+
+The acceleration due to thrust \(\Gamma \) can be split into its magnitude and direction as \(\Gamma = \gamma \hat u\), \(\gamma = \lVert \Gamma \rVert\), \(\lVert \hat u \rVert = 1\) so that objective~\eqref{eq:obj_continuous_thrust} can be rewritten as
+\begin{equation}
+    \min_{\gamma(t), \hat u(t)} \int_0^{t_f} \gamma dt
+\end{equation}
+and the Hamiltonian of the system is the given by
+\begin{equation}
+    H = \gamma + \begin{bmatrix}
+        \lambda_r^T & \lambda_v^T
+    \end{bmatrix} \begin{bmatrix}
+        v \\ g(r) + \gamma \hat u
+    \end{bmatrix}
+\end{equation}
+
+The costate is subject to the adjoint equations given in block matrix form as
+\begin{equation}
+    \begin{bmatrix}
+        \dot \lambda_r \\ \dot \lambda_v
+    \end{bmatrix} = \begin{bmatrix}
+        0_{3\times3} & -\left(\frac{\partial g(r)}{\partial r}\right)^T \\
+        -I_{3\times3} & 0
+    \end{bmatrix} \begin{bmatrix}
+        \lambda_r \\ \lambda_v
+    \end{bmatrix}
+\end{equation}
+which is linear in the costate variables. Therefore, the adjoint equations admit a solution through the form of a state transition matrix \(\Phi(t - t_0)\) such that
+\begin{equation}
+    \begin{bmatrix}
+        \lambda_r(t) \\ \lambda_v(t)
+    \end{bmatrix} = \Phi(t - t_0) \begin{bmatrix}
+        \lambda_r(t_0) \\ \lambda_v(t_0)
+    \end{bmatrix}.
+\end{equation}
+
+For an inverse square gravitational field, a closed form for \(\Phi(t-t_0)\) exists~\cite{glandorf_transition_matrix}. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations. EXPLAIN M N T MATRICES? later in implementation maybe
+
+Rearranging the Hamiltonian to factor \(\gamma \), 
+\begin{equation}
+    H = (1 + \lambda_v^T \hat u) \gamma + \lambda_r^T v + \lambda_v^T g(r).
+\end{equation}
+
+By applying Pontryagin's Minimum Principle, the thrust magnitude \(\gamma\) is given piecewise by analyzing the sign of its coefficient:
+\begin{equation}
+    \begin{cases}
+        \gamma_{\max}&, 1+\lambda_v^T \hat u < 0 \\
+        0&, 1 + \lambda_v^T \hat u > 0 \\
+        \text{intermediate}&, \text{otherwise}
+    \end{cases}
+\end{equation}
+
+The case where \(1 + \lambda_v^T \hat u = 0\) on a finite interval of time will not be considered here CHECK WHAT LAWDEN HAS TO SAY. When \(\gamma = \gamma_{\max}\), its coefficient should be as negative as possible, which happens when \(\hat{u}\) has the opposite direction to \(\lambda_v\):
+\begin{equation}
+    \hat u = - \frac{\lambda_v}{\lVert \lambda_v \rVert}.
+\end{equation}
+
+This direction, the \textit{optimal thrust direction} given by \(-\lambda_v\) is what constitutes the primer vector \(p\), which is defined as \(p = -\lambda_v\). The engine firing conditions can be stated solely as a function of the primer vector as~\cite{Conway_2010}
+\begin{equation}
+    \begin{cases}
+        \gamma_{\max}&, \lVert p \rVert > 1 \\
+        0&, \lVert p \rVert < 1 \\
+        \text{intermediate}&, \text{otherwise}
+    \end{cases}
+\end{equation}
+
+This theory can be extended to impulsive maneuvers by considering that since impulses are instantaneous, and the primer vector trajectory is continuous, \(\lVert p \rVert \leq 1\), and impulses happen at the instants when equality is attained.
+
+Thus, the necessary conditions offered by primer vector theory for an impulsive maneuver scenario are:
+\begin{enumerate}
+    \item \(p(t)\) and \(\dot p(t)\) are continuous;
+    \item \(\lVert p \rVert \leq 1\), and impulses happen when \(\lVert p \rVert = 1\);
+    \item \(p\) has the direction of \(\hat u\) at the impulse instants;
+    \item \(\frac{d \lVert p \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
+\end{enumerate}
