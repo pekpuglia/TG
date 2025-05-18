@@ -46,8 +46,7 @@ subject to
 
 In general, this is a very hard problem. The optimization variable \(u(t)\) is not merely a vector of parameters but a whole trajectory of them; thus, the search space is enormous. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}, which shall be discussed later. There are however tools for extracting necessary conditions for the solution of this problem at all points in time. These are known as \textit{indirect methods}.
 
-One of this tools is the Hamiltonian, a quantity that describes the ensemble of objectives and constraints. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in equation~\eqref{eq:generic_dyn}, constraints in the forms of~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as
-%add h!!!!
+One of this tools is the Hamiltonian, a quantity that describes the ensemble of objectives and constraints. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in equation~\eqref{eq:generic_dyn}, constraints in the forms of~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
 \begin{equation}
     H(X(t), u(t), \lambda(t)) = L(X, u) + \lambda{(t)}^T f(X, u)
 \end{equation}
@@ -56,7 +55,7 @@ for all times \(t\), state and control vectors \(X  \) and \(u\) along a traject
 \begin{equation}
     \dot \lambda = - \left( \frac{\partial H}{\partial X} \right)^T = -\left( \frac{\partial f}{\partial X} \right)^T \lambda - \left( \frac{\partial L}{\partial X} \right)^T
 \end{equation}
-and boundary conditions
+and boundary conditions~\cite{bryson_applied_optimal_control}
 \begin{equation}
     \lambda_k(t_f) = \frac{\partial h(X(t_f))}{\partial X_k}, k \notin \mathcal{K}
 \end{equation}
@@ -66,7 +65,7 @@ To complete the Hamiltonian approach, Pontryagin's Minimum Principle is introduc
     u(t) = \arg \min_{u \in \mathcal{U}} H[X(t), u, \lambda(t)].
 \end{equation}
 
-With the control trajectory obtained as a function of \(X(t)\) and \(\lambda(t)\) from equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial and final states. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP).
+With the control trajectory obtained as a function of \(X(t)\) and \(\lambda(t)\) from equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial and final states. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
 
 \section{Orbital Mechanics}
 
@@ -74,7 +73,7 @@ Orbital mechanics concerns itself with the motion of bodies in space subject to 
 
 \subsection{Two Body Motion}
 
-Let \(r\) be the 3-dimensional position of a satellite, and \(\mu \) the gravitational parameter of the central body. The dynamics of the satellite's position are given by
+Let \(r\) be the 3-dimensional position of a satellite, and \(\mu \) the gravitational parameter of the central body. The dynamics of the satellite's position are given by~\cite{curtis2015orbital}
 \begin{equation} \label{eq:kepler_dyn}
     \ddot{r} = -\frac{\mu}{\lVert r \rVert^3} r,
 \end{equation}
@@ -82,29 +81,29 @@ thus configuring a 6-dimensional state vector \(X = \begin{bmatrix}
     r^T & v^T
 \end{bmatrix}^T\), where \(v\) is the satellite's velocity. The system contains a singularity at the states with \(\lVert r \rVert = 0\), which configures a non-convex domain. In practice, this point is rarely encountered as it lies inside of the central body, thus far from the regions of interest. It is proven that no analytical solution exists for this differential equation; however, much is known about its solutions.
 
-In this model, the possible trajectories are known to be conics, and therefore restricted to a plane. For bound satellites, that is, those in orbit around the central body, this trajectory is an ellipse where the central body lies on one of its foci. Mathematically, a ``bound'' satellite is one whose specific energy (mechanical energy over mass of the satellite), given by
+In this model, the possible trajectories are known to be conics, and therefore restricted to a plane. For bound satellites, that is, those in orbit around the central body, this trajectory is an ellipse where the central body lies on one of its foci. Mathematically, a ``bound'' satellite is one whose specific energy (mechanical energy over mass of the satellite), given by~\cite{curtis2015orbital}
 \begin{equation}
     \epsilon = -\frac{\mu}{\lVert r \rVert} + \frac{v^2}{2},
 \end{equation}
-is negative. The trajectory is closed, and the movement is periodic with period
+is negative. The trajectory is closed, and the movement is periodic with period~\cite{curtis2015orbital}
 \begin{equation}
     T = 2\pi \sqrt{\frac{a^3}{\mu}}
 \end{equation}
 where \(a\) is the semi-major axis of the ellipse.
 
-In this case, an alternative state vector may be introduced in the form of the Keplerian elements. These are:
+In this case, an alternative state vector may be introduced in the form of the Keplerian elements. These are~\cite{curtis2015orbital}:
 \begin{itemize}
     \item \(a\): semi-major axis of the ellipse;
     \item \(e\): excentricity of the ellipse;
     \item \(i\): inclination of the orbit's plane with respect to the Equatorial plane;
-    \item \(\Omega \): right ascension of the ascending node, that is, angle between FIND REFERENCE DIRECTION and the direction where the satellite crosses the Equatorial plane from South to North;
+    \item \(\Omega \): right ascension of the ascending node, that is, angle between the vernal equinox direction and the direction where the satellite crosses the Equatorial plane from South to North;
     \item \(\omega \): argument of perigee, or angle, in the plane of the orbit, between the ascending node and the perigee (point of smallest distance to the central body);
     \item \(\theta \): true anomaly, or angle between the perigee and the current position of the satellite.
 \end{itemize}
 
 These elements are related to the Cartesian state vector through ADD PERIFOCAL EQUATIONS.
 
-In this formulation, all elements but the true anomaly are constant in time. The true anomaly can be related to time implictly through two other quantities, the mean anomaly \(M\) and the excentric anomaly \(E\):
+In this formulation, all elements but the true anomaly are constant in time. The true anomaly can be related to time implictly through two other quantities, the mean anomaly \(M\) and the excentric anomaly \(E\)~\cite{curtis2015orbital}:
 
 \begin{align} 
         M &= 2\pi \frac{t - t_p}{T} \\
@@ -173,7 +172,7 @@ The objective~\eqref{eq:max_final_mass} can be developed for this model by integ
     m(t_f) = m(0) - \int_0^{t_f} \frac{\lVert F \rVert}{v_e} dt
 \end{equation}
 
-Let \(\Gamma\) be the acceleration due to thrust such that \(\Gamma = \frac{F}{m}\). The literature CITE CONWAY then suggests considering that the propellant consumption is small compared to the total mass of the satellite, such that it can be stated that
+Let \(\Gamma\) be the acceleration due to thrust such that \(\Gamma = \frac{F}{m}\). The literature~\cite{Conway_2010} then suggests considering that the propellant consumption is small compared to the total mass of the satellite, such that it can be stated that
 \begin{equation}
     m(t_f) \approx m(0) - \frac{m(0)}{v_e}\int_0^{t_f} \lVert \Gamma \rVert dt
 \end{equation}
@@ -190,7 +189,7 @@ If the control variable is set to be \(\Gamma\) instead of \(F\), this leads to 
 
 % \subsubsection{Impulsive thrust}
 
-A very simple propulsion model that allows for easier solution of the orbital maneuvering problem supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's equation, 
+A very simple propulsion model that allows for easier solution of the orbital maneuvering problem supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's equation~\cite{Conway_2010}, 
 \begin{equation}
     \Delta v = v_e \ln{\left(\frac{m_i}{m_f}\right)},
 \end{equation}
@@ -213,7 +212,7 @@ Now, considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting
 and to dynamical equation~\eqref{eq:kepler_dyn} in the intermediate times. Using the concept of orbit propagator, this adds the constraints
 \begin{align}
     X(t_1^-) &= p_o(X(0), t_1) \\
-    X(t_{j+1}^-) &= p_o(X(t_j^+, t_{j+1} - t_j)), \forall j = 1, \dots, n-1 \\
+    X(t_{j+1}^-) &= p_o(X(t_j^+), t_{j+1} - t_j), \forall j = 1, \dots, n-1 \\
     X(t_f) &= p_o(X(t_n^+), t_f - t_n)
 \end{align}
 to the previous list. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta v_j\). Accounting for \(X(0)\), all of the intermediate \(r(t_j^-)\), \(r(t_j^+)\), \(v(t_j^-)\) and \(v(t_j^+)\), and also the final state \(X(t_f)\), plus the impulse parameters, there are \(6 + 12n + 6 + 4n = 16n + 12\) unknowns. At the same time, there are \(6 + (3 + 3)n + 6 + 6 + 6(n-1) + 6 = 12n + 18\) constraints. Therefore, for general initial and final conditions, the \textit{minimal number of impulses} is 2. 
@@ -229,14 +228,7 @@ Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref
     \min \sum_{i=1}^{n} \Delta v_i.
 \end{equation}
 
-Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed later) can help determine the number of impulses needed CITE INTERACTIVE PRIMER VECTOR.
-
-% \subsubsection{Finite constant specific impulse thrust}
-
-
-% impulsive thrust as a limiting case
-
-% \subsubsection{Finite variable specific impulse thrust}
+Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed later) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
 
 \subsection{Primer vector theory}
 
