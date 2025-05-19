@@ -101,7 +101,8 @@ In this case, an alternative state vector may be introduced in the form of the K
     \item \(\theta \): true anomaly, or angle between the perigee and the current position of the satellite.
 \end{itemize}
 
-These elements are related to the Cartesian state vector through ADD PERIFOCAL EQUATIONS.
+These elements are related to the Cartesian state vector through the geometric description of a point on an ellipse, rotated through the Euler angles \(\Omega\), \(i\), \(\omega\)~\cite{curtis2015orbital}.
+
 
 In this formulation, all elements but the true anomaly are constant in time. The true anomaly can be related to time implictly through two other quantities, the mean anomaly \(M\) and the excentric anomaly \(E\)~\cite{curtis2015orbital}:
 
@@ -118,15 +119,12 @@ where \(X_f\) is the satellite's final state after a time \(t\), with initial st
 
 \subsection{Lambert's Problem}
 
-An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(r_1\) and \(r_2\) with a time interval \(\Delta t\) in between. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP.
+An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(r_1\) and \(r_2\) with a time interval \(\Delta t\) in between. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP. 
 
-In general, this problem can have multiple solutions, corresponding to prograde and retrograde trajectories, with less than one or multiple revolutions. The resulting orbit can, in general, be elliptic, parabolic or hyperbolic. 
+This problem suffers from a physical indetermination in the case of collinear \(r_1\) and \(r_2\): the plane of the orbit is indeterminate. In this case, one can find many feasible solutions but determining exact velocities requires extra information about the plane of the orbit.\
 
-EXPLAIN FORMULATIONS HERE
+In general, this problem can have multiple solutions, corresponding to prograde and retrograde trajectories, with less than one or multiple revolutions. The resulting orbit can, in general, be elliptic, parabolic or hyperbolic. Handling this variety of solution types is not simple. A simple formulation which does not handle multiple revolutions nor the indetermination mentioned can be built with universal variables~\cite{curtis2015orbital}. Multiple revolutions and finding the radial and tangent components of the velocity in the indeterminate case can be handled with more complex algorithms~\cite{sukhanov}. A generic, Cartesian coordinates-based algorithm is also possible, as will be discussed in the Methodology chapter.
 
-Many formulations exist, including CURTIS, SUKHANOV, and numerical integration. They all suffer from a physical indetermination in the case of collinear \(r_1\) and \(r_2\): the plane of the orbit is indeterminate. In this case, one can find many feasible solutions but determining exact velocities requires extra information about the plane of the orbit.\
-
-% try battin vaughan? 
 
 \section{Orbital Maneuvers}
 
@@ -233,8 +231,6 @@ Thus, in the impulsive case, the problem is \textit{independent of spacecraft ma
 
 \subsection{Primer vector theory}
 
-MENTION CONTINUITY OF PRIMER VECTOR SOMEWHERE
-
 The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\cite{Conway_2010}.
 
 The acceleration due to thrust \(\Gamma \) can be split into its magnitude and direction as \(\Gamma = \gamma \hat u\), \(\gamma = \lVert \Gamma \rVert\), \(\lVert \hat u \rVert = 1\) so that objective~\eqref{eq:obj_continuous_thrust} can be rewritten as
@@ -277,7 +273,8 @@ By applying Pontryagin's Minimum Principle, the thrust magnitude \(\gamma\) is g
     \end{cases}
 \end{equation}
 
-The case where \(1 + \lambda_v^T \hat u = 0\) on a finite interval of time will not be considered here CHECK WHAT LAWDEN HAS TO SAY. When \(\gamma = \gamma_{\max}\), its coefficient should be as negative as possible, which happens when \(\hat{u}\) has the opposite direction to \(\lambda_v\):
+%check what lawden has to say
+The case where \(1 + \lambda_v^T \hat u = 0\) on a finite interval of time will not be considered here; these are \textit{singular arcs} and are not relevant for orbital maneuvering. When \(\gamma = \gamma_{\max}\), its coefficient should be as negative as possible, which happens when \(\hat{u}\) has the opposite direction to \(\lambda_v\):
 \begin{equation}
     \hat u = - \frac{\lambda_v}{\lVert \lambda_v \rVert}.
 \end{equation}
@@ -300,7 +297,7 @@ The primer vector differential equations can be deducted from the adjoint equati
     \end{bmatrix}.
 \end{equation}
 
-For an inverse square gravitational field, a closed form for \(\Phi(t-t_0)\) exists~\cite{glandorf_transition_matrix}. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations. EXPLAIN M N T MATRICES? later in implementation maybe
+For an inverse square gravitational field, a closed form for \(\Phi(t-t_0)\) exists~\cite{glandorf_transition_matrix}. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations.
 
 
 This theory can be extended to impulsive maneuvers by considering that since impulses are instantaneous, and the primer vector trajectory is continuous, \(\lVert p \rVert \leq 1\), and impulses happen at the instants when equality is attained.
