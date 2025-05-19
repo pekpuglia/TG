@@ -2,24 +2,24 @@
 
 
 
-primeiro satelite manobravel
+% primeiro satelite manobravel
 
 
-discutir manobra interplanetária vs órbita terrestre
+% discutir manobra interplanetária vs órbita terrestre
 
-GOCE
+% GOCE
 
-daedalus
+% daedalus
 
 Space exploration relies on clever resource management, since satellites have a finite amount of resources (propellant and other consumables) to fulfill their mission. Up to this date, all space hardware is expendable, that is, when the consumables required for mission maintenance are finished, the mission ends, marking the end of the exploration of a very expensive engineered system. Thus the need for optimization arises in this domain.
 
 Contrary to science fiction, where spaceships seem to be constantly propelled by their thrusters, real life satellites change their courses in discrete moments of maximum thrust application, surrounded by (usually long) coasting periods. This is due to the relatively high power delivered by traditional rocket engines, which can, in the matter of seconds or minutes, greatly alter a satelite's orbit. Certain more modern propulsion systems, such as electric rocket engines, are somewhat of an exception; this technicality will be discussed in further sections.
 
-Orbital maneuvers are necessary in all stages of a satellite's lifecycle. In the beginning of a mission, the satellite is released by the launch vehicle in an orbit that is usually not the mission's orbit. Therefore, an \textit{injection maneuver} is necessary to bring the satellite into an operational orbit. This is usually the biggest maneuver a satellite must execute during its lifecycle, consuming a high fraction of its propellant storage CITE\@. 
+Orbital maneuvers are necessary in all stages of a satellite's lifecycle. In the beginning of a mission, the satellite is released by the launch vehicle in an orbit that is usually not the mission's orbit. Therefore, an \textit{injection maneuver} is necessary to bring the satellite into an operational orbit. This is usually the biggest maneuver a satellite must execute during its lifecycle, consuming a high fraction of its propellant storage. 
 
 During a mission, the satellite must perform sporadic \textit{maintenance maneuvers}, which are small course correction maneuvers to mitigate external perturbations such as atmospheric drag, oblateness effects (if undesired), influence of celestial bodies, and solar radiation pressure. Their frequency and magnitude vary depending on mission requirements, and in industrial applications, must not conflict with other, possibly simultaneous events (such as observation of a ground target), as well as taking into account pointing constraints, since a spacecraft might have sensitive sensors that must not be pointed at the sun, or have solar panels that need uninterrupted illumination. Those are by far the most common type of maneuver, and a loose, non-exhaustive classification arises naturally.
 
-The simplest type of maneuver is that of \textit{orbit raising}, which consists in bringing the satellite from a (often circular) orbit and increasing its semimajor-axis (and thus, its period) until a desired value is reached. This maneuver is commonly found in LEO applications, due to the presence of atmospheric drag; notably, it is performed by the ISS about once a month CITE\@. From a theoretical standpoint, it presents a simple, introductory case, often restricted to two dimensions instead of three. There are plenty of theoretical results about it, most notably the Hohmann transfer, a two-impulse maneuver which is known to be the two-impulse optimal from a plethora of theoretical tools. Other more elaborate results include the bielliptic transfer, which can be shown to surpass Hohmann's performance in certain conditions by allowing a third impulse. Another scenario that falls under this category is that of high orbit injections, such as LEO to GEO or LEO to MEO. 
+The simplest type of maneuver is that of \textit{orbit raising}, which consists in bringing the satellite from a (often circular) orbit and increasing its semimajor-axis (and thus, its period) until a desired value is reached. This maneuver is commonly found in LEO applications, due to the presence of atmospheric drag; notably, it is performed by the ISS about once a month~\cite{iss_reboost}\@. From a theoretical standpoint, it presents a simple, introductory case, often restricted to two dimensions instead of three. There are plenty of theoretical results about it, most notably the Hohmann transfer, a two-impulse maneuver which is known to be the two-impulse optimal from a plethora of theoretical tools. Other more elaborate results include the bielliptic transfer, which can be shown to surpass Hohmann's performance in certain conditions by allowing a third impulse. Another scenario that falls under this category is that of high orbit injections, such as LEO to GEO or LEO to MEO. 
 
 A second type of maneuver is a \textit{plane change} maneuver. Satellites move (approximately) in a plane which contains its position and velocity vectors and the center of Earth. By changing the direction of the velocity, this plane may be change. Common cases include an inclination change during orbital insertion, which may be required if the inclination of the target orbit is different to the latitude of the launch center CITE\@. Another plane change instance is that of a change in the right ascension of the ascending node (RAAN), which is especially useful for SSOs. SSO injection requires that the orbit be placed approximately perpendicular to the Sun; this requires careful positioning of the ascending node. Another interesting case is that of a combined plane change and orbit raising maneuver, such as that starting from an inclined LEO orbit targeting a GEO (thus, equatorial) orbit. A clever combination of both requirements can allow for great performance gains as compared to sequential maneuvers.
 
