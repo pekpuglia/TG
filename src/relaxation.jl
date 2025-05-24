@@ -88,7 +88,7 @@ function add_coast_segment(model, deltat, N, ind)
 end
 ##
 #solve lambert problem to use as initial condition
-N = 10
+N = 50
 
 model = Model(Ipopt.Optimizer)
 
@@ -115,7 +115,7 @@ lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
 f = plot_orbit(orb1, orb2, lamb1)
 save("./report/img/hohmann_lambert_guess.png", f)
 ##
-N=10
+N=50
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
     "max_iter" => 10_000
