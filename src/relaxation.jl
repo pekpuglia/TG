@@ -97,7 +97,7 @@ r, v = add_coast_segment(model, transfer_time, N, "lamb")
 dt10 = 1/3*transfer_time
 dt20 = 1/3*transfer_time
 
-r1_lamb = Propagators.propagate!(prop1, dt10)[1]
+r1_lamb, v1_lamb = Propagators.propagate!(prop1, dt10)
 r2_lamb = Propagators.propagate!(prop2, dt10+dt20-transfer_time)[1]
 
 @constraint(model, r[:, 1] .== r1_lamb)
@@ -105,9 +105,8 @@ r2_lamb = Propagators.propagate!(prop2, dt10+dt20-transfer_time)[1]
 
 for i = 1:size(r)[2]
     set_start_value.(r[:, i], r1_lamb)
-    set_start_value.(v[:, i], v1)
+    set_start_value.(v[:, i], v1_lamb)
 
-    # @constraint(model, cross(r[:, i], v[:, i])[3] >= 0)
 end
 ##
 optimize!(model)
