@@ -31,11 +31,11 @@ orb2 = KeplerianElements(
     orb1.i,
     orb1.Ω,
     orb1.ω,
-    deg2rad(150) + orb1.f
+    deg2rad(180) + orb1.f
 )
 prop2 = Propagators.init(Val(:TwoBody), orb2)
 f = plot_orbit(orb1, orb2)
-# save("./report/img/hohmann_condition.png", f)
+save("./report/img/hohmann_condition.png", f)
 ##
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -76,7 +76,7 @@ function add_coast_segment(model, deltat, N, ind)
 
 
     for i = 1:(N+1)
-        @constraint(model, r[:, i]' * r[:, i] >= EARTH_EQUATORIAL_RADIUS^2)
+        # @constraint(model, r[:, i]' * r[:, i] >= EARTH_EQUATORIAL_RADIUS^2)
         @constraint(model, cross(r[:, i], v[:, i])[3] >=0)
     end
 
@@ -106,7 +106,6 @@ r2_lamb = Propagators.propagate!(prop2, dt10+dt20-transfer_time)[1]
 for i = 1:size(r)[2]
     set_start_value.(r[:, i], r1_lamb)
     set_start_value.(v[:, i], v1_lamb)
-
 end
 ##
 optimize!(model)
@@ -114,7 +113,7 @@ optimize!(model)
 lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
 lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
 f = plot_orbit(orb1, orb2, lamb1)
-# save("./report/img/hohmann_lambert_guess.png", f)
+save("./report/img/hohmann_lambert_guess.png", f)
 ##
 N=10
 model = Model(
@@ -210,5 +209,6 @@ scatter!(ax3d, solved_r[1, (N+1):(N+1):end], solved_r[2, (N+1):(N+1):end], solve
 wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
 
 f
+save("./report/img/hohmann_solved.png", f)
 ##
 plot_orbit(orb1, orb2, transf_orb1, transf_orb2, transf_orb3)
