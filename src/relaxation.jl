@@ -196,5 +196,6 @@ ax3d = Axis3(f[1, 1])
 
 scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :])
 scatter!(ax3d, solved_r[1, (N+1):(N+1):end], solved_r[2, (N+1):(N+1):end], solved_r[3, (N+1):(N+1):end], markersize=20, color=:red)
+wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
 
 f
