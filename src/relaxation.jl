@@ -189,6 +189,14 @@ end
 ##
 optimize!(model)
 ##
+deltaVmodel = objective_value(model)
+##
+v1n = norm(v1)
+v2n = norm(v2)
+vtransf1 = √(2*GM_EARTH*(1/a1 - 1/(a1+a2)))
+vtransf2 = √(2*GM_EARTH*(1/a2 - 1/(a1+a2)))
+deltaV_hohmann = v2n - vtransf2 + vtransf1 - v1n
+##
 solved_r = [value.(rcoast1) value.(rcoast2) value.(rcoast3)]
 ##
 f = Figure()
