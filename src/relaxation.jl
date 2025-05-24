@@ -187,6 +187,9 @@ end
 ##
 optimize!(model)
 ##
+deltaV1_solved = value.(deltaV1)
+deltaV2_solved = value.(deltaV2)
+##
 deltaVmodel = objective_value(model)
 ##
 transf_orb1 = rv_to_kepler(value.(rcoast1[:, 1]), value.(vcoast1[:, 1]))
@@ -212,3 +215,38 @@ f
 save("./report/img/hohmann_solved.png", f)
 ##
 plot_orbit(orb1, orb2, transf_orb1, transf_orb2, transf_orb3)
+## primer vector 
+
+p0 = deltaV1_solved / norm(deltaV1_solved)
+pf = deltaV2_solved / norm(deltaV2_solved)
+
+inter_impulse_prop = Propagators.init(Val(:TwoBody), transf_orb2)
+Phi = TG.Phi_time(inter_impulse_prop, value(dt2))
+
+M = Phi[1:3, 1:3]
+N = Phi[1:3, 4:6]
+
+if abs(det(N)) <= 1e-10
+    #CHECK THIS IS TRUE
+    #only works for coplanar transfers?
+    A = N * [r1 v1]
+    b = pf - M * p0
+    p0dot = [r1 v1] * (A \ b)
+else
+    p0dot = N \ (pf - M * p0)
+end
+## plot p and pdot
+tspan = range(0, value(dt2), 100)
+##
+ppdot = [TG.Phi_time(inter_impulse_prop, t) * [p0; p0dot] for t in tspan]
+##
+normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in ppdot]
+##
+f = Figure()
+ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|")
+lines!(ax1, tspan, norm.(getindex.(ppdot, Ref(1:3))))
+
+ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
+lines!(ax2, tspan, normpdot)
+
+save("./report/img/hohmann_primer_vector_history.png", f)
