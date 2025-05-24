@@ -11,7 +11,7 @@ a2 = 9000e3
 
 hohmann_time = orbital_period((a1+a2)/2, GM_EARTH) / 2
 
-transfer_time = hohmann_time + 1000
+transfer_time = hohmann_time+1000
 
 orb1 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -20,7 +20,7 @@ orb1 = KeplerianElements(
     51 |> deg2rad,
     0    |> deg2rad,
     0     |> deg2rad,
-    60     |> deg2rad
+    0     |> deg2rad
 )
 prop1 = Propagators.init(Val(:TwoBody), orb1)
 
@@ -34,7 +34,8 @@ orb2 = KeplerianElements(
     deg2rad(210) + orb1.f
 )
 prop2 = Propagators.init(Val(:TwoBody), orb2)
-plot_orbit(orb1, orb2)
+f = plot_orbit(orb1, orb2)
+save("./report/img/hohmann_condition.png", f)
 ##
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -106,14 +107,15 @@ for i = 1:size(r)[2]
     set_start_value.(r[:, i], r1_lamb)
     set_start_value.(v[:, i], v1)
 
-    @constraint(model, cross(r[:, i], v[:, i])[3] >= 0)
+    # @constraint(model, cross(r[:, i], v[:, i])[3] >= 0)
 end
 ##
 optimize!(model)
 ##
 lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
 lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
-plot_orbit(orb1, orb2, lamb1)
+f = plot_orbit(orb1, orb2, lamb1)
+save("./report/img/hohmann_lambert_guess.png", f)
 ##
 N=10
 model = Model(
