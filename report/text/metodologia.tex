@@ -54,43 +54,6 @@ which account for the 6 boundary conditions needed. In order to help convergence
 \end{align}
 where the second constraint must be inverted if the desired orbit is retrograde. 
 
-\section{Primer vector calculation}
-
-Verification of the necessary conditions for optimality requires knowing the primer vector history. There are no boundary conditions on the primer vector, but for an orbital transfer with two impulses, \(\Delta v_1\) at time \(t_1\) and \(\Delta v_2\) at time \(t_2\), two primer vector values are known:
-\begin{align}
-    p(t_1) &= \frac{\Delta v_1}{\lVert \Delta v_1 \rVert} \\
-    p(t_2) &= \frac{\Delta v_1}{\lVert \Delta v_2 \rVert}
-\end{align}
-
-The state transition between these two instants can be stated as
-\begin{equation}
-    \begin{bmatrix}
-        p(t_2) \\ \dot p(t_2)
-    \end{bmatrix} = \Phi(t_2 - t_1) \begin{bmatrix}
-        p(t_1) \\ \dot p(t_1)
-    \end{bmatrix} = \begin{bmatrix}
-        M(t_2-t_1) & N(t_2-t_1) \\ S(t_2-t_1) & T(t_2-t_1)
-    \end{bmatrix} \begin{bmatrix}
-        p(t_1) \\ \dot p(t_1)
-    \end{bmatrix}
-\end{equation}
-where \(M\), \(N\), \(S\) and \(T\) are square matrices. From now on the times shall be denoted as indices for conciseness. If \(p\) and \(\dot p\) are known for a certain time, the entire trajectory can be found. It is easy to isolate \(\dot p_1 = \dot p(t_1)\):
-\begin{equation}
-    \dot p_1 = N^{-1}_{21} \left(p_2 - M_{21}p_1\right).
-\end{equation}
-
-\(N_{21}\) is invertible except for isolated values of t~\cite{Conway_2010}; in these cases, the primer vector trajectory is assumed to lie in the orbital plane, spanned by \(\begin{bmatrix}
-    r_1 & v_1
-\end{bmatrix}\). Thus, for singular \(N\),
-\begin{equation}
-    \dot p_1 = \begin{bmatrix}
-        r_1 & v_1
-    \end{bmatrix} (N \begin{bmatrix}
-        r_1 & v_1
-    \end{bmatrix})^\dagger \left(p_2 - M_{21}p_1\right)
-\end{equation}
-where \(A^\dagger\) denotes the pseudo-inverse of a rectangular matrix.
-
 \section{Optimal impulsive maneuver problem statement}\label{sec:impulsive_statement}
 
 The full optimization problem, as it is implemented in code, shall be stated in this section. Due to \texttt{JuMP}'s intuitive modelling language, the problem is coded almost as it is stated here. The input parameters are:
