@@ -11,7 +11,7 @@ a2 = 9000e3
 
 hohmann_time = orbital_period((a1+a2)/2, GM_EARTH) / 2
 
-transfer_time = hohmann_time+1000
+transfer_time = hohmann_time
 
 orb1 = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -31,11 +31,11 @@ orb2 = KeplerianElements(
     orb1.i,
     orb1.Ω,
     orb1.ω,
-    deg2rad(210) + orb1.f
+    deg2rad(150) + orb1.f
 )
 prop2 = Propagators.init(Val(:TwoBody), orb2)
 f = plot_orbit(orb1, orb2)
-save("./report/img/hohmann_condition.png", f)
+# save("./report/img/hohmann_condition.png", f)
 ##
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -115,7 +115,7 @@ optimize!(model)
 lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
 lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
 f = plot_orbit(orb1, orb2, lamb1)
-save("./report/img/hohmann_lambert_guess.png", f)
+# save("./report/img/hohmann_lambert_guess.png", f)
 ##
 N=10
 model = Model(
@@ -191,6 +191,10 @@ optimize!(model)
 ##
 deltaVmodel = objective_value(model)
 ##
+transf_orb1 = rv_to_kepler(value.(rcoast1[:, 1]), value.(vcoast1[:, 1]))
+transf_orb2 = rv_to_kepler(value.(rcoast2[:, 1]), value.(vcoast2[:, 1]))
+transf_orb3 = rv_to_kepler(value.(rcoast3[:, 1]), value.(vcoast3[:, 1]))
+##
 v1n = norm(v1)
 v2n = norm(v2)
 vtransf1 = √(2*GM_EARTH*(1/a1 - 1/(a1+a2)))
@@ -207,3 +211,5 @@ scatter!(ax3d, solved_r[1, (N+1):(N+1):end], solved_r[2, (N+1):(N+1):end], solve
 wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
 
 f
+##
+plot_orbit(orb1, orb2, transf_orb1, transf_orb2, transf_orb3)
