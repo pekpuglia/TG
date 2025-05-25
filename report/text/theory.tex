@@ -229,6 +229,18 @@ Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref
 
 Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed in the next section) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
 
+\subsubsection{Hohmann transfer}
+
+The prototypical orbital maneuver case is that of a two-impulse transfer between two coplanar circular orbits in Keplerian dynamics~\cite{chobotov}. This transfer has a known analytical optimal, which can be proven by several different methods. Some useful quantities relating to this transfer are given in the following. Given an initial circular orbit of semi-major axis \(a_1\) and a final circular orbit with semi-major axis \(a_2\), the total change in speed required is equal to~\cite{chobotov}:
+\begin{equation}\label{eq:hohmann_deltav}
+    \sum \lVert \Delta v \rVert = \sqrt{\mu\left(\frac{2}{a_1}-\frac{2}{a_1+a_2}\right)} - \sqrt{\frac{\mu}{a_1}} + \sqrt{\frac{\mu}{a_2}} - \sqrt{\mu\left(\frac{2}{a_2}-\frac{2}{a_1+a_2}\right)}
+\end{equation}
+
+The transfer time is half of the transfer orbit's period. With \(t_H\) being the Hohmann transfer duration, is is given by~\cite{chobotov} 
+\begin{equation}\label{eq:hohmann_time}
+    t_H = \pi \sqrt{\frac{\left(\frac{a_1+a_2}{2}\right)^3}{\mu}}.
+\end{equation}
+
 \subsection{Primer vector theory}
 
 The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\cite{Conway_2010}.
