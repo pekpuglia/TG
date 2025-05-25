@@ -68,3 +68,22 @@ Finally, primer vector theory is applied to verify is the found solution satisfi
 \end{figure}
 
 \section{Future results}
+
+Future deliverables shall include:
+\begin{enumerate}
+    \item A more robust code, capable of handling: 
+    \begin{enumerate}
+        \item multiple impulses;
+        \item multiple revolution transfers;
+        \item perturbed orbital dynamics;
+    \end{enumerate}
+    \item Estimation of feasible transfer times \(t_f\), which is currently treated as an arbitrary input;
+    \item Analysis of more complex, practical orbital transfer cases under appropriate models (to be defined, but likely J2-perturbed dynamics):
+    \begin{enumerate}
+        \item LEO orbit maintenance: simultaneous correction in inclination and altitude;
+        \item Sun synchronous orbit maintenance: correction in inclination, RAAN and semimajor-axis;
+        \item Constellation phasing: coplanar maneuver to correct a satellite's phase (true anomaly) on a circular orbit;
+        \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
+        \item \textbf{Optional}: plan series of impulses to use a Moon's gravity assist to increase scape velocity.
+    \end{enumerate}
+\end{enumerate}
