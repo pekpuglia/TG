@@ -40,9 +40,6 @@ Finally, Ipopt is built with sparsity in mind. Complex calculations should be br
 
 The formulations stated in the previous chapter make for one-dimensional nonlinear programs, which leads to high performance. However, they do not handle the singularity case of \(r_1 \parallel r_2\), which is of particular importance to orbital maneuvers as they often happen at periapsis and apoapsis. Sukhanov's formulation actually gives expressions for the initial radial and normal velocity when the input positions are collinear; the plane of the orbit should then be adequately chosen afterwards. However, this was found to be very numerically sensitive and another algorithm was used in the rest of this work. An implicit orbit propagation algorithm, as described in Section~\ref{sec:orbit_propagation} is setup with boundary conditions
 
-%change to X_{rk}, X_{vk}
-%atualizar seção de teoria
-%acahr notação melhor
 \begin{align}
     r_{(j=1)} &= r_1 \\
     r_{(j=N+1)} &= r_2
@@ -53,6 +50,8 @@ which account for the 6 boundary conditions needed. In order to help convergence
     r_j \times v_j &\geq 0
 \end{align}
 where the second constraint must be inverted if the desired orbit is retrograde. 
+
+The propagation variables are initialized with the initial position and velocity.
 
 \section{Optimal impulsive maneuver problem statement}\label{sec:impulsive_statement}
 
@@ -87,11 +86,13 @@ These variables are then subjected to constraints:
     \end{bmatrix}, m=1, 2 \\
     \text{Propagation of coasting arcs} &\qquad X_c^{j+1} = f_{RK}(X_c^j, \Delta t_c / N), c=1, 2, 3, j=1,\dots,N \\
     \text{where} & \qquad \Delta t_3 = t_f - \Delta t_1 - \Delta t_2 \\
-    \text{Prograde orbit} &\qquad r^j_c \times v^j_c \geq 0, \forall j, c \\
-    \text{Non-intersection with Earth} &\qquad (r^j_c)^T r^j_c \geq R_{\text{Earth}}^2
+    % \text{Prograde orbit} &\qquad r^j_c \times v^j_c \geq 0, \forall j, c \\
+    % \text{Non-intersection with Earth} &\qquad (r^j_c)^T r^j_c \geq R_{\text{Earth}}^2
 \end{align}
 
 Finally, the objective is given by
 \begin{equation}
     \min \Delta v_1 + \Delta v_2
 \end{equation}
+
+The solver should be initialized with a feasible, but not necessarily optimal solution, for better convergence (since Ipopt is a local solver, the choice of initial guesses is important). Values for \(\Delta t_1\) and \(\Delta t_2\) should be proposed based on physical reasoning. Then, the variables of the first and last coasting arcs are initialized with direct orbital propagation results (computed with the \texttt{SatelliteToolbox} package). The second coasting arc, between the impulses, is initialized with the solution to the Lambert problem between the final position of the first coasting arc and the initial position of the last coasting arc. Finally, the variables concerning the impulses' magnitudes and directions are initialized with the difference in velocity between consecutive arcs.
