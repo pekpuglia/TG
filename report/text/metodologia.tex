@@ -3,7 +3,7 @@ All code was implemented in the Julia language due to the availability of \texti
 
 \section{Orbit Propagation}\label{sec:orbit_propagation}
 
-The implementation of an orbit propagator concerns itself with the implementation of the function \(p_o(X, t)\) introduced in Equation~\eqref{eq:orbit_propagator}. Two different cases are to be considered: ``explicit'' propagation, where numerical inputs are available and a numerical output is desired; and ``implicit'' propagation, where the propagation step is a part of a larger solver.
+The implementation of an orbit propagator concerns itself with the implementation of the function \(p_o(\mathbf{x}, t)\) introduced in Equation~\eqref{eq:orbit_propagator}. Two different cases are to be considered: ``explicit'' propagation, where numerical inputs are available and a numerical output is desired; and ``implicit'' propagation, where the propagation step is a part of a larger solver.
 
 Brazil's National Institute of Space Research (INPE) developed a package for orbit propagation and analysis with several models (Kepler, J2 semi-analytical secular and short term, among others) called \texttt{SatelliteToolbox}~\cite{satellitetoolbox}. It provides quite convient functions for converting between the Cartesian state vector \(\begin{bmatrix}
     r^T & v^T
@@ -11,11 +11,11 @@ Brazil's National Institute of Space Research (INPE) developed a package for orb
 
 Therefore, this is an auxiliary package used for verification, initial guess generation, and direct numerical propagation whenever required. When propagation is required in the statement of a nonlinear optimization problem, another method for orbit propagation is required. Discretized numerical integration in Cartesian coordinates was chosen for this. Discretized integration inside a numerical solver can be done via collocation, direct shooting or multiple shooting (also known as relaxation)~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a sparse problem, which benefits the performance of the chosen solver (see next section).
 
-Let \(X_{\text{next}} = f_{RK}(X_{\text{prev}}, \Delta t)\) be the (two-body) dynamics function discretized through a fourth order Runge Kutta method. Then a number \(N\) of integration steps is chosen and \(N+1\) state vector variables \(X^j, j=1,\dots,N+1\) are created beloning to an array \(\chi \in \mathbb{R}^{6 \times (N+1)}\). They are subject to the constraints
+Let \(X_{\text{next}} = f_{RK}(X_{\text{prev}}, \Delta t)\) be the (two-body) dynamics function discretized through a fourth order Runge Kutta method. Then a number \(N\) of integration steps is chosen and \(N+1\) state vector variables \(\mathbf{x}^j, j=1,\dots,N+1\) are created beloning to an array \(\chi \in \mathbb{R}^{6 \times (N+1)}\). They are subject to the constraints
 \begin{equation}
-    X^{j+1} = f_{RK}(X^j, \frac{t_p}{N}), j = 1, \dots, N.
+    \mathbf{x}^{j+1} = f_{RK}(\mathbf{x}^j, \frac{t_p}{N}), j = 1, \dots, N.
 \end{equation}
-This leaves \(\dim X = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
+This leaves \(\dim \mathbf{x} = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
 
 \section{Nonlinear solver}
 
@@ -67,14 +67,14 @@ The problem comprises the following variables, where inequalities represent vari
 \begin{enumerate}
     \item \(\Delta t_1 \geq 0\), \(\Delta t_2 \geq 0\): intervals between 0 and the first maneuver and between the first and second maneuver;
     \item \(\Delta v_1 \geq 0\), \(\Delta v_2 \geq 0\)\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec v\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec v^T \Delta \vec v}\), which is not differentiable at \(\Delta \vec v = 0\), which is inconvenient.}: magnitudes of the first and second impulses;
-    \item \(\hat u 1\), \(\hat u_2 \in \mathbb{R}^3\): directions of the first and second impulses;
-    \item \(\chi_1\), \(\chi_2\), \(\chi_3 \in \mathbb{R}^{6 \times (N+1)}\): arrays of state variables for each coasting arc. They shall be indexed as \(\chi_c^{kj}\), \(c=1, 2, 3\) is the coasting arc index, \(k=1,\dots,6\) is the component index, \(j = 1,\dots,N+1\) is the state vector index. \(X^j_c, r^j_c, v^j_c\) denote the j-th state , position and velocity vectors of the c-th coasting arc: \((X^j_c)_k = \chi_c^{kj}\).
+    \item \(\hat{\mathbf{u}} 1\), \(\hat{\mathbf{u}}_2 \in \mathbb{R}^3\): directions of the first and second impulses;
+    \item \(\chi_1\), \(\chi_2\), \(\chi_3 \in \mathbb{R}^{6 \times (N+1)}\): arrays of state variables for each coasting arc. They shall be indexed as \(\chi_c^{kj}\), \(c=1, 2, 3\) is the coasting arc index, \(k=1,\dots,6\) is the component index, \(j = 1,\dots,N+1\) is the state vector index. \(\mathbf{x}^j_c, r^j_c, v^j_c\) denote the j-th state , position and velocity vectors of the c-th coasting arc: \((\mathbf{x}^j_c)_k = \chi_c^{kj}\).
 \end{enumerate}
 
 These variables are then subjected to constraints:
 \begin{align}
     \text{Total time less than transfer time} &\qquad\Delta t_1 + \Delta t_2 \leq t_f \\
-    \text{Unit directions} &\qquad\Delta \hat{u}_m^T \Delta \hat{u}_m = 1, m = 1, 2 \\
+    \text{Unit directions} &\qquad\Delta \hat{\mathbf{u}}_m^T \Delta \hat{\mathbf{u}}_m = 1, m = 1, 2 \\
     \text{Initial state} &\qquad \chi_1^{k, 1} = \begin{bmatrix}
         r_1 \\ v_1
     \end{bmatrix}_k, k = 1,\dots, 6 \\
@@ -82,7 +82,7 @@ These variables are then subjected to constraints:
         r_2 \\ v_2
     \end{bmatrix}_k, k = 1,\dots, 6 \\
     \text{Maneuver boundary conditions} &\qquad \chi_{m+1}^{k, 1} = \chi_m^{k, N+1} + \begin{bmatrix}
-        0_{3\times1} \\ \Delta v_m \hat{u}_m
+        0_{3\times1} \\ \Delta v_m \hat{\mathbf{u}}_m
     \end{bmatrix}, m=1, 2 \\
     \text{Propagation of coasting arcs} &\qquad X_c^{j+1} = f_{RK}(X_c^j, \Delta t_c / N), c=1, 2, 3, j=1,\dots,N \\
     \text{where} & \qquad \Delta t_3 = t_f - \Delta t_1 - \Delta t_2 \\
