@@ -29,6 +29,8 @@ Finally, at the end-of-life, there are legal constraints on where a satelite may
 
 \section{Problem statement}
 
+
+
 This work aims to develop modern numerical methods for orbital maneuver optimization in Earth orbit. Combinations of propulsive and orbital models are to be paired with adequate numerical schemes and theoretical tools to produce feasible maneuvers that also satisfy certain optimality conditions. The main deliverable shall be a code package capable of generating and optimizing maneuvers between an initial and final orbital state, for an allowed time of flight in between, as well as the mathematical formulation and derivation of such a problem.
 
 The main models to be studied are those of two body Keplerian dynamics and impulsive maneuvers, as they offer the most opportunities for validation with analytical results. Further models to be studied, if time allows it, are continuous thrust propulsion models and two body dynamics with oblateness perturbations (J2 effects).
@@ -42,6 +44,9 @@ The problem of orbital maneuvers is very general and it is possible to abstract 
 
 \section{Hypotheses}
 
+
+
+
 All hardware restrictions such as need for contact with a ground station, pointing constraints, mission objectives (such as observation of a ground target), and possibility of hardware failure and imprecisions are neglected. Attitude dynamics are assumed to be as fast as needed and always precise. Further assumptions depend on the propulsion and orbital model chosen and shall be discussed in future sections.
 
 \section{Objectives}
@@ -53,7 +58,7 @@ The objective of this work is to implement an impulsive orbital maneuver optimiz
     \item Compare some of the numerical results with known analytical results, namely the Hohmann transfer;
     \item Discuss some instances of application of this method to common aerospace scenarios;
     \item \textbf{Optional}: expand the work to continuous thrust propulsive models;
-    \item \textbf{Optional}: include orbital perturbations, most notably oblateness effects;
+    \item \textbf{Optional}: include orbital perturbations, most notably oblateness effects.
 \end{itemize}
 
 \section{Justification}
@@ -69,8 +74,8 @@ This work is organized in chapters as follows:
 \begin{enumerate}
     \item Introduction, where preliminary contextualization is given;
     \item Theory and fundamentals, where the mathematical description of the problem is given;
-    \item Bibliographic survey, where some previous results in the field are discussed;
+    \item Bibliographic review, where some previous results in the field are discussed;
     \item Methodology, where implementation details are given;
     \item Preliminary and expected results, where some baseline results are exposed, and future, expected results are enumerated;
-    \item Planning, where a timeline of future work is given;
+    \item Planning, where a timeline of future work is given.
 \end{enumerate}
