@@ -1,6 +1,9 @@
+
+This work relies on optimal control theory and orbital mechanics. Certain tools from optimal control theory are necessary to analyze the conditions for a control trajectory to be the best according to some criterion, and under some mathematical conditions. This theory applies to a wide range of linear and non-linear systems, independently of the specifics of a dynamical system. However, this works focuses its application to one particular system: that of a body gravitationally attracted by a much more massive central body, which is the domain of orbital mechanics. Both theories will be introduced.
+
 \section{Optimal Control}
 
-Optimal control is the area of control theory which tries to find the best control action to satisfy some requirements, such as altering a system's state in some way desired way. Here, "best" is defined as maximizing or minimizing some performance metric. In practice, and in particular in the scope of this work, this can be interpreted as attaining a target orbit in a certain amount of time, while minimizing fuel consumption.
+Optimal control is the area of control theory which tries to find the best control action to satisfy some requirements, such as altering a system's state in some desired way. Here, ``best''  is defined as maximizing or minimizing some performance metric. In practice, and in particular in the scope of this work, this can be interpreted as attaining a target orbit in a certain amount of time, while minimizing fuel consumption.
 
 The mathematical nature of an optimal control problem varies greatly depending on the nature of the system, the requirements, and the objective. Here, a selected subset of this vast theory shall be presented. Suppose a continuous time dynamical system operating on times \(t \in [0, t_f]\), where \(t_f \in \mathbb{R}\), given by
 
@@ -46,7 +49,7 @@ subject to
 
 In general, this is a very hard problem. The optimization variable \(u(t)\) is not merely a vector of parameters but a whole trajectory of them; thus, the search space is enormous. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}, which shall be discussed later. There are however tools for extracting necessary conditions for the solution of this problem at all points in time. These are known as \textit{indirect methods}.
 
-One of this tools is the Hamiltonian, a quantity that describes the ensemble of objectives and constraints. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in equation~\eqref{eq:generic_dyn}, constraints in the forms of~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
+One of this tools is the Hamiltonian, a quantity that describes the ensemble of objectives and constraints. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in Equation~\eqref{eq:generic_dyn}, constraints in the forms of~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
 \begin{equation}
     H(X(t), u(t), \lambda(t)) = L(X, u) + \lambda{(t)}^T f(X, u)
 \end{equation}
@@ -60,12 +63,12 @@ and boundary conditions~\cite{bryson_applied_optimal_control}
     \lambda_k(t_f) = \frac{\partial h(X(t_f))}{\partial X_k}, k \notin \mathcal{K}
 \end{equation}
 
-To complete the Hamiltonian approach, Pontryagin's Minimum Principle is introduced. It states that a necessary condition for attaining the minimum in equation~\eqref{eq:argmin_cost} is that, at all times \(t\), and along the optimal trajectory,
+To complete the Hamiltonian approach, Pontryagin's Minimum Principle is introduced. It states that a necessary condition for attaining the minimum in Equation~\eqref{eq:argmin_cost} is that, at all times \(t\), and along the optimal trajectory,
 \begin{equation} \label{eq:Pontryagin}
     u(t) = \arg \min_{u \in \mathcal{U}} H[X(t), u, \lambda(t)].
 \end{equation}
 
-With the control trajectory obtained as a function of \(X(t)\) and \(\lambda(t)\) from equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial and final states. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
+With the control trajectory obtained as a function of \(X(t)\) and \(\lambda(t)\) from Equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial and final states. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
 
 \section{Orbital Mechanics}
 
@@ -111,7 +114,7 @@ In this formulation, all elements but the true anomaly are constant in time. The
         E - e \sin{E} &= M \label{eq:kepler_equation}\\
         \tan{\frac{\theta}{2}} &= \sqrt{\frac{1+e}{1-e}} \tan{\frac{E}{2}} \label{eq:true_exc_anom}
 \end{align}
-where \(t_p\) is the time of the last perigee passage. By computing the mean anomalies in an initial and a final time, and solving the notorious Kepler's equation~\eqref{eq:kepler_equation}, and finally finding a suitable true anomaly with~\eqref{eq:true_exc_anom}, a semi-analytical temporal solution can be found. The process of finding the position of a satellite in the future is called \textit{orbit propagation}. Define an orbit propagator as a funcion \(p_o(X_i, t)\) such that
+where \(t_p\) is the time of the last perigee passage. By computing the mean anomalies in an initial and a final time, and solving the notorious Kepler's Equation~\eqref{eq:kepler_equation}, and finally finding a suitable true anomaly with~\eqref{eq:true_exc_anom}, a semi-analytical temporal solution can be found. The process of finding the position of a satellite in the future is called \textit{orbit propagation}. Define an orbit propagator as a funcion \(p_o(X_i, t)\) such that
 \begin{equation} \label{eq:orbit_propagator}
     X_f = p_o(X_i, t)
 \end{equation}
@@ -128,7 +131,7 @@ In general, this problem can have multiple solutions, corresponding to prograde 
 
 \section{Orbital Maneuvers}
 
-When a satellite is able to maneuver, the Keplerian dynamics of equation~\eqref{eq:kepler_dyn} need to be augmented with the thrust control vector \(F\), which applies a propulsion force on the satellite. Supposing that \(m\) is the total current mass of the spacecraft, the dynamics are given by
+When a satellite is able to maneuver, the Keplerian dynamics of Equation~\eqref{eq:kepler_dyn} need to be augmented with the thrust control vector \(F\), which applies a propulsion force on the satellite. Supposing that \(m\) is the total current mass of the spacecraft, the dynamics are given by
 \begin{equation}
     \ddot r = -\frac{\mu}{\lvert r \rVert^3}r + \frac{F}{m}.
 \end{equation}
@@ -188,7 +191,7 @@ If the control variable is set to be \(\Gamma\) instead of \(F\), this leads to 
 
 % \subsubsection{Impulsive thrust}
 
-A very simple propulsion model that allows for easier solution of the orbital maneuvering problem supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's equation~\cite{Conway_2010}, 
+A very simple propulsion model that allows for easier solution of the orbital maneuvering problem supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's Equation~\cite{Conway_2010}, 
 \begin{equation}
     \Delta v = v_e \ln{\left(\frac{m_i}{m_f}\right)},
 \end{equation}
@@ -208,7 +211,7 @@ Now, considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting
     v(t_j^+) &= v(t_j^-) + \Delta \vec v_j,& \forall j=1,\dots,n \\
     X(t_f) &= X_f
 \end{align}
-and to dynamical equation~\eqref{eq:kepler_dyn} in the intermediate times. Using the concept of orbit propagator, this adds the constraints
+and to dynamical Equation~\eqref{eq:kepler_dyn} in the intermediate times. Using the concept of orbit propagator, this adds the constraints
 \begin{align}
     X(t_1^-) &= p_o(X(0), t_1) \\
     X(t_{j+1}^-) &= p_o(X(t_j^+), t_{j+1} - t_j), \forall j = 1, \dots, n-1 \\
