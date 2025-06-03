@@ -6,12 +6,12 @@ All code was implemented in the Julia language due to the availability of \texti
 The implementation of an orbit propagator concerns itself with the implementation of the function \(p_o(\mathbf{x}, t)\) introduced in Equation~\eqref{eq:orbit_propagator}. Two different cases are to be considered: ``explicit'' propagation, where numerical inputs are available and a numerical output is desired; and ``implicit'' propagation, where the propagation step is a part of a larger solver.
 
 Brazil's National Institute of Space Research (INPE) developed a package for orbit propagation and analysis with several models (Kepler, J2 semi-analytical secular and short term, among others) called \texttt{SatelliteToolbox}~\cite{satellitetoolbox}. It provides quite convient functions for converting between the Cartesian state vector \(\begin{bmatrix}
-    r^T & v^T
+    \mathbf{r}^T & \mathbf{v}^T
 \end{bmatrix}^T\) and the Keplerian elements, as well as functions for the propagation of orbits by some specified amount of time \(t_p\). Its algorithms were chosen with precision around edge cases in mind~\cite{rv_to_kepler}, making it numerically precise but unsuitable for nonlinear solvers, which expect differentiable functions everywhere. The functions in this package are also limited to elliptic orbits.
 
 Therefore, this is an auxiliary package used for verification, initial guess generation, and direct numerical propagation whenever required. When propagation is required in the statement of a nonlinear optimization problem, another method for orbit propagation is required. Discretized numerical integration in Cartesian coordinates was chosen for this. Discretized integration inside a numerical solver can be done via collocation, direct shooting or multiple shooting (also known as relaxation)~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a sparse problem, which benefits the performance of the chosen solver (see next section).
 
-Let \(X_{\text{next}} = f_{RK}(X_{\text{prev}}, \Delta t)\) be the (two-body) dynamics function discretized through a fourth order Runge Kutta method. Then a number \(N\) of integration steps is chosen and \(N+1\) state vector variables \(\mathbf{x}^j, j=1,\dots,N+1\) are created beloning to an array \(\chi \in \mathbb{R}^{6 \times (N+1)}\). They are subject to the constraints
+Let \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the (two-body) dynamics function discretized through a fourth order Runge Kutta method. Then a number \(N\) of integration steps is chosen and \(N+1\) state vector variables \(\mathbf{x}^j, j=1,\dots,N+1\) are created beloning to an array \(\chi \in \mathbb{R}^{6 \times (N+1)}\). They are subject to the constraints
 \begin{equation}
     \mathbf{x}^{j+1} = f_{RK}(\mathbf{x}^j, \frac{t_p}{N}), j = 1, \dots, N.
 \end{equation}
@@ -41,13 +41,13 @@ Finally, Ipopt is built with sparsity in mind. Complex calculations should be br
 The formulations stated in the previous chapter make for one-dimensional nonlinear programs, which leads to high performance. However, they do not handle the singularity case of \(r_1 \parallel r_2\), which is of particular importance to orbital maneuvers as they often happen at periapsis and apoapsis. Sukhanov's formulation actually gives expressions for the initial radial and normal velocity when the input positions are collinear; the plane of the orbit should then be adequately chosen afterwards~\cite{sukhanov}. However, this was found to be very numerically sensitive and another algorithm was used in the rest of this work. An implicit orbit propagation algorithm, as described in Section~\ref{sec:orbit_propagation} is setup with boundary conditions
 
 \begin{align}
-    r_{(j=1)} &= r_1 \\
-    r_{(j=N+1)} &= r_2
+    \mathbf{r}_{(j=1)}   &= \mathbf{r}_1 \\
+    \mathbf{r}_{(j=N+1)} &= \mathbf{r}_2
 \end{align}
 which account for the 6 boundary conditions needed. In order to help convergence in the collinear case (and neighboring cases), two inequality constraints may be added:
 \begin{align}
-    r_j^T r_j &\geq R_{\text{Earth}}^2 \\
-    r_j \times v_j &\geq 0
+    \mathbf{r}_j^T \mathbf{r}_j &\geq R_{\text{Earth}}^2 \\
+    \mathbf{r}_j \times \mathbf{v}_j &\geq 0
 \end{align}
 where the second constraint must be inverted if the desired orbit is retrograde. 
 
@@ -57,8 +57,8 @@ The propagation variables are initialized with the initial position and velocity
 
 The full optimization problem, as it is implemented in code, shall be stated in this section. Due to \texttt{JuMP}'s intuitive modelling language, the problem is coded almost as it is stated here. The input parameters are:
 \begin{enumerate}
-    \item \(r_1\), \(v_1\): initial orbital position and velocity;
-    \item \(r_2\), \(v_2\): final orbital position and velocity;
+    \item \(\mathbf{r}_1\), \(\mathbf{v}_1\): initial orbital position and velocity;
+    \item \(\mathbf{r}_2\), \(\mathbf{v}_2\): final orbital position and velocity;
     \item \(t_f\): transfer time;
     \item \(N\): number of integration steps per coasting arc.
 \end{enumerate}
@@ -66,9 +66,9 @@ The full optimization problem, as it is implemented in code, shall be stated in 
 The problem comprises the following variables, where inequalities represent variable bounds:
 \begin{enumerate}
     \item \(\Delta t_1 \geq 0\), \(\Delta t_2 \geq 0\): intervals between 0 and the first maneuver and between the first and second maneuver;
-    \item \(\Delta v_1 \geq 0\), \(\Delta v_2 \geq 0\)\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec v\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec v^T \Delta \vec v}\), which is not differentiable at \(\Delta \vec v = 0\), which is inconvenient.}: magnitudes of the first and second impulses;
+    \item \(\Delta v_1 \geq 0\), \(\Delta v_2 \geq 0\)\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec{\mathbf{v}}\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec{\mathbf{v}}^T \Delta \vec{\mathbf{v}}}\), which is not differentiable at \(\Delta \vec {\mathbf{v}} = 0\), which is inconvenient.}: magnitudes of the first and second impulses;
     \item \(\hat{\mathbf{u}} 1\), \(\hat{\mathbf{u}}_2 \in \mathbb{R}^3\): directions of the first and second impulses;
-    \item \(\chi_1\), \(\chi_2\), \(\chi_3 \in \mathbb{R}^{6 \times (N+1)}\): arrays of state variables for each coasting arc. They shall be indexed as \(\chi_c^{kj}\), \(c=1, 2, 3\) is the coasting arc index, \(k=1,\dots,6\) is the component index, \(j = 1,\dots,N+1\) is the state vector index. \(\mathbf{x}^j_c, r^j_c, v^j_c\) denote the j-th state , position and velocity vectors of the c-th coasting arc: \((\mathbf{x}^j_c)_k = \chi_c^{kj}\).
+    \item \(\chi_1\), \(\chi_2\), \(\chi_3 \in \mathbb{R}^{6 \times (N+1)}\): arrays of state variables for each coasting arc. They shall be indexed as \(\chi_c^{kj}\), \(c=1, 2, 3\) is the coasting arc index, \(k=1,\dots,6\) is the component index, \(j = 1,\dots,N+1\) is the state vector index. \(\mathbf{x}^j_c, \mathbf{r}^j_c, \mathbf{v}^j_c\) denote the j-th state , position and velocity vectors of the c-th coasting arc: \((\mathbf{x}^j_c)_k = \chi_c^{kj}\).
 \end{enumerate}
 
 These variables are then subjected to constraints:
@@ -76,18 +76,18 @@ These variables are then subjected to constraints:
     \text{Total time less than transfer time} &\qquad\Delta t_1 + \Delta t_2 \leq t_f \\
     \text{Unit directions} &\qquad\Delta \hat{\mathbf{u}}_m^T \Delta \hat{\mathbf{u}}_m = 1, m = 1, 2 \\
     \text{Initial state} &\qquad \chi_1^{k, 1} = \begin{bmatrix}
-        r_1 \\ v_1
+        \mathbf{r}_1 \\ \mathbf{v}_1
     \end{bmatrix}_k, k = 1,\dots, 6 \\
     \text{Final state} &\qquad \chi_3^{k, N+1} = \begin{bmatrix}
-        r_2 \\ v_2
+        \mathbf{r}_2 \\ \mathbf{v}_2
     \end{bmatrix}_k, k = 1,\dots, 6 \\
     \text{Maneuver boundary conditions} &\qquad \chi_{m+1}^{k, 1} = \chi_m^{k, N+1} + \begin{bmatrix}
         0_{3\times1} \\ \Delta v_m \hat{\mathbf{u}}_m
     \end{bmatrix}, m=1, 2 \\
-    \text{Propagation of coasting arcs} &\qquad X_c^{j+1} = f_{RK}(X_c^j, \Delta t_c / N), c=1, 2, 3, j=1,\dots,N \\
+    \text{Propagation of coasting arcs} &\qquad \mathbf{x}_c^{j+1} = f_{RK}(\mathbf{x}_c^j, \Delta t_c / N), c=1, 2, 3, j=1,\dots,N \\
     \text{where} & \qquad \Delta t_3 = t_f - \Delta t_1 - \Delta t_2 \\
-    % \text{Prograde orbit} &\qquad r^j_c \times v^j_c \geq 0, \forall j, c \\
-    % \text{Non-intersection with Earth} &\qquad (r^j_c)^T r^j_c \geq R_{\text{Earth}}^2
+    % \text{Prograde orbit} &\qquad \mathbf{r}^j_c \times \mathbf{v}^j_c \geq 0, \forall j, c \\
+    % \text{Non-intersection with Earth} &\qquad (\mathbf{r}^j_c)^T \mathbf{r}^j_c \geq R_{\text{Earth}}^2
 \end{align}
 
 Finally, the objective is given by

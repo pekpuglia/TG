@@ -50,7 +50,7 @@ The input orbital elements are given in table~\ref{tab:hohmann_orb_elems} and th
     \label{fig:hohmann_condition}
 \end{figure}
 
-The total time was set to be equal to the analytical Hohmann transfer time\footnote{Methods for establishing how much time is needed for a certain maneuver shall be discussed in future results}, which from Equation~\eqref{eq:hohmann_time} is calculated as \(t_f = 3560.54\) s. Also from the analytical solution for the total change in velocity required, given in Equation~\eqref{eq:hohmann_deltav}, \(\sum \lVert \Delta v \rVert = 887.56\) m/s.
+The total time was set to be equal to the analytical Hohmann transfer time\footnote{Methods for establishing how much time is needed for a certain maneuver shall be discussed in future results}, which from Equation~\eqref{eq:hohmann_time} is calculated as \(t_f = 3560.54\) s. Also from the analytical solution for the total change in velocity required, given in Equation~\eqref{eq:hohmann_deltav}, \(\sum \lVert \Delta \mathbf{v} \rVert = 887.56\) m/s.
 
 Initial guesses for \(\Delta t_1\) and \(\Delta t_2\) were arbitrarily proposed to be \(\frac{t_f}{3}\). The solution of the Lambert problem for the second coasting arc can be visualized in Figure~\ref{fig:hohmann_lambert}. Naturally, this solution is very far from optimal but it is feasible, which is what is expected of it.
 
@@ -69,7 +69,7 @@ Then, a discretization with \(N = 50\) was chosen. It was found that few steps l
         Variable & Analytical & Solver \\ \midrule
         \(\Delta t_1\) & 0s & 8e-4s \\
         \(\Delta t_2\) & 3560.54s & 3560.538s \\
-        \(\sum \lVert \Delta v \rVert\) & \(887.56m/s\) & \(887.56m/s\) \\ \bottomrule
+        \(\sum \lVert \Delta \mathbf{v} \rVert\) & \(887.56m/s\) & \(887.56m/s\) \\ \bottomrule
     \end{tabular}
     \caption{Comparison of optimized and analytical values of some important variables in the Hohmann transfer case.}
     \label{tab:hohmann_results}
