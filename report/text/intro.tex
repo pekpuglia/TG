@@ -31,15 +31,30 @@ Finally, at the end-of-life, there are legal constraints on where a satelite may
 
 
 
-This work aims to develop modern numerical methods for orbital maneuver optimization in Earth orbit. Combinations of propulsive and orbital models are to be paired with adequate numerical schemes and theoretical tools to produce feasible maneuvers that also satisfy certain optimality conditions. The main deliverable shall be a code package capable of generating and optimizing maneuvers between an initial and final orbital state, for an allowed time of flight in between, as well as the mathematical formulation and derivation of such a problem.
+% This work aims to develop modern numerical methods for orbital maneuver optimization in Earth orbit. Combinations of propulsive and orbital models are to be paired with adequate numerical schemes and theoretical tools to produce feasible maneuvers that also satisfy certain optimality conditions. The main deliverable shall be a code package capable of generating and optimizing maneuvers between an initial and final orbital state, for an allowed time of flight in between, as well as the mathematical formulation and derivation of such a problem.
 
-The main models to be studied are those of two body Keplerian dynamics and impulsive maneuvers, as they offer the most opportunities for validation with analytical results. Further models to be studied, if time allows it, are continuous thrust propulsion models and two body dynamics with oblateness perturbations (J2 effects).
+% The main models to be studied are those of two body Keplerian dynamics and impulsive maneuvers, as they offer the most opportunities for validation with analytical results. Further models to be studied, if time allows it, are continuous thrust propulsion models and two body dynamics with oblateness perturbations (J2 effects).
 
-It is desired to validate the numerical algorithms with certain known analytical results, such as the Hohmann transfer, reproduce certain methods from the literature, and apply some of the formalism of optimal control (in the form of primer vector theory) to the solutions obtained. 
+% It is desired to validate the numerical algorithms with certain known analytical results, such as the Hohmann transfer, reproduce certain methods from the literature, and apply some of the formalism of optimal control (in the form of primer vector theory) to the solutions obtained. 
 
-It is not in the scope of this work to compare different numerical schemes; a sufficient one shall be found and exploited throughout. However, a novel, experimental method for optimal control synthesis based on polynomial optimization may be attempted if time allows it CITE\@.
+% It is not in the scope of this work to compare different numerical schemes; a sufficient one shall be found and exploited throughout. However, a novel, experimental method for optimal control synthesis based on polynomial optimization may be attempted if time allows it CITE\@.
 
-The problem of orbital maneuvers is very general and it is possible to abstract it from the specifics of a particular satellite's hardware by reasoning with position and (changes in) velocity. Therefore, application cases shall be representative of classes of maneuvers, instead of restricting their application to the specifics of one mission. This works focuses on Earth exploration activities, thus excluding lunar and interplanetary transfers.
+% The problem of orbital maneuvers is very general and it is possible to abstract it from the specifics of a particular satellite's hardware by reasoning with position and (changes in) velocity. Therefore, application cases shall be representative of classes of maneuvers, instead of restricting their application to the specifics of one mission. This works focuses on Earth exploration activities, thus excluding lunar and interplanetary transfers.
+
+The central question of this work is how to find the most efficient sequence of impulsive maneuvers that take a satellite from an initial orbit to a final orbit in a given amount of time. Here, most efficient is defined as least propellant consumption. Although this problem has many known answers for particular cases, such as the Hohmann transfer, the bielliptic transfer, and some out-of-plane maneuvers~\cite{chobotov}, this work aims to answer, or at least give a general procedure for answering, this question without further assumptions on the characteristics of the orbits. 
+
+An important aspect of this problem is the time taken in the transfer. Although most analytical results do not explicitly depend on time, real world problems have temporal constraints, and the mathematical treatment of dynamical systems is inherently time-dependent. Thus, characterizing possible trade-offs between time of transfer and propellant consumption is of great practical interest. Also, most tools (primer vector theory) for orbital maneuvering take the transfer time as a hyper-parameter not subject to optimization~\cite{Conway_2010}. Discovering whether this parameter can be estimated, optimized, or at least characterized by a feasible range is a novel approach that may prove fruitful, and therefore shall be investigated in this work.
+
+A final topic to be explored is the question of how many impulses are needed for a particular transfer. This is the most classic question in the field, but still a topic of research. A variety of methods are given in the literature, ranging from analytical necessary conditions~\cite{interactive_primer_vector}, treatment of the problem as a spacecraft with thrust of infinite magnitude~\cite{how_many_impulses}, but there is no definite method for this. The possibility of other methods, such as application of discrete (combinatorial) optimization techniques, such as simulated annealing~\cite{numerical_recipes}, can be studied and provide insight into the question at hand.
+
+
+
+
+
+
+
+
+
 
 
 \section{Hypotheses}
