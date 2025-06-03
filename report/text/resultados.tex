@@ -1,3 +1,27 @@
+
+The theory and methods exposed previously are to be tested with concrete numerical examples, as well as be improved and expanded. In this chapter, an outline for expected results and deliverables of this work is given, as well as a simple numerical example: that of a Hohmann transfer in LEO. 
+
+\section{Expected results}
+
+Future deliverables shall include:
+\begin{enumerate}
+    \item A more robust code, capable of handling: 
+    \begin{enumerate}
+        \item multiple impulses;
+        \item multiple revolution transfers;
+        \item perturbed orbital dynamics;
+    \end{enumerate}
+    \item Estimation of feasible transfer times \(t_f\), which is currently treated as an arbitrary input;
+    \item Analysis of more complex, practical orbital transfer cases under appropriate models (to be defined, but likely J2-perturbed dynamics):
+    \begin{enumerate}
+        \item LEO orbit maintenance: simultaneous correction in inclination and altitude;
+        \item Sun synchronous orbit maintenance: correction in inclination, RAAN and semimajor-axis;
+        \item Constellation phasing: coplanar maneuver to correct a satellite's phase (true anomaly) on a circular orbit;
+        \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
+        \item \textbf{Optional}: plan series of impulses to use a Moon's gravity assist to increase scape velocity.
+    \end{enumerate}
+\end{enumerate}
+
 \section{Preliminary results: Hohmann Transfer}
 
 To validate the models created, a Hohmann transfer scenario is solved through direct optimization, and this solution is verified with primer vector theory and the known Hohmann transfer analytical solution.
@@ -8,7 +32,7 @@ The input orbital elements are given in table~\ref{tab:hohmann_orb_elems} and th
     \centering
     \begin{tabular}{ccc} \toprule
         Element & Initial & Final \\ \midrule
-        \(a\)      & \(7000km\)   & \(9000km\)   \\
+        \(a\)      & \(7000\) km   & \(9000\) km   \\
         \(e\)      & \(0\)        & \(0\)        \\
         \(i\)      & \(51^\circ\) & \(51^\circ\) \\
         \(\Omega\) & \(0^\circ\)  & \(0^\circ\)  \\
@@ -26,7 +50,7 @@ The input orbital elements are given in table~\ref{tab:hohmann_orb_elems} and th
     \label{fig:hohmann_condition}
 \end{figure}
 
-The total time was set to be equal to the analytical Hohmann transfer time\footnote{Methods for establishing how much time is needed for a certain maneuver shall be discussed in Future Results}, which from Equation~\eqref{eq:hohmann_time} is calculated as \(t_f = 3560.54s\). Also from the analytical solution for the total change in velocity required, given in Equation~\eqref{eq:hohmann_deltav}, \(\sum \lVert \Delta v \rVert = 887.56m/s\).
+The total time was set to be equal to the analytical Hohmann transfer time\footnote{Methods for establishing how much time is needed for a certain maneuver shall be discussed in future results}, which from Equation~\eqref{eq:hohmann_time} is calculated as \(t_f = 3560.54\) s. Also from the analytical solution for the total change in velocity required, given in Equation~\eqref{eq:hohmann_deltav}, \(\sum \lVert \Delta v \rVert = 887.56\) m/s.
 
 Initial guesses for \(\Delta t_1\) and \(\Delta t_2\) were arbitrarily proposed to be \(\frac{t_f}{3}\). The solution of the Lambert problem for the second coasting arc can be visualized in Figure~\ref{fig:hohmann_lambert}. Naturally, this solution is very far from optimal but it is feasible, which is what is expected of it.
 
@@ -66,24 +90,3 @@ Finally, primer vector theory is applied to verify is the found solution satisfi
     \caption{Primer vector norm and norm time-derivative trajectories for Hohmann transfer case.}
     \label{fig:hohmann_primer_vec}
 \end{figure}
-
-\section{Future results}
-
-Future deliverables shall include:
-\begin{enumerate}
-    \item A more robust code, capable of handling: 
-    \begin{enumerate}
-        \item multiple impulses;
-        \item multiple revolution transfers;
-        \item perturbed orbital dynamics;
-    \end{enumerate}
-    \item Estimation of feasible transfer times \(t_f\), which is currently treated as an arbitrary input;
-    \item Analysis of more complex, practical orbital transfer cases under appropriate models (to be defined, but likely J2-perturbed dynamics):
-    \begin{enumerate}
-        \item LEO orbit maintenance: simultaneous correction in inclination and altitude;
-        \item Sun synchronous orbit maintenance: correction in inclination, RAAN and semimajor-axis;
-        \item Constellation phasing: coplanar maneuver to correct a satellite's phase (true anomaly) on a circular orbit;
-        \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
-        \item \textbf{Optional}: plan series of impulses to use a Moon's gravity assist to increase scape velocity.
-    \end{enumerate}
-\end{enumerate}
