@@ -5,6 +5,29 @@ using Ipopt
 using TG
 using GLMakie
 using LinearAlgebra
+using Setfield
+##
+function plot_orbit_fix(orbs::KeplerianElements...)
+    N = 100
+    θ = LinRange(0, 2π, N)
+
+    fig = Figure()
+    ax3d = Axis3(fig[1, 1])
+    
+    for (orb, c) in zip(orbs, Makie.wong_colors())
+        orbit = ((@set orb.f = theta) for theta in θ) .|> kepler_to_rv .|> first |> stack
+        current_pos, current_velocity = kepler_to_rv(orb)
+        velocity_arrow_base = current_pos
+        velocity_arrow_tip = velocity_arrow_base + current_velocity / √sum(current_velocity .^ 2) * 0.4 * √sum(current_pos .^ 2)
+        velocity_arrow_data = [velocity_arrow_base velocity_arrow_tip] |> Matrix
+        lines!(ax3d, orbit[1, :], orbit[2, :], orbit[3, :], color=c)
+        scatter!(ax3d, current_pos, markersize=20, color=c)
+        lines!(ax3d, velocity_arrow_data[1, :], velocity_arrow_data[2, :], velocity_arrow_data[3, :], color=c)
+    end
+    
+    wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
+    fig, ax3d
+end
 ##
 a1 = 7000e3
 a2 = 9000e3
@@ -33,9 +56,26 @@ orb2 = KeplerianElements(
     orb1.ω,
     deg2rad(180) + orb1.f
 )
+
+hohmann_orb = KeplerianElements(
+    orb1.t,
+    (a1+a2)/2,
+    (a2-a1) / (a1+a2),
+    orb1.i,
+    orb1.Ω,
+    orb1.ω,
+    deg2rad(60)
+)
+
 prop2 = Propagators.init(Val(:TwoBody), orb2)
-f = plot_orbit(orb1, orb2)
+f, ax3d = plot_orbit_fix(orb1, orb2, hohmann_orb)
+f
+##
 save("./report/img/hohmann_condition.png", f)
+##
+ax3d.azimuth = -π/2
+ax3d.elevation = orb1.i
+save("./report/img/hohmann_condition_in_plane.png", f)
 ##
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -112,8 +152,12 @@ optimize!(model)
 ##
 lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
 lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
-f = plot_orbit(orb1, orb2, lamb1)
+f, ax3d = plot_orbit_fix(orb1, orb2, lamb1)
 save("./report/img/hohmann_lambert_guess.png", f)
+##
+ax3d.azimuth = -π/2
+ax3d.elevation = orb1.i
+save("./report/img/hohmann_lambert_guess_in_plane.png", f)
 ##
 N=50
 model = Model(
@@ -204,15 +248,21 @@ deltaV_hohmann = v2n - vtransf2 + vtransf1 - v1n
 ##
 solved_r = [value.(rcoast1) value.(rcoast2) value.(rcoast3)]
 ##
-f = Figure()
-ax3d = Axis3(f[1, 1])
+# f = Figure()
+# ax3d = Axis3(f[1, 1])
 
-scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :])
+f, ax3d = plot_orbit_fix(orb1, orb2)
+
+scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color="green")
 scatter!(ax3d, solved_r[1, (N+1):(N+1):end], solved_r[2, (N+1):(N+1):end], solved_r[3, (N+1):(N+1):end], markersize=20, color=:red)
 wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
 
 f
+##
 save("./report/img/hohmann_solved.png", f)
+ax3d.azimuth = -π/2
+ax3d.elevation = orb1.i
+save("./report/img/hohmann_solved_in_plane.png", f)
 ##
 plot_orbit(orb1, orb2, transf_orb1, transf_orb2, transf_orb3)
 ## primer vector 
@@ -249,4 +299,4 @@ lines!(ax1, tspan, norm.(getindex.(ppdot, Ref(1:3))))
 ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
 lines!(ax2, tspan, normpdot)
 
-save("./report/img/hohmann_primer_vector_history.png", f)
+# save("./report/img/hohmann_primer_vector_history.png", f)
