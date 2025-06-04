@@ -121,7 +121,14 @@ where \(\mathbf{x}_f\) is the satellite's final state after a time \(t\), with i
 
 \subsection{Lambert's Problem}
 
-An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(r_1\) and \(r_2\) with a time interval \(\Delta t\) in between. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP. 
+An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(\mathbf{r}_1\) and \(\mathbf{r}_2\) with a time interval \(\Delta t\) in between, as illustrated in Figure~\ref{fig:lambert_diagram}. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{img/lambert_from_curtis.png}
+    \caption{Lambert problem illustration showing initial and final positions \(\mathbf{r}_1\) and \(\mathbf{r}_2\) and the (computed) trajectory that connects them in time \(\Delta t\). Source: \cite{curtis2015orbital}}
+    \label{fig:lambert_diagram}
+\end{figure}
 
 This problem suffers from a physical indetermination in the case of collinear \(r_1\) and \(r_2\): the plane of the orbit is indeterminate. In this case, one can find many feasible solutions but determining exact velocities requires extra information about the plane of the orbit.\
 
@@ -204,7 +211,7 @@ which yields a velocity discontinuity
     \lVert \mathbf{v}(t_b^+) - \mathbf{v}(t_b^-) \rVert = v_e \ln{\left(\frac{m(t_b^-)}{m(t_b^+)}\right)} = \Delta v.
 \end{equation}
 
-Now, considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting segments related by the change in velocity \(\Delta \mathbf{v}_j\) associated with the j-th burn. Considering burn times \(t_j\), with \(t_f \geq t_{j+1} \geq t_j \geq 0\), and the initial and final times \(0\) and \(t_f\), the system is subject to boundary conditions
+Now, between impulses there are coasting arcs where the vessel is subject only to external (gravitational) forces, as illustrated in Figure~\ref{fig:impulsive_maneuver_diagram}. Considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting segments related by the change in velocity \(\Delta \mathbf{v}_j\) associated with the j-th burn. Considering burn times \(t_j\), with \(t_f \geq t_{j+1} \geq t_j \geq 0\), and the initial and final times \(0\) and \(t_f\), the system is subject to boundary conditions
 \begin{align}
     \mathbf{x}(0) &= X_i \\
     \mathbf{r}(t_j^+) &= \mathbf{r}(t_j^-),& \forall j=1,\dots,n \\
@@ -219,6 +226,12 @@ and to dynamical Equation~\eqref{eq:kepler_dyn} in the intermediate times. Using
 \end{align}
 to the previous list. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta \mathbf{v}_j\). Accounting for \(\mathbf{x}(0)\), all of the intermediate \(\mathbf{r}(t_j^-)\), \(\mathbf{r}(t_j^+)\), \(\mathbf{v}(t_j^-)\) and \(\mathbf{v}(t_j^+)\), and also the final state \(\mathbf{x}(t_f)\), plus the impulse parameters, there are \(6 + 12n + 6 + 4n = 16n + 12\) unknowns. At the same time, there are \(6 + (3 + 3)n + 6 + 6 + 6(n-1) + 6 = 12n + 18\) constraints. Therefore, for general initial and final conditions, the \textit{minimal number of impulses} is 2. 
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{img/impulsive_traj_from_how_many_impulses.png}
+    \caption{illustration of impulsive transfer with Eart to Mars transfer in 3 impulses. Source: \cite{how_many_impulses}.}
+    \label{fig:impulsive_maneuver_diagram}
+\end{figure}
 
 Tsiolkovsky's equation can be applied to all impulses, thus relating the final and initial masses with the total velocity change, which is the sum of all \(n\) burns executed during the transfer:
 \begin{equation}
@@ -234,7 +247,14 @@ Thus, in the impulsive case, the problem is \textit{independent of spacecraft ma
 
 \subsubsection{Hohmann transfer}
 
-The prototypical orbital maneuver case is that of a two-impulse transfer between two coplanar circular orbits in Keplerian dynamics~\cite{chobotov}. This transfer has a known analytical optimal, which can be proven by several different methods. Some useful quantities relating to this transfer are given in the following. Given an initial circular orbit of semi-major axis \(a_1\) and a final circular orbit with semi-major axis \(a_2\), the total change in speed required is equal to~\cite{chobotov}:
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{img/hohmann_from_curtis.png}
+    \caption{Hohmann transfer diagram. Source: \cite{curtis2015orbital}}
+    \label{fig:hohmann_diagram}
+\end{figure}
+
+The prototypical orbital maneuver case is that of a two-impulse transfer between two coplanar circular orbits in Keplerian dynamics~\cite{chobotov}. The intermediate orbit, between the two impulses, is an ellipse that is tangent to both initial and final orbits, as can be seen in Figure~\ref{fig:hohmann_diagram}. This transfer has a known analytical optimal, which can be proven by several different methods. Some useful quantities relating to this transfer are given in the following. Given an initial circular orbit of semi-major axis \(a_1\) and a final circular orbit with semi-major axis \(a_2\), the total change in speed required is equal to~\cite{chobotov}:
 \begin{equation}\label{eq:hohmann_deltav}
     \sum \lVert \Delta \mathbf{v} \rVert = \sqrt{\mu\left(\frac{2}{a_1}-\frac{2}{a_1+a_2}\right)} - \sqrt{\frac{\mu}{a_1}} + \sqrt{\frac{\mu}{a_2}} - \sqrt{\mu\left(\frac{2}{a_2}-\frac{2}{a_1+a_2}\right)}
 \end{equation}
@@ -349,10 +369,19 @@ where \(\mathbf{M}\), \(\mathbf{N}\), \(\mathbf{S}\) and \(\mathbf{T}\) are squa
 \end{equation}
 where \(A^\dagger\) denotes the pseudo-inverse of a rectangular matrix.
 
-Thus, the necessary conditions offered by primer vector theory for an impulsive maneuver scenario are~\cite{Conway_2010}:
+Some typical primer vector magnitude trajectories are given in Figure~\ref{fig:primer_trajectory_example}. The necessary conditions offered by primer vector theory for an impulsive maneuver scenario are~\cite{Conway_2010}:
 \begin{enumerate}
     \item \(\mathbf{p}(t)\) and \(\dot{\mathbf{p}}(t)\) are continuous;
     \item \(\lVert \mathbf{p} \rVert \leq 1\), and impulses happen when \(\lVert \mathbf{p} \rVert = 1\);
     \item \(\mathbf{p}\) has the direction of \(\hat{\mathbf{u}}\) at the impulse instants;
     \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
 \end{enumerate}
+
+Notice how in Figure~\ref{fig:primer_trajectory_example}, the first trajectory satisfies all necessary conditions, the second one violates condition 2, and the third one violates condition one. How to exploit necessary condition violation for improving trajectories shall be discussed in future work.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.3\textwidth]{img/primer_vector_history_from_jezewsky.png}
+    \caption{Typical primer vector trajectories. Source: \cite{efficient_n_impulse}.}
+    \label{fig:primer_trajectory_example}
+\end{figure}
