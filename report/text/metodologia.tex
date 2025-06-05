@@ -75,15 +75,15 @@ These variables are then subjected to constraints:
 \begin{align}
     \text{Total time less than transfer time} &\qquad\Delta t_1 + \Delta t_2 \leq t_f \\
     \text{Unit directions} &\qquad\Delta \hat{\mathbf{u}}_m^T \Delta \hat{\mathbf{u}}_m = 1, m = 1, 2 \\
-    \text{Initial state} &\qquad \chi_1^{k, 1} = \begin{bmatrix}
+    \text{Initial state} &\qquad \mathbf{x}_1^{1} = \begin{bmatrix}
         \mathbf{r}_1 \\ \mathbf{v}_1
-    \end{bmatrix}_k, k = 1,\dots, 6 \\
-    \text{Final state} &\qquad \chi_3^{k, N+1} = \begin{bmatrix}
+    \end{bmatrix} \\
+    \text{Final state} &\qquad \mathbf{x}_3^{N+1} = \begin{bmatrix}
         \mathbf{r}_2 \\ \mathbf{v}_2
-    \end{bmatrix}_k, k = 1,\dots, 6 \\
-    \text{Maneuver boundary conditions} &\qquad \chi_{m+1}^{k, 1} = \chi_m^{k, N+1} + \begin{bmatrix}
-        0_{3\times1} \\ \Delta v_m \hat{\mathbf{u}}_m
-    \end{bmatrix}, m=1, 2 \\
+    \end{bmatrix} \\
+    \text{Maneuver boundary conditions} &\qquad \mathbf{x}_{i+1}^{1} = \mathbf{x}_i^{N+1} + \begin{bmatrix}
+        0_{3\times1} \\ \Delta v_i \hat{\mathbf{u}}_i
+    \end{bmatrix}, i=1, 2 \\
     \text{Propagation of coasting arcs} &\qquad \mathbf{x}_c^{j+1} = f_{RK}(\mathbf{x}_c^j, \Delta t_c / N), c=1, 2, 3, j=1,\dots,N \\
     \text{where} & \qquad \Delta t_3 = t_f - \Delta t_1 - \Delta t_2 \\
     % \text{Prograde orbit} &\qquad \mathbf{r}^j_c \times \mathbf{v}^j_c \geq 0, \forall j, c \\
