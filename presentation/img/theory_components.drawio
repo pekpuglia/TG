@@ -1,0 +1,93 @@
+<mxfile host="65bd71144e">
+    <diagram id="YrOrYQYeh16KZIIpHKXH" name="Page-1">
+        <mxGraphModel dx="698" dy="549" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="25" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" edge="1" parent="1" source="11" target="24">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Orbital mechanics" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="270" y="120" width="120" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" edge="1" parent="11" source="12" target="22">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="&lt;b&gt;Dynamic model&lt;/b&gt;&lt;div&gt;Gravity&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="11">
+                    <mxGeometry x="10" y="30.5" width="100" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="State vector" style="whiteSpace=wrap;html=1;" vertex="1" parent="11">
+                    <mxGeometry x="20" y="100" width="80" height="27.5" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="&lt;b&gt;Lambert Problem&lt;/b&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="11">
+                    <mxGeometry x="10" y="150" width="100" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" edge="1" parent="1" source="3" target="24">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Optimal Control" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="750" y="157" width="250" height="136" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="edgeStyle=none;html=1;" edge="1" parent="3" source="4" target="9">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="Direct methods" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="3">
+                    <mxGeometry x="138.75" y="32.5" width="95" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="edgeStyle=none;html=1;" edge="1" parent="3" source="5" target="7">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="Indirect methods" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="3">
+                    <mxGeometry x="10" y="32.5" width="95" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="&lt;b&gt;Hamiltonian&lt;/b&gt;&lt;div&gt;costates&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="3">
+                    <mxGeometry x="12.5" y="86" width="92.5" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="&lt;b&gt;Discretization&lt;/b&gt;&lt;div&gt;multiple shooting&lt;/div&gt;" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="3">
+                    <mxGeometry x="136.25" y="81" width="97.5" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Orbital maneuvering" style="swimlane;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" vertex="1" parent="1">
+                    <mxGeometry x="430" y="100" width="280" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="edgeStyle=none;html=1;" edge="1" parent="24" source="13" target="14">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="24" source="13" target="16">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="&lt;b&gt;Propulsive model&lt;/b&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="24">
+                    <mxGeometry x="80" y="36" width="110" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" edge="1" parent="24" source="14" target="27">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;strokeWidth=1;" edge="1" parent="24" source="14" target="16">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="&lt;b&gt;Finite thrust&lt;/b&gt;&lt;div&gt;constant I&lt;sub&gt;SP&lt;/sub&gt;&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="24">
+                    <mxGeometry x="10" y="106" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" edge="1" parent="24" source="16" target="28">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="&lt;b&gt;Impulsive thrust&lt;/b&gt;&lt;div&gt;instant&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="24">
+                    <mxGeometry x="160" y="106" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="&lt;b&gt;Primer Vector theory&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" vertex="1" parent="24">
+                    <mxGeometry x="22.5" y="180" width="65" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="28" value="&lt;b&gt;Hohmann&lt;/b&gt;&lt;div&gt;&lt;b&gt;Transfer&lt;/b&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" vertex="1" parent="24">
+                    <mxGeometry x="177.5" y="180" width="65" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=0;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" edge="1" parent="1" source="7" target="27">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="810" y="390"/>
+                            <mxPoint x="485" y="390"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

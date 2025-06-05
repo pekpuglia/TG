@@ -17,7 +17,7 @@
 % \newlength\figureheight
 % \newlength\figurewidth
 % \usepackage{ifthen}
-% \usepackage{subfigure}
+\usepackage{subcaption}
 % \usepackage{amsthm}
 % \usepackage{amsfonts}
 % \usepackage{amssymb}
@@ -109,8 +109,214 @@
     \begin{itemize}
         \item Choice for \textit{impulsive propulsion} \(\rightarrow\) reducible to parameter optimization
         \item Good numerical solvers: Ipopt\cite{ipopt}
+        \item Many local optima (non-convex problem)
+        \item Expect \textit{Primer vector} theory provides (some) solutions
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Objectives}
+
+    \begin{itemize}
+        \item Apply primer vector theory;
+        \item Study how much time fo transfer, and how to find it;
+        \item Compare numerical and analytical results;
+        \item Discuss applications in common scenarios;
     \end{itemize}
 
+\end{frame}
+
+\begin{frame}
+    \frametitle{Justification}
+
+    Some institutions already know how to optimize orbital maneuvers. Why study it again?
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.25\textwidth}
+            \includegraphics[width=\textwidth]{img/orekit-logo.png}
+            \caption{Orekit library provides maneuver analysis, and indirect optimization (outdated).}
+        \end{subfigure}
+        \begin{subfigure}{0.25\textwidth}
+            \includegraphics[width=\textwidth]{img/patrius_logo.png}
+            \caption{CNES Patrius library provides analysis, not Synthesis.}
+        \end{subfigure}
+        \begin{subfigure}{0.25\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{img/mystic_no_download.png}
+            \caption{NASA's Mystic software (Dawn Discovery mission) is not available for download.}
+        \end{subfigure}
+    \end{figure}
+
+    \textbf{No widely available orbital maneuver optimization software.}
+\end{frame}
+
+\section{Theory}
+
+\begin{frame}
+    \frametitle{Theory components}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/theory_components.png}
+        % \caption{<caption>}
+        % \label{<label>}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Orbital mechanics}
+
+    \begin{block}{Two-Body Motion}
+        Keplerian dynamics:
+        \begin{equation}
+            \ddot{\mathbf{r}} = - \frac{\mu}{\lVert \mathbf{r} \rVert^3} \mathbf{r}
+        \end{equation}
+        Closed, periodic elliptical trajectory for negative energy (bound satellite).
+    \end{block}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            State vector choice:
+            \begin{itemize}
+                \item \textbf{Cartesian}: \(\mathbf{x} = \begin{bmatrix}
+                    \mathbf{r}\ \textit{(position)} \\ \mathbf{v}\ \textit{(velocity)} 
+                \end{bmatrix}\)
+                \item \textbf{Keplerian} (elliptical orbit only): \(\mathbf{x} = \begin{bmatrix}
+                    a\ \textit{(semi-major axis)}\\ 
+                    e\ \textit{(eccentricity)} \\ 
+                    i\ \textit{(inclination)} \\ \Omega\ \textit{(RAAN)} \\ \omega\ \textit{(argument of perigee)} \\ \theta\ \textit{(true anomaly)}
+                \end{bmatrix}\)
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            COLOCAR FIGURA
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Lambert Problem}
+    \begin{block}{Statement}
+        What is the orbit of a satellite that passes by position \(\mathbf{r}_2\) at a time \(\Delta t\) after being in position \(\mathbf{r}_1\)?
+    \end{block}
+    \begin{itemize}
+        \item \textbf{Importance}: auxiliary role in orbital maneuvering (feasible transfer);
+        \item If \(\mathbf{v_1}\) is found, problem is solved;
+        \item Issue with \(\mathbf{r}_1 \parallel \mathbf{r}_2\) (eg, perigee \& apogee): orbit plane unknown
+        \item Universal variable formulations: simple, cannot handle indetermination~\cite{curtis2015orbital}\cite{sukhanov}
+        \item Cartesian formulation~\cite{embedded_lambert}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Optimal control}
+    \begin{block}{Generic optimal control problem}
+        Given a dynamical system \(\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})\), a fixed initial condition \(\mathbf{x}(0) = \mathbf{x}_i\), a total time \(t_f\) and a final condition \(\mathbf{x}(t_f) = \mathbf{x}_f\), find control trajectory \(\mathbf{u}(t)\) minimizing (max.) objective \(J[\mathbf{x}(t), \mathbf{u}(t)] = h(\mathbf{x}(t_f))+\int_0^{t_f} L(x(t), u(t)) dt\).
+        % \(\mathbf{u}(t)\) 
+    \end{block}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            \begin{center}
+                \textbf{Indirect method}
+            \end{center}
+            \begin{itemize}
+                \item Hamiltonian~\cite{bertsekas}: \(H = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}^T f(\mathbf{x}, \mathbf{u})\)
+                \item costate \(\mathbf{\lambda}\)
+                \item Pontryagin's Minimum Principle:
+                \begin{equation}
+                    \mathbf{u} = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}, \mathbf{u}, \mathbf{\lambda}].
+                \end{equation}
+                \item Solve for \(\mathbf{x}\), \(\mathbf{\lambda}\), \(\mathbf{u}\)
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{center}
+                \textbf{Direct method}
+            \end{center}
+            \begin{itemize}
+                \item Discretize time, diff.\ eq.
+                \item Numerical integration: Euler, RK4, RK8
+                \item Trajectories \(\rightarrow \mathbf{x}_k, \mathbf{u}_k\)
+                \item Parameter optimization
+                \item Solve for \(\mathbf{x}\), \(\mathbf{u}\)
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Orbital Maneuvering}
+
+    \begin{block}{Extended dynamics}
+        \begin{equation}
+            \ddot{\mathbf{r}} = -\frac{\mu}{\lvert \mathbf{r} \rVert^3}\mathbf{r} + \frac{\mathbf{F}}{m}.
+        \end{equation}
+        Thrust \(\mathbf{F}\) related to mass \(m\) through \textit{propulsion model}.
+    \end{block}
+
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            \begin{center}
+                \textbf{Finite Thrust}
+            \end{center}
+            \begin{itemize}
+                \item \(F = - \dot m v_e\)
+                \item constant exhaust velocity \(v_e\) and specific impulse \(v_e = I_{sp} g_0\) (CSI)
+                \item \(F \leq F_{\max}\)
+                \item Extra state: mass
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{center}
+                \textbf{Impulsive thrust} (\(F_{\max} \rightarrow \infty\))
+            \end{center}
+            \begin{itemize}
+                \item Discrete impulses, \textit{coasting arcs}
+                \item Tsiolkovsky's Equation~\cite{curtis2015orbital}:
+                \begin{equation}
+                    \Delta v = v_e \ln{\left(\frac{m_i}{m_f}\right)}
+                \end{equation}
+                \item \(\mathbf{v}(t_i^+) = \mathbf{v}(t_i^-) + \Delta \mathbf{v} \)
+                \item \(\min \int -\dot m \text{dt} \leftrightarrow \min \sum \Delta v_i \)
+            \end{itemize}
+        \end{column}
+    \end{columns}  
+\end{frame}
+
+\begin{frame}
+    \frametitle{Primer vector theory}
+
+    \begin{columns}
+        \begin{column}{0.7\linewidth}
+            \begin{itemize}
+                \item Apply Hamiltonian to finite thrust CSI case~\cite{Conway_2010} (\(\int \dot m dt \ll m(0)\))
+                \item \textit{bang-bang} control
+                \item \textit{primer vector} \(\mathbf{p} = - \mathbf{\lambda}_v\) (velocity costate)
+                \item Optimal thrust statisfies
+                \begin{equation}
+                    \mathbf{F} = \begin{cases}
+                        F_{\max} \frac{\mathbf{p}}{p}&, p > 1 \\
+                        0&, p < 1
+                    \end{cases}
+                \end{equation}
+                \item Extension to impulsive case
+                \begin{enumerate}
+                    \item \(\mathbf{p}(t)\) and \(\dot{\mathbf{p}}(t)\) continuous;
+                    \item \(\lVert \mathbf{p} \rVert \leq 1\), impulses happen when \(\lVert \mathbf{p} \rVert = 1\);
+                    \item \(\mathbf{p}\) has the direction of impulse at the impulse instants;
+                    \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses at \(t \in (0, t_f)\).
+                \end{enumerate}
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.3\linewidth}
+            \begin{figure}[htbp]
+                \centering
+                \includegraphics[width=\linewidth]{img/primer_vector_history_from_jezewsky.png}
+                % \caption{<caption>}
+                % \label{<label>}
+            \end{figure}
+        \end{column}
+    \end{columns}      
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
