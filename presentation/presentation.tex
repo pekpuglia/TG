@@ -8,6 +8,7 @@
 % \usepackage{colortbl}
 % \usepackage{xcolor}
 \usepackage{tikz}
+\usepackage{booktabs}
 % \usetikzlibrary{shapes,arrows}
 % \usetikzlibrary{mindmap,trees}
 % \usetikzlibrary{calc}
@@ -86,7 +87,50 @@
 \section{Introduction}
 
 \begin{frame}{Context}
-    
+    \only<1>{
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=\textwidth]{img/apollo_trajectory.jpg}
+            \caption{~\cite{apollo_trajectory}}
+            % \label{<label>}
+        \end{figure}
+    }
+
+    \only<2-3>{
+        \begin{figure}
+            \centering
+            \visible<2-3>{
+                \begin{subfigure}{0.4\textwidth}
+                    \includegraphics[width=\textwidth]{img/ISS_altitude.png}
+                    \caption{~\cite{iss_altitude}}
+                \end{subfigure}
+            }
+            \visible<3>{
+                \begin{subfigure}{0.4\textwidth}
+                    \includegraphics[width=\textwidth]{img/gto_to_geo.jpeg}
+                    \caption{~\cite{low_thrust}}
+                \end{subfigure}
+            }
+        \end{figure}
+    }
+
+    \only<4-5>{
+        \begin{figure}
+            \centering
+            \visible<4-5>{
+                \begin{subfigure}{0.4\textwidth}
+                    \includegraphics[width=\textwidth]{img/hall_effect.jpg}
+                    \caption{~\cite{hall_effect}}
+                \end{subfigure}
+            }
+            \visible<5>{
+                \begin{subfigure}{0.4\textwidth}
+                    \includegraphics[width=\textwidth]{img/Centaur-propellant-system.jpg}
+                    \caption{~\cite{centaur}}
+                \end{subfigure}
+            }
+        \end{figure}
+    }
 \end{frame}
 
 \begin{frame}{Problem Statement}
@@ -290,9 +334,8 @@
         \begin{column}{0.7\linewidth}
             \begin{itemize}
                 \item Apply Hamiltonian to finite thrust CSI case~\cite{Conway_2010} (\(\int \dot m dt \ll m(0)\))
-                \item \textit{bang-bang} control
                 \item \textit{primer vector} \(\mathbf{p} = - \mathbf{\lambda}_v\) (velocity costate)
-                \item Optimal thrust statisfies
+                \item Optimal thrust statisfies (\textit{bang-bang})
                 \begin{equation}
                     \mathbf{F} = \begin{cases}
                         F_{\max} \frac{\mathbf{p}}{p}&, p > 1 \\
@@ -306,6 +349,7 @@
                     \item \(\mathbf{p}\) has the direction of impulse at the impulse instants;
                     \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses at \(t \in (0, t_f)\).
                 \end{enumerate}
+                \item \(p(t)\) analytical in coasting arcs
             \end{itemize}
         \end{column}
         \begin{column}{0.3\linewidth}
@@ -317,6 +361,196 @@
             \end{figure}
         \end{column}
     \end{columns}      
+\end{frame}
+
+\section{Methodology}
+
+\begin{frame}
+    \frametitle{Numerical Tools}
+
+    \begin{itemize}
+        \item Julia~\cite{Julia-2017} language
+        \item \texttt{SatelliteToolbox}~\cite{satellitetoolbox}: INPE's own orbit propagator
+        \item \texttt{JuMP}~\cite{jump}: optimization modelling sub-language
+        \item Ipopt~\cite{ipopt}: robust nonlinear optimizer. Local, deterministic, grandient-based
+    \end{itemize}
+    
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.24\textwidth}
+            \includegraphics[width=\textwidth]{img/julia.png}
+        \end{subfigure}
+        \begin{subfigure}{0.24\textwidth}
+            \includegraphics[width=\textwidth]{img/satellitetoolbox_logo.png}
+        \end{subfigure}
+        \begin{subfigure}{0.24\textwidth}
+            \includegraphics[width=\textwidth]{img/jump_logo.png}
+        \end{subfigure}
+        \begin{subfigure}{0.24\textwidth}
+            \includegraphics[width=\textwidth]{img/ipopt_logo.png}
+        \end{subfigure}
+        % \caption{<caption>}
+        % \label{<label>}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Modelling}
+
+    \begin{itemize}
+        \item Coasting arc model
+        \begin{itemize}
+            \item Dynamics discretized with RK4 \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\), \(N\) steps
+            \item \(N+1\) state vectors \(\mathbf{x}^j\) related by
+            \begin{equation}
+                 \mathbf{x}^{j+1} = f_{RK}(\mathbf{x}^j, \frac{t_p}{N}), j = 1, \dots, N
+            \end{equation}
+            \item 6 DoF left
+            \item \(\mathbf{x}^1\) given: propagation
+            \item \(\mathbf{r}^1\), \(\mathbf{r}^{N+1}\) given: Cartesian Lambert solver
+        \end{itemize}
+        \item Two impulse model
+        \begin{itemize}
+            \item 3 coasts \(\mathbf{x}^j_c\), \(j=1,\dots,N+1\), \(c=1,2,3\)
+            \item \(\Delta v_i\), \(\hat{\mathbf{u}}_i\), \(i = 1, 2\) such that \(\lVert \hat{\mathbf{u}}_i \rVert = 1\) and \(\mathbf{x}_{i+1}^1 = \mathbf{x}_i^{N+1} + \begin{bmatrix}
+                0_{3\times1} \\ \Delta v_i \hat{\mathbf{u}}_i
+            \end{bmatrix}, m=1, 2\)
+            \item variable impulse intervals s.t. \(\Delta t_1 + \Delta t_2 \leq t_f\)
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\section{Results}
+
+\begin{frame}
+    \frametitle{Expected Results}
+
+    \begin{itemize}
+        \item More robust code
+        \begin{itemize}
+            \item perturbed orbital dynamics (easy)
+            \item multiple impulses (medium);
+            \item better convergence guarantees (unknown);
+            \item multiple revolution transfers (hard)
+        \end{itemize}
+        \item Estimation of transfer time \(t_f\) instead of arbitrary input~\cite{embedded_lambert}
+        \item Practical orbital transfer cases under appropriate models:
+        \begin{enumerate}
+            \item LEO maintenance: inclination and altitude;
+            \item SSO maintenance: inclination, RAAN and semimajor-axis;
+            \item Constellation phasing: change phase along orbit
+            \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
+        \end{enumerate}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Preliminary Results}
+
+    \begin{block}{Goal}
+        Reproduce Hohmann transfer numerically.
+        
+    \end{block}
+
+    \begin{table}[htbp]
+        \centering
+        \begin{tabular}{ccc} \toprule
+            Element & Initial & Final \\ \midrule
+            \(a\)      & \(7000\) km   & \(9000\) km   \\
+            \(e\)      & \(0\)        & \(0\)        \\
+            \(i\)      & \(51^\circ\) & \(51^\circ\) \\
+            \(\Omega\) & \(0^\circ\)  & \(0^\circ\)  \\
+            \(\omega\) & \(0^\circ\)  & \(0^\circ\)  \\
+            \(\theta\) & \(0^\circ\)  & \(180^\circ\)  \\ \bottomrule
+        \end{tabular}
+        \caption{Orbital elements used for the Hohmann transfer case analysis}
+        \label{tab:hohmann_orb_elems}
+    \end{table}
+
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{Analytical Solution}
+    
+    
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.49\textwidth}
+            \includegraphics[width=\textwidth]{../report/img/hohmann_condition.png}
+            \caption{3D view.}
+        \end{subfigure}
+        \begin{subfigure}{0.49\textwidth}
+            \includegraphics[width=\textwidth]{../report/img/hohmann_condition_in_plane.png}
+            \caption{Orbital plane view.}
+        \end{subfigure}
+        % \caption{Initial (blue), tranfer (green) and final (yellow) orbits for Hohmann transfer case visualization.}
+        \label{fig:hohmann_condition}
+    \end{figure}
+    \textbf{Variables}: \(t_f = 3560.54\) s, \(\sum \lVert \Delta \mathbf{v} \rVert = 887.56\) m/s
+\end{frame}
+
+\begin{frame}
+    \frametitle{Lambert Problem solution}
+    \begin{itemize}
+        \item \(t_f\) set to analytical time (cheating!)
+        \item Initial guesses \(\Delta t_1\) and \(\Delta t_2\): \(\frac{t_f}{3}\)
+        \item Coast, impulse, Lambert solution, impulse, coast: feasible but non-optimal
+    \end{itemize}
+    
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.49\textwidth}
+            \includegraphics[width=\textwidth]{../report/img/hohmann_lambert_guess.png}
+            \caption{3D view.}
+        \end{subfigure}
+        \begin{subfigure}{0.49\textwidth}
+            \includegraphics[width=\textwidth]{../report/img/hohmann_lambert_guess_in_plane.png}
+            \caption{Orbital plane view.}
+        \end{subfigure}
+        % \caption{Lambert problem solution for second coasting arc in Hohmann transfer case. This solution will serve as initial guess for the optimizer.}
+        \label{fig:hohmann_lambert}
+    \end{figure}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Optimized solution}
+    \begin{columns}
+        \begin{column}{0.3\textwidth}\centering
+            \(N = 50\)
+        \end{column}
+        \begin{column}{0.7\textwidth}
+            \begin{table}[htbp]
+                \centering
+                \begin{tabular}{ccc} \toprule
+                    Variable & Analytical & Solver \\ \midrule
+                    \(\Delta t_1\) & 0s & 8e-4s \\
+                    \(\Delta t_2\) & 3560.54s & 3560.538s \\
+                    \(\sum \lVert \Delta \mathbf{v} \rVert\) & \(887.56m/s\) & \(887.56m/s\) \\ \bottomrule
+                \end{tabular}
+                % \caption{Comparison of optimized and analytical values of some important variables in the Hohmann transfer case.}
+                \label{tab:hohmann_results}
+            \end{table}
+        \end{column}
+    \end{columns}
+    
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.49\textwidth}
+            \includegraphics[width=\textwidth]{../report/img/hohmann_solved.png}
+            \caption{3D view.}
+        \end{subfigure}
+        \begin{subfigure}{0.49\textwidth}
+            \includegraphics[width=\textwidth]{../report/img/hohmann_solved_in_plane.png}
+            \caption{Orbital plane view.}
+        \end{subfigure}
+        % \caption{Discretized transfer trajectory found by the numerical solver for the Hohmann transfer case.}
+        \label{fig:hohmann_traj}
+    \end{figure}
+    
+
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
