@@ -25,6 +25,8 @@
 % \usepackage{eurosym}
 % \usepackage{wasysym}
 
+% \addbibresource{../report/Referencias/referencias.bib}
+
 \mode<presentation>{
     % \usetheme{Warsaw}
     \usetheme{Madrid}
@@ -68,8 +70,52 @@
     \titlepage
 \end{frame}
 
-\begin{frame}{Introduction}
+% Recall the outline at each section
+\AtBeginSection[]
+{%
+\begin{frame}
+  \frametitle{Plan}
+  \small
+  %\tableofcontents[hideothersubsections]
+  %\tableofcontents[currentsubsection,hideothersubsections]
+  \tableofcontents[currentsubsection]
+  \normalsize
+\end{frame}
+}
+
+\section{Introduction}
+
+\begin{frame}{Context}
     
+\end{frame}
+
+\begin{frame}{Problem Statement}
+    \begin{block}{Central Question}
+        What is the most efficient sequence of maneuvers that takes a spacecraft from an initial state to a final state in a given time?
+    \end{block}
+    
+    \begin{itemize}
+        \item Efficient: least propellant usage
+        \item General case in mind (no particular analytical solutions)
+        \item How much time? Feasibility, trade-offs?
+        \item How many impulses?
+        \item Is it optimal?
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Hypotheses}
+
+    \begin{itemize}
+        \item Choice for \textit{impulsive propulsion} \(\rightarrow\) reducible to parameter optimization
+        \item Good numerical solvers: Ipopt\cite{ipopt}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+    \bibliographystyle{plain}
+    \bibliography{Referencias/referencias}
 \end{frame}
 
 \end{document}
