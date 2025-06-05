@@ -1,0 +1,75 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+% \usepackage{palatino}
+% \usepackage{graphicx}
+% \graphicspath{{./images/}}
+% \usepackage{colortbl}
+% \usepackage{xcolor}
+\usepackage{tikz}
+% \usetikzlibrary{shapes,arrows}
+% \usetikzlibrary{mindmap,trees}
+% \usetikzlibrary{calc}
+% \usepackage{pgfplots}
+% \pgfplotsset{compat=newest}
+% \pgfplotsset{plot coordinates/math parser=false}
+% \newlength\figureheight
+% \newlength\figurewidth
+% \usepackage{ifthen}
+% \usepackage{subfigure}
+% \usepackage{amsthm}
+% \usepackage{amsfonts}
+% \usepackage{amssymb}
+% \usepackage{amsmath}
+% \usepackage{eurosym}
+% \usepackage{wasysym}
+
+\mode<presentation>{
+    % \usetheme{Warsaw}
+    \usetheme{Madrid}
+    % \usetheme{Frankfurt}
+    \usecolortheme{seahorse}
+}
+
+\addtobeamertemplate{frametitle}{}{
+\vskip-1em
+\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north east,yshift=4pt] at (current page.north east) {\includegraphics[height=0.8cm]{img/ITA_logo.png}};
+\end{tikzpicture}}
+
+\title[Orbital Maneuver Optimization]{Optimal Impulsive Orbital Maneuver Synthesis Through Direct Optimization
+}
+
+\author[P. K. Puglia]{\small Pedro Kuntz Puglia\inst{1} \and Willer Santos\inst{2} \and Emilien Flayac\inst{3}}
+
+\institute[ITA/AESP]
+{
+\vspace{0.5cm}
+\begin{minipage}{0.5\linewidth}
+  \begin{center}
+    \inst{1} ITA, Student\\
+    \inst{2} ITA, Professor (AESP)\\
+    \inst{3} ISAE-SUPAERO, Professor (DISC)
+    \vspace{1em}
+    \includegraphics[height=2.5cm]{img/ITA_logo.png}
+  \end{center}
+\end{minipage}
+}
+
+%???
+\setbeamertemplate{navigation symbols}{}
+
+\date{}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{Introduction}
+    
+\end{frame}
+
+\end{document}
