@@ -158,7 +158,7 @@ Chemical and cold gas thrusters are characterized by an exhaust velocity \(v_e\)
    \lVert \mathbf{F} \rVert = v_e \dot{m}_p
 \end{equation}
 
-The propellant flow is deducted from the spacecraft's mass; therefore it can be stated that \(\dot{m} = - \dot{m}_p\). Thus, in this model, the spacecraft's mass is a seventh state variable. A new state vector \(X_m = \begin{bmatrix}
+The propellant flow is deducted from the spacecraft's mass; therefore it can be stated that \(\dot{m} = - \dot{m}_p\). Thus, in this model, the spacecraft's mass is a seventh state variable. A new state vector \(\mathbf{x}_m = \begin{bmatrix}
     \mathbf{r}^T & \mathbf{v}^T & m 
 \end{bmatrix}^T\) is defined and subject to the dynamics
 \begin{equation}
@@ -213,10 +213,10 @@ which yields a velocity discontinuity
 
 Now, between impulses there are coasting arcs where the vessel is subject only to external (gravitational) forces, as illustrated in Figure~\ref{fig:impulsive_maneuver_diagram}. Considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting segments related by the change in velocity \(\Delta \mathbf{v}_j\) associated with the j-th burn. Considering burn times \(t_j\), with \(t_f \geq t_{j+1} \geq t_j \geq 0\), and the initial and final times \(0\) and \(t_f\), the system is subject to boundary conditions
 \begin{align}
-    \mathbf{x}(0) &= X_i \\
+    \mathbf{x}(0) &= \mathbf{x}_i \\
     \mathbf{r}(t_j^+) &= \mathbf{r}(t_j^-),& \forall j=1,\dots,n \\
     \mathbf{v}(t_j^+) &= \mathbf{v}(t_j^-) + \Delta \vec v_j,& \forall j=1,\dots,n \\
-    \mathbf{x}(t_f) &= X_f
+    \mathbf{x}(t_f) &= \mathbf{x}_f
 \end{align}
 and to dynamical Equation~\eqref{eq:kepler_dyn} in the intermediate times. Using the concept of orbit propagator, this adds the constraints
 \begin{align}
