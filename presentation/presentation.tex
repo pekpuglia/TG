@@ -134,15 +134,18 @@
 \end{frame}
 
 \begin{frame}{Problem Statement}
+    \pause
     \begin{block}{Central Question}
         What is the most efficient sequence of maneuvers that takes a spacecraft from an initial state to a final state in a given time?
     \end{block}
     
     \begin{itemize}
+        \pause
         \item Efficient: least propellant usage
-        \item General case in mind (no particular analytical solutions)
-        \item How much time? Feasibility, trade-offs?
-        \item How many impulses?
+        \pause
+        \item General case in mind (no particular analytical solutions) \pause
+        \item How much time? Feasibility, trade-offs? \pause
+        \item How many impulses? \pause
         \item Is it optimal?
     \end{itemize}
 \end{frame}
@@ -151,9 +154,9 @@
     \frametitle{Hypotheses}
 
     \begin{itemize}
-        \item Choice for \textit{impulsive propulsion} \(\rightarrow\) reducible to parameter optimization
-        \item Good numerical solvers: Ipopt\cite{ipopt}
-        \item Many local optima (non-convex problem)
+        \item Choice for \textit{impulsive propulsion} \(\rightarrow\) reducible to parameter optimization \pause
+        \item Good numerical solvers: Ipopt\cite{ipopt} \pause
+        \item Many local optima (non-convex problem) \pause
         \item Expect \textit{Primer vector} theory provides (some) solutions
     \end{itemize}
 \end{frame}
@@ -162,10 +165,10 @@
     \frametitle{Objectives}
 
     \begin{itemize}
-        \item Apply primer vector theory;
-        \item Study how much time fo transfer, and how to find it;
-        \item Compare numerical and analytical results;
-        \item Discuss applications in common scenarios;
+        \item Apply primer vector theory; \pause
+        \item Study how much time fo transfer, and how to find it; \pause
+        \item Compare numerical and analytical results; \pause
+        \item Discuss applications in common scenarios; \pause
     \end{itemize}
 
 \end{frame}
@@ -180,18 +183,18 @@
         \begin{subfigure}{0.25\textwidth}
             \includegraphics[width=\textwidth]{img/orekit-logo.png}
             \caption{Orekit library provides maneuver analysis, and indirect optimization (outdated).}
-        \end{subfigure}
+        \end{subfigure} \pause
         \begin{subfigure}{0.25\textwidth}
             \includegraphics[width=\textwidth]{img/patrius_logo.png}
             \caption{CNES Patrius library provides analysis, not Synthesis.}
-        \end{subfigure}
+        \end{subfigure} \pause
         \begin{subfigure}{0.25\textwidth}
             \centering
             \includegraphics[width=\textwidth]{img/mystic_no_download.png}
-            \caption{NASA's Mystic software (Dawn Discovery mission) is not available for download.}
+            \caption{NASA's Mystic software (Dawn mission) is not available for download.}
         \end{subfigure}
     \end{figure}
-
+    \pause
     \textbf{No widely available orbital maneuver optimization software.}
 \end{frame}
 
@@ -212,20 +215,22 @@
     \frametitle{Orbital mechanics}
 
     \begin{block}{Two-Body Motion}
-        Keplerian dynamics:
-        \begin{equation}
-            \ddot{\mathbf{r}} = - \frac{\mu}{\lVert \mathbf{r} \rVert^3} \mathbf{r}
-        \end{equation}
-        Closed, periodic elliptical trajectory for negative energy (bound satellite).
+        \visible<2->{
+            Keplerian dynamics:
+            \begin{equation}
+                \ddot{\mathbf{r}} = - \frac{\mu}{\lVert \mathbf{r} \rVert^3} \mathbf{r}
+            \end{equation}
+            Closed, periodic elliptical trajectory for negative energy (bound satellite).
+        }
     \end{block}
     \begin{columns}
         \begin{column}{0.5\linewidth}
-            State vector choice:
+            \visible<3->{State vector choice:}
             \begin{itemize}
-                \item \textbf{Cartesian}: \(\mathbf{x} = \begin{bmatrix}
+                \item<4-> \textbf{Cartesian}: \(\mathbf{x} = \begin{bmatrix}
                     \mathbf{r}\ \textit{(position)} \\ \mathbf{v}\ \textit{(velocity)} 
                 \end{bmatrix}\)
-                \item \textbf{Keplerian} (elliptical orbit only): \(\mathbf{x} = \begin{bmatrix}
+                \item<5-> \textbf{Keplerian} (elliptical orbit only): \(\mathbf{x} = \begin{bmatrix}
                     a\ \textit{(semi-major axis)}\\ 
                     e\ \textit{(eccentricity)} \\ 
                     i\ \textit{(inclination)} \\ \Omega\ \textit{(RAAN)} \\ \omega\ \textit{(argument of perigee)} \\ \theta\ \textit{(true anomaly)}
@@ -233,56 +238,62 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
-            COLOCAR FIGURA
+            \begin{figure}[htbp]
+                \centering
+                \includegraphics[width=0.6\textwidth]{img/twobody.png}
+                \caption{~\cite{curtis2015orbital}}
+                % \label{<label>}
+            \end{figure}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}
     \frametitle{Lambert Problem}
+    \pause
     \begin{block}{Statement}
         What is the orbit of a satellite that passes by position \(\mathbf{r}_2\) at a time \(\Delta t\) after being in position \(\mathbf{r}_1\)?
     \end{block}
-    \begin{itemize}
-        \item \textbf{Importance}: auxiliary role in orbital maneuvering (feasible transfer);
-        \item If \(\mathbf{v_1}\) is found, problem is solved;
-        \item Issue with \(\mathbf{r}_1 \parallel \mathbf{r}_2\) (eg, perigee \& apogee): orbit plane unknown
-        \item Universal variable formulations: simple, cannot handle indetermination~\cite{curtis2015orbital}\cite{sukhanov}
-        \item Cartesian formulation~\cite{embedded_lambert}
+    \begin{itemize}\pause
+        \item \textbf{Importance}: auxiliary role in orbital maneuvering (feasible transfer);\pause
+        \item If \(\mathbf{v_1}\) is found, problem is solved;\pause
+        \item Issue with \(\mathbf{r}_1 \parallel \mathbf{r}_2\) (eg, perigee \& apogee): orbit plane unknown\pause
+        \item Universal variable formulations: simple, cannot handle indetermination~\cite{curtis2015orbital}\cite{sukhanov}\pause
+        \item Cartesian formulation~\cite{embedded_lambert}\pause
     \end{itemize}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Optimal control}
+    \frametitle{Optimal control}\pause
     \begin{block}{Generic optimal control problem}
         Given a dynamical system \(\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})\), a fixed initial condition \(\mathbf{x}(0) = \mathbf{x}_i\), a total time \(t_f\) and a final condition \(\mathbf{x}(t_f) = \mathbf{x}_f\), find control trajectory \(\mathbf{u}(t)\) minimizing (max.) objective \(J[\mathbf{x}(t), \mathbf{u}(t)] = h(\mathbf{x}(t_f))+\int_0^{t_f} L(x(t), u(t)) dt\).
         % \(\mathbf{u}(t)\) 
-    \end{block}
+    \end{block}\pause
     \begin{columns}
         \begin{column}{0.5\linewidth}
             \begin{center}
                 \textbf{Indirect method}
-            \end{center}
+            \end{center}\pause
             \begin{itemize}
-                \item Hamiltonian~\cite{bertsekas}: \(H = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}^T f(\mathbf{x}, \mathbf{u})\)
-                \item costate \(\mathbf{\lambda}\)
+                \item Hamiltonian~\cite{bertsekas}: \(H = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}^T f(\mathbf{x}, \mathbf{u})\)\pause
+                \item costate \(\mathbf{\lambda}\), adjoint equations\pause
                 \item Pontryagin's Minimum Principle:
                 \begin{equation}
                     \mathbf{u} = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}, \mathbf{u}, \mathbf{\lambda}].
-                \end{equation}
-                \item Solve for \(\mathbf{x}\), \(\mathbf{\lambda}\), \(\mathbf{u}\)
+                \end{equation}\pause
+                \item Solve for \(\mathbf{x}\), \(\mathbf{\lambda}\), \(\mathbf{u}\)\pause
             \end{itemize}
         \end{column}
-        \begin{column}{0.5\linewidth}
+        \begin{column}{0.5\linewidth}\pause
             \begin{center}
                 \textbf{Direct method}
-            \end{center}
+            \end{center}\pause
             \begin{itemize}
-                \item Discretize time, diff.\ eq.
-                \item Numerical integration: Euler, RK4, RK8
-                \item Trajectories \(\rightarrow \mathbf{x}_k, \mathbf{u}_k\)
-                \item Parameter optimization
-                \item Solve for \(\mathbf{x}\), \(\mathbf{u}\)
+                \item Discretize time, diff.\ eq.\pause
+                \item Numerical integration: Euler, RK4, RK8\pause
+                \item Trajectories \(\rightarrow \mathbf{x}_k, \mathbf{u}_k\)\pause
+                \item Parameter optimization\pause
+                \item Solve for \(\mathbf{x}\), \(\mathbf{u}\)\pause
             \end{itemize}
         \end{column}
     \end{columns}
@@ -290,37 +301,37 @@
 
 \begin{frame}
     \frametitle{Orbital Maneuvering}
-
+    \pause
     \begin{block}{Extended dynamics}
         \begin{equation}
             \ddot{\mathbf{r}} = -\frac{\mu}{\lvert \mathbf{r} \rVert^3}\mathbf{r} + \frac{\mathbf{F}}{m}.
-        \end{equation}
+        \end{equation}\pause
         Thrust \(\mathbf{F}\) related to mass \(m\) through \textit{propulsion model}.
     \end{block}
-
+    \pause
     \begin{columns}
         \begin{column}{0.5\linewidth}
             \begin{center}
                 \textbf{Finite Thrust}
-            \end{center}
+            \end{center}\pause
             \begin{itemize}
-                \item \(F = - \dot m v_e\)
-                \item constant exhaust velocity \(v_e\) and specific impulse \(v_e = I_{sp} g_0\) (CSI)
-                \item \(F \leq F_{\max}\)
-                \item Extra state: mass
+                \item \(F = - \dot m v_e\)\pause
+                \item constant exhaust velocity \(v_e\) and specific impulse \(v_e = I_{sp} g_0\) (CSI)\pause
+                \item \(F \leq F_{\max}\)\pause
+                \item Extra state: mass\pause
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
             \begin{center}
                 \textbf{Impulsive thrust} (\(F_{\max} \rightarrow \infty\))
-            \end{center}
+            \end{center}\pause
             \begin{itemize}
-                \item Discrete impulses, \textit{coasting arcs}
+                \item Discrete impulses, \textit{coasting arcs}\pause
                 \item Tsiolkovsky's Equation~\cite{curtis2015orbital}:
                 \begin{equation}
                     \Delta v = v_e \ln{\left(\frac{m_i}{m_f}\right)}
                 \end{equation}
-                \item \(\mathbf{v}(t_i^+) = \mathbf{v}(t_i^-) + \Delta \mathbf{v} \)
+                \item \(\mathbf{v}(t_i^+) = \mathbf{v}(t_i^-) + \Delta \mathbf{v} \)\pause
                 \item \(\min \int -\dot m \text{dt} \leftrightarrow \min \sum \Delta v_i \)
             \end{itemize}
         \end{column}
@@ -329,27 +340,26 @@
 
 \begin{frame}
     \frametitle{Primer vector theory}
-
     \begin{columns}
         \begin{column}{0.7\linewidth}
-            \begin{itemize}
-                \item Apply Hamiltonian to finite thrust CSI case~\cite{Conway_2010} (\(\int \dot m dt \ll m(0)\))
-                \item \textit{primer vector} \(\mathbf{p} = - \mathbf{\lambda}_v\) (velocity costate)
+            \begin{itemize}\pause
+                \item Apply Hamiltonian to finite thrust CSI case~\cite{Conway_2010} (\(\int \dot m dt \ll m(0)\))\pause
+                \item \textit{primer vector} \(\mathbf{p} = - \mathbf{\lambda}_v\) (velocity costate)\pause
                 \item Optimal thrust statisfies (\textit{bang-bang})
                 \begin{equation}
                     \mathbf{F} = \begin{cases}
                         F_{\max} \frac{\mathbf{p}}{p}&, p > 1 \\
                         0&, p < 1
                     \end{cases}
-                \end{equation}
+                \end{equation}\pause
                 \item Extension to impulsive case
                 \begin{enumerate}
                     \item \(\mathbf{p}(t)\) and \(\dot{\mathbf{p}}(t)\) continuous;
                     \item \(\lVert \mathbf{p} \rVert \leq 1\), impulses happen when \(\lVert \mathbf{p} \rVert = 1\);
                     \item \(\mathbf{p}\) has the direction of impulse at the impulse instants;
                     \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses at \(t \in (0, t_f)\).
-                \end{enumerate}
-                \item \(p(t)\) analytical in coasting arcs
+                \end{enumerate}\pause
+                \item \(p(t)\) analytical in coasting arcs~\cite{glandorf_transition_matrix}\pause
             \end{itemize}
         \end{column}
         \begin{column}{0.3\linewidth}
@@ -369,26 +379,27 @@
     \frametitle{Numerical Tools}
 
     \begin{itemize}
-        \item Julia~\cite{Julia-2017} language
-        \item \texttt{SatelliteToolbox}~\cite{satellitetoolbox}: INPE's own orbit propagator
-        \item \texttt{JuMP}~\cite{jump}: optimization modelling sub-language
-        \item Ipopt~\cite{ipopt}: robust nonlinear optimizer. Local, deterministic, grandient-based
+        \item<2-> Julia~\cite{Julia-2017} language
+        \item<3-> \texttt{SatelliteToolbox}~\cite{satellitetoolbox}: INPE's own orbit propagator
+        \item<4-> \texttt{JuMP}~\cite{jump}: optimization modelling sub-language
+        \item<5-> Ipopt~\cite{ipopt}: robust nonlinear optimizer. Local, deterministic, grandient-based
     \end{itemize}
     
     \begin{figure}[htbp]
         \centering
-        \begin{subfigure}{0.24\textwidth}
-            \includegraphics[width=\textwidth]{img/julia.png}
-        \end{subfigure}
-        \begin{subfigure}{0.24\textwidth}
-            \includegraphics[width=\textwidth]{img/satellitetoolbox_logo.png}
-        \end{subfigure}
-        \begin{subfigure}{0.24\textwidth}
-            \includegraphics[width=\textwidth]{img/jump_logo.png}
-        \end{subfigure}
-        \begin{subfigure}{0.24\textwidth}
-            \includegraphics[width=\textwidth]{img/ipopt_logo.png}
-        \end{subfigure}
+        \visible<2->{\begin{subfigure}{0.24\textwidth}
+                \includegraphics[width=\textwidth]{img/julia.png}
+            \end{subfigure}
+        }\visible<3->{\begin{subfigure}{0.24\textwidth}
+                \includegraphics[width=\textwidth]{img/satellitetoolbox_logo.png}
+            \end{subfigure}
+        }\visible<4->{\begin{subfigure}{0.24\textwidth}
+                \includegraphics[width=\textwidth]{img/jump_logo.png}
+            \end{subfigure}
+        }\visible<5->{\begin{subfigure}{0.24\textwidth}
+                \includegraphics[width=\textwidth]{img/ipopt_logo.png}
+            \end{subfigure}
+        }
         % \caption{<caption>}
         % \label{<label>}
     \end{figure}
@@ -397,25 +408,26 @@
 \begin{frame}
     \frametitle{Modelling}
 
-    \begin{itemize}
-        \item Coasting arc model
+    \begin{itemize}\pause
+        \item Coasting arc model\pause
         \begin{itemize}
-            \item Dynamics discretized with RK4 \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\), \(N\) steps
+            \item Dynamics discretized with RK4 \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\), \(N\) steps\pause
             \item \(N+1\) state vectors \(\mathbf{x}^j\) related by
             \begin{equation}
                  \mathbf{x}^{j+1} = f_{RK}(\mathbf{x}^j, \frac{t_p}{N}), j = 1, \dots, N
-            \end{equation}
-            \item 6 DoF left
-            \item \(\mathbf{x}^1\) given: propagation
-            \item \(\mathbf{r}^1\), \(\mathbf{r}^{N+1}\) given: Cartesian Lambert solver
+            \end{equation}\pause
+            \item 6 DoF left\pause
+            \item \(\mathbf{x}^1\) given: propagation\pause
+            \item \(\mathbf{r}^1\), \(\mathbf{r}^{N+1}\) given: Cartesian Lambert solver\pause
         \end{itemize}
-        \item Two impulse model
+        \item Two impulse model\pause
         \begin{itemize}
-            \item 3 coasts \(\mathbf{x}^j_c\), \(j=1,\dots,N+1\), \(c=1,2,3\)
+            \item 3 coasts \(\mathbf{x}^j_c\), \(j=1,\dots,N+1\), \(c=1,2,3\)\pause
             \item \(\Delta v_i\), \(\hat{\mathbf{u}}_i\), \(i = 1, 2\) such that \(\lVert \hat{\mathbf{u}}_i \rVert = 1\) and \(\mathbf{x}_{i+1}^1 = \mathbf{x}_i^{N+1} + \begin{bmatrix}
                 0_{3\times1} \\ \Delta v_i \hat{\mathbf{u}}_i
-            \end{bmatrix}, m=1, 2\)
-            \item variable impulse intervals s.t. \(\Delta t_1 + \Delta t_2 \leq t_f\)
+            \end{bmatrix}, m=1, 2\)\pause
+            \item variable impulse intervals s.t. \(\Delta t_1 + \Delta t_2 \leq t_f\)\pause
+            \item Objective: \(\min \Delta v_1 + \Delta v_2\)
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -425,21 +437,21 @@
 \begin{frame}
     \frametitle{Expected Results}
 
-    \begin{itemize}
-        \item More robust code
+    \begin{itemize}\pause
+        \item More robust code\pause
         \begin{itemize}
-            \item perturbed orbital dynamics (easy)
-            \item multiple impulses (medium);
-            \item better convergence guarantees (unknown);
-            \item multiple revolution transfers (hard)
+            \item perturbed orbital dynamics (easy)\pause
+            \item multiple impulses (medium);\pause
+            \item better convergence guarantees (unknown);\pause
+            \item multiple revolution transfers (hard)\pause
         \end{itemize}
-        \item Estimation of transfer time \(t_f\) instead of arbitrary input~\cite{embedded_lambert}
-        \item Practical orbital transfer cases under appropriate models:
+        \item Estimation of transfer time \(t_f\) instead of arbitrary input~\cite{embedded_lambert}\pause
+        \item Practical orbital transfer cases under appropriate models:\pause
         \begin{enumerate}
-            \item LEO maintenance: inclination and altitude;
-            \item SSO maintenance: inclination, RAAN and semimajor-axis;
-            \item Constellation phasing: change phase along orbit
-            \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
+            \item LEO maintenance: inclination and altitude;\pause
+            \item SSO maintenance: inclination, RAAN and semimajor-axis;\pause
+            \item Constellation phasing: change phase along orbit\pause
+            \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)\pause
         \end{enumerate}
     \end{itemize}
 
@@ -447,12 +459,11 @@
 
 \begin{frame}
     \frametitle{Preliminary Results}
-
+    \pause
     \begin{block}{Goal}
-        Reproduce Hohmann transfer numerically.
-        
+        Reproduce Hohmann transfer numerically.    
     \end{block}
-
+    \pause
     \begin{table}[htbp]
         \centering
         \begin{tabular}{ccc} \toprule
@@ -472,8 +483,7 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Analytical Solution}
-    
+    \frametitle{Analytical Solution~\cite{chobotov}}
     
     \begin{figure}[htbp]
         \centering
@@ -493,10 +503,10 @@
 
 \begin{frame}
     \frametitle{Lambert Problem solution}
-    \begin{itemize}
-        \item \(t_f\) set to analytical time (cheating!)
-        \item Initial guesses \(\Delta t_1\) and \(\Delta t_2\): \(\frac{t_f}{3}\)
-        \item Coast, impulse, Lambert solution, impulse, coast: feasible but non-optimal
+    \begin{itemize}\pause
+        \item \(t_f\) set to analytical time (cheating!) \pause
+        \item Initial guesses \(\Delta t_1\) and \(\Delta t_2\): \(\frac{t_f}{3}\)\pause
+        \item Coast, impulse, Lambert solution, impulse, coast: feasible but non-optimal \(\rightarrow\) use as initial guess for optimizer
     \end{itemize}
     
     \begin{figure}[htbp]
@@ -549,8 +559,6 @@
         % \caption{Discretized transfer trajectory found by the numerical solver for the Hohmann transfer case.}
         \label{fig:hohmann_traj}
     \end{figure}
-    
-
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
