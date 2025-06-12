@@ -1,4 +1,4 @@
-\documentclass[handout]{beamer}
+\documentclass{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -142,10 +142,9 @@
     \begin{itemize}
         \pause
         \item Efficient: least propellant usage
-        \pause
-        \item General case in mind (no particular analytical solutions) \pause
-        \item How much time? Feasibility, trade-offs? \pause
-        \item How many impulses? \pause
+        \item General case in mind (no particular analytical solutions) 
+        \item How much time? Feasibility, trade-offs?
+        \item How many impulses?
         \item Is it optimal?
     \end{itemize}
 \end{frame}
@@ -154,8 +153,8 @@
     \frametitle{Hypotheses}
 
     \begin{itemize}
-        \item Choice for \textit{impulsive propulsion} \(\rightarrow\) reducible to parameter optimization \pause
-        \item Good numerical solvers: Ipopt\cite{ipopt} \pause
+        \item Choice for \textit{impulsive propulsion} \(\rightarrow\) reducible to parameter optimization
+        \item Good numerical solvers: Ipopt\cite{ipopt}
         \item Many local optima (non-convex problem) \pause
         \item Expect \textit{Primer vector} theory provides (some) solutions
     \end{itemize}
@@ -163,12 +162,14 @@
 
 \begin{frame}
     \frametitle{Objectives}
-
+    \textbf{Describe a method capable of finding the sequence
+    of impulses that transfer a satellite between given orbits}. Secondary:
+    \pause
     \begin{itemize}
-        \item Apply primer vector theory; \pause
-        \item Study how much time fo transfer, and how to find it; \pause
-        \item Compare numerical and analytical results; \pause
-        \item Discuss applications in common scenarios; \pause
+        \item Apply primer vector theory;
+        \item Study how much time fo transfer, and how to find it;
+        \item Compare numerical and analytical results;
+        \item Discuss applications in common scenarios;
     \end{itemize}
 
 \end{frame}
@@ -177,7 +178,7 @@
     \frametitle{Justification}
 
     Some institutions already know how to optimize orbital maneuvers. Why study it again?
-
+    \pause
     \begin{figure}[htbp]
         \centering
         \begin{subfigure}{0.25\textwidth}
@@ -215,7 +216,7 @@
     \frametitle{Orbital mechanics}
 
     \begin{block}{Two-Body Motion}
-        \visible<2->{
+        \visible<1->{
             Keplerian dynamics:
             \begin{equation}
                 \ddot{\mathbf{r}} = - \frac{\mu}{\lVert \mathbf{r} \rVert^3} \mathbf{r}
@@ -225,12 +226,12 @@
     \end{block}
     \begin{columns}
         \begin{column}{0.5\linewidth}
-            \visible<3->{State vector choice:}
+            \visible<2->{State vector choice:}
             \begin{itemize}
-                \item<4-> \textbf{Cartesian}: \(\mathbf{x} = \begin{bmatrix}
+                \item<2-> \textbf{Cartesian}: \(\mathbf{x} = \begin{bmatrix}
                     \mathbf{r}\ \textit{(position)} \\ \mathbf{v}\ \textit{(velocity)} 
                 \end{bmatrix}\)
-                \item<5-> \textbf{Keplerian} (elliptical orbit only): \(\mathbf{x} = \begin{bmatrix}
+                \item<2-> \textbf{Keplerian} (elliptical orbit only): \(\mathbf{x} = \begin{bmatrix}
                     a\ \textit{(semi-major axis)}\\ 
                     e\ \textit{(eccentricity)} \\ 
                     i\ \textit{(inclination)} \\ \Omega\ \textit{(RAAN)} \\ \omega\ \textit{(argument of perigee)} \\ \theta\ \textit{(true anomaly)}
@@ -256,10 +257,9 @@
     \end{block}
     \begin{itemize}\pause
         \item \textbf{Importance}: auxiliary role in orbital maneuvering (feasible transfer);\pause
-        \item If \(\mathbf{v_1}\) is found, problem is solved;\pause
         \item Issue with \(\mathbf{r}_1 \parallel \mathbf{r}_2\) (eg, perigee \& apogee): orbit plane unknown\pause
         \item Universal variable formulations: simple, cannot handle indetermination~\cite{curtis2015orbital}\cite{sukhanov}\pause
-        \item Cartesian formulation~\cite{embedded_lambert}\pause
+        \item Cartesian formulation~\cite{embedded_lambert}
     \end{itemize}
 \end{frame}
 
@@ -273,27 +273,27 @@
         \begin{column}{0.5\linewidth}
             \begin{center}
                 \textbf{Indirect method}
-            \end{center}\pause
+            \end{center}
             \begin{itemize}
-                \item Hamiltonian~\cite{bertsekas}: \(H = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}^T f(\mathbf{x}, \mathbf{u})\)\pause
-                \item costate \(\mathbf{\lambda}\), adjoint equations\pause
+                \item Hamiltonian~\cite{bertsekas}: \(H = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}^T f(\mathbf{x}, \mathbf{u})\)
+                \item costate \(\mathbf{\lambda}\), adjoint equations
                 \item Pontryagin's Minimum Principle:
                 \begin{equation}
-                    \mathbf{u} = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}, \mathbf{u}, \mathbf{\lambda}].
-                \end{equation}\pause
-                \item Solve for \(\mathbf{x}\), \(\mathbf{\lambda}\), \(\mathbf{u}\)\pause
+                    \mathbf{u} = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}, \mathbf{u}, \mathbf{\lambda}]
+                \end{equation}
+                \item Solve for \(\mathbf{x}\), \(\mathbf{\lambda}\), \(\mathbf{u}\)
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}\pause
             \begin{center}
                 \textbf{Direct method}
-            \end{center}\pause
+            \end{center}
             \begin{itemize}
-                \item Discretize time, diff.\ eq.\pause
-                \item Numerical integration: Euler, RK4, RK8\pause
-                \item Trajectories \(\rightarrow \mathbf{x}_k, \mathbf{u}_k\)\pause
-                \item Parameter optimization\pause
-                \item Solve for \(\mathbf{x}\), \(\mathbf{u}\)\pause
+                \item Discretize time, diff.\ eq.
+                \item Numerical integration: Euler, RK4, RK8
+                \item Trajectories \(\rightarrow \mathbf{x}_k, \mathbf{u}_k\)
+                \item Parameter optimization
+                \item Solve for \(\mathbf{x}\), \(\mathbf{u}\)
             \end{itemize}
         \end{column}
     \end{columns}
@@ -315,13 +315,14 @@
                 \textbf{Finite Thrust}
             \end{center}\pause
             \begin{itemize}
-                \item \(F = - \dot m v_e\)\pause
-                \item constant exhaust velocity \(v_e\) and specific impulse \(v_e = I_{sp} g_0\) (CSI)\pause
-                \item \(F \leq F_{\max}\)\pause
-                \item Extra state: mass\pause
+                \item \(F = - \dot m v_e\)
+                \item constant exhaust velocity \(v_e\) and specific impulse \(v_e = I_{sp} g_0\) (CSI)
+                \item \(F \leq F_{\max}\)
+                \item Extra state: mass
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
+            \pause
             \begin{center}
                 \textbf{Impulsive thrust} (\(F_{\max} \rightarrow \infty\))
             \end{center}\pause
@@ -426,7 +427,7 @@
             \item \(\Delta v_i\), \(\hat{\mathbf{u}}_i\), \(i = 1, 2\) such that \(\lVert \hat{\mathbf{u}}_i \rVert = 1\) and \(\mathbf{x}_{i+1}^1 = \mathbf{x}_i^{N+1} + \begin{bmatrix}
                 0_{3\times1} \\ \Delta v_i \hat{\mathbf{u}}_i
             \end{bmatrix}, m=1, 2\)\pause
-            \item variable impulse intervals s.t. \(\Delta t_1 + \Delta t_2 \leq t_f\)\pause
+            \item coasting intervals \(\Delta t_1 + \Delta t_2 + \Delta t_3 t_f\)\pause
             \item Objective: \(\min \Delta v_1 + \Delta v_2\)
         \end{itemize}
     \end{itemize}
@@ -438,20 +439,20 @@
     \frametitle{Expected Results}
 
     \begin{itemize}\pause
-        \item More robust code\pause
+        \item Better code code\pause
         \begin{itemize}
-            \item perturbed orbital dynamics (easy)\pause
-            \item multiple impulses (medium);\pause
-            \item better convergence guarantees (unknown);\pause
-            \item multiple revolution transfers (hard)\pause
+            \item perturbed orbital dynamics (easy)
+            \item multiple impulses (medium);
+            \item multiple revolution transfers (hard)
+            \item better convergence guarantees (unknown);
         \end{itemize}
         \item Estimation of transfer time \(t_f\) instead of arbitrary input~\cite{embedded_lambert}\pause
         \item Practical orbital transfer cases under appropriate models:\pause
         \begin{enumerate}
-            \item LEO maintenance: inclination and altitude;\pause
-            \item SSO maintenance: inclination, RAAN and semimajor-axis;\pause
-            \item Constellation phasing: change phase along orbit\pause
-            \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)\pause
+            \item LEO maintenance: inclination and altitude;
+            \item SSO maintenance: inclination, RAAN and semimajor-axis;
+            \item Constellation phasing: change phase along orbit
+            \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
         \end{enumerate}
     \end{itemize}
 
@@ -559,6 +560,20 @@
         % \caption{Discretized transfer trajectory found by the numerical solver for the Hohmann transfer case.}
         \label{fig:hohmann_traj}
     \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Planning}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{img/TG planning.png}
+        % \caption{<caption>}
+        % \label{<label>}
+    \end{figure}
+    \pause
+    \textbf{Scoping}: prioritize making current code more robust?
+
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
