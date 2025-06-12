@@ -476,11 +476,12 @@
             \(\omega\) & \(0^\circ\)  & \(0^\circ\)  \\
             \(\theta\) & \(0^\circ\)  & \(180^\circ\)  \\ \bottomrule
         \end{tabular}
-        \caption{Orbital elements used for the Hohmann transfer case analysis}
-        \label{tab:hohmann_orb_elems}
+        % \caption{Orbital elements used for the Hohmann transfer case analysis}
+        % \label{tab:hohmann_orb_elems}
     \end{table}
-
-    
+    \begin{itemize}
+        \item \(t_f\) set to analytical time (cheating!)
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -503,11 +504,10 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Lambert Problem solution}
+    \frametitle{Initial guess generation}
     \begin{itemize}\pause
-        \item \(t_f\) set to analytical time (cheating!) \pause
-        \item Initial guesses \(\Delta t_1\) and \(\Delta t_2\): \(\frac{t_f}{3}\)\pause
-        \item Coast, impulse, Lambert solution, impulse, coast: feasible but non-optimal \(\rightarrow\) use as initial guess for optimizer
+        \item Arbitrary initial guesses \(\Delta t_1 = \Delta t_2 = \Delta t_3 = \frac{t_f}{3}\)\pause
+        \item Coast, impulse, Lambert Problem, impulse, coast: feasible
     \end{itemize}
     
     \begin{figure}[htbp]
