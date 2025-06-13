@@ -134,8 +134,8 @@ model = Model(Ipopt.Optimizer)
 
 r, v = add_coast_segment(model, transfer_time, N, "lamb")
 
-dt10 = 1/3*transfer_time
-dt20 = 1/3*transfer_time
+dt10 = 0/3*transfer_time
+dt20 = 3/3*transfer_time
 
 r1_lamb, v1_lamb = Propagators.propagate!(prop1, dt10)
 r2_lamb = Propagators.propagate!(prop2, dt10+dt20-transfer_time)[1]
@@ -143,9 +143,11 @@ r2_lamb = Propagators.propagate!(prop2, dt10+dt20-transfer_time)[1]
 @constraint(model, r[:, 1] .== r1_lamb)
 @constraint(model, r[:, end] .== r2_lamb)
 
+#follow natural orbit
 for i = 1:size(r)[2]
-    set_start_value.(r[:, i], r1_lamb)
-    set_start_value.(v[:, i], v1_lamb)
+    rlamb_guess, vlamb_guess = Propagators.propagate!(prop1, dt10 + dt20 * (i/(N+1)))
+    set_start_value.(r[:, i], rlamb_guess)
+    set_start_value.(v[:, i], vlamb_guess)
 end
 ##
 optimize!(model)
@@ -153,7 +155,7 @@ optimize!(model)
 lamb1 = rv_to_kepler(value.(r[:, 1]), value.(v[:, 1]))
 lamb_prop = Propagators.init(Val(:TwoBody), lamb1)
 f, ax3d = plot_orbit_fix(orb1, orb2, lamb1)
-save("./report/img/hohmann_lambert_guess.png", f)
+# save("./report/img/hohmann_lambert_guess.png", f)
 ##
 ax3d.azimuth = -π/2
 ax3d.elevation = orb1.i
