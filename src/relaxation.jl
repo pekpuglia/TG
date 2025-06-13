@@ -204,7 +204,7 @@ deltaV2 = deltaV2mag * deltaV2dir
 
 @objective(model, MIN_SENSE, deltaV1mag + deltaV2mag)
 
-#start condition
+#start condition - set to maneuvers along lambert between start and end
 #lambert maneuver
 set_start_value(dt1, dt10)
 set_start_value(dt2, dt20)
