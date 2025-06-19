@@ -274,14 +274,14 @@ function RK8(f, X, dt)
     b[15] =  .2947744761261941714007911131590716605202e-1
     b[16] =  0
 
-    F = zeros(Float64, (16,))
+    F = zeros(Float64, (length(X),16))
 
     for i = 1:16
-        Y = X + dt * a[i, 1:(i-1)]' * F[1:(i-1)]
-        F[i] = f(Y)
+        Y = X + dt * sum(a[i, 1:(i-1)]' .* F[:, 1:(i-1)], dims=2)
+        F[:, i] = f(Y)
     end
 
-    X + dt*sum(b .* F)
+    X + dt*sum(b' .* F, dims=2)
 end
 #test with xdot(x) = x
 # RK8(xdot, 1, 1) = e
