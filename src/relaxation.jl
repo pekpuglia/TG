@@ -313,7 +313,7 @@ function add_coast_segment(model, deltat, N, ind)
 end
 ##
 #solve lambert problem to use as initial condition
-N = 10
+N = 20
 
 model = Model(Ipopt.Optimizer)
 
