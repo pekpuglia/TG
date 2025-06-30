@@ -6,6 +6,12 @@ using TG
 using GLMakie
 using LinearAlgebra
 using Setfield
+
+#TODO
+#do entire primer vector trajectory
+#implement interactive primer vector
+#do multiple impulses
+#free initial and final states
 ##
 a1 = 7000e3
 a2 = 40000e3
