@@ -21,26 +21,26 @@ function initial_guess_initorb!(orb1, tf, r, v)
     end
 end
 ##
-case_ind = 1
+case_ind = 5
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
-tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)
+tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
 model = Model(Ipopt.Optimizer)
 
-r, v = add_coast_segment(model, tf1, 200, "")
+r, v = add_coast_segment(model, tf1, 100, "")
 
-# dV = @variable(model, [1:2], lower_bound=0, start=0)
+dV = @variable(model, [1:2], lower_bound=0)
 
 @constraint(model, r[:, 1] .== r1)
 @constraint(model, r[:, end] .== r2)
 
-# @constraint(model, dV[1]^2 == (v[:, 1] - v1)' * (v[:, 1] - v1))
-# @constraint(model, dV[2]^2 == (v[:, end] - v2)' * (v[:, end] - v2))
+@constraint(model, dV[1]^2 == (v[:, 1] - v1)' * (v[:, 1] - v1))
+@constraint(model, dV[2]^2 == (v[:, end] - v2)' * (v[:, end] - v2))
 
-# @objective(model, MIN_SENSE, sum(dV))
+@objective(model, MIN_SENSE, sum(dV))
 
 initial_guess_initorb!(orb1, tf1, r, v)
 ##
@@ -104,7 +104,7 @@ function diagnose_ppdot(normp, normp_dot)
         ED_FC
     elseif normp_dot0 < -tol && normp_dotf > tol
         ED_LA
-    elseif any(normp .> 1)
+    elseif any(normp .> 1 + 1e-4*maximum(normp))
         MID
     else
         OPT

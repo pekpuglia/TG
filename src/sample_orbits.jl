@@ -1,5 +1,25 @@
 using SatelliteToolboxBase
 ##
+HOHMANN_START = KeplerianElements(
+    date_to_jd(2023, 1, 1, 0, 0, 0),
+    7000e3,
+    0.0,
+    51 |> deg2rad,
+    0    |> deg2rad,
+    0     |> deg2rad,
+    0     |> deg2rad
+)
+
+HOHMANN_END = KeplerianElements(
+    HOHMANN_START.t,
+    9000e3,
+    0.0,
+    HOHMANN_START.i,
+    HOHMANN_START.Ω,
+    HOHMANN_START.ω,
+    deg2rad(180) + HOHMANN_START.f
+)
+##
 LEO_MAINTENANCE_START = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
     EARTH_EQUATORIAL_RADIUS + 400e3,
@@ -64,7 +84,7 @@ GEO_INSERTION_START, GEO_INSERTION_END = let
     a0 = EARTH_EQUATORIAL_RADIUS + 600e3
     af = 42164e3
     egto = (af - a0) / (af + a0)
-    orb1 = KeplerianElements(
+    HOHMANN_START = KeplerianElements(
         date_to_jd(2023, 1, 1, 0, 0, 0),
         (a0+af)/2,
         egto,
@@ -83,10 +103,11 @@ GEO_INSERTION_START, GEO_INSERTION_END = let
         0,
         deg2rad(0)
     )
-    orb1, orb2
+    HOHMANN_START, orb2
 end
 
 ORBIT_STARTS = [
+    HOHMANN_START,
     LEO_MAINTENANCE_START,
     SSO_MAINTENANCE_START,
     PHASING_START,
@@ -94,13 +115,17 @@ ORBIT_STARTS = [
 ]
 
 ORBIT_ENDS = [
+    HOHMANN_END,
     LEO_MAINTENANCE_END,
     SSO_MAINTENANCE_END,
     PHASING_END,
     GEO_INSERTION_END
 ]
 
+#add transfer times
+
 PREFIXES = [
+    "hohmann"
     "leo_maintenance"
     "sso_maintenance"
     "phasing"
