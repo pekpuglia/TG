@@ -1,4 +1,3 @@
-using TG
 using SatelliteToolboxBase
 ##
 LEO_MAINTENANCE_START = KeplerianElements(
@@ -18,7 +17,7 @@ LEO_MAINTENANCE_END = KeplerianElements(
     deg2rad(51),
     deg2rad(0),
     0,
-    0
+    deg2rad(180)
 )
 ##
 SSO_MAINTENANCE_START = KeplerianElements(
@@ -86,3 +85,24 @@ GEO_INSERTION_START, GEO_INSERTION_END = let
     )
     orb1, orb2
 end
+
+ORBIT_STARTS = [
+    LEO_MAINTENANCE_START,
+    SSO_MAINTENANCE_START,
+    PHASING_START,
+    GEO_INSERTION_START
+]
+
+ORBIT_ENDS = [
+    LEO_MAINTENANCE_END,
+    SSO_MAINTENANCE_END,
+    PHASING_END,
+    GEO_INSERTION_END
+]
+
+PREFIXES = [
+    "leo_maintenance"
+    "sso_maintenance"
+    "phasing"
+    "geo_insertion"
+]
