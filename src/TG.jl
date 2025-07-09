@@ -9,7 +9,7 @@ using SatelliteToolboxBase
 using SatelliteToolboxPropagators
 using Setfield
 
-export plot_orbit
+export plot_orbit, add_discretized_trajectory!, save_with_views!
 
 function plot_orbit(orbs::KeplerianElements...)
     N = 100
@@ -31,6 +31,23 @@ function plot_orbit(orbs::KeplerianElements...)
     
     wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
     fig, ax3d
+end
+
+function add_discretized_trajectory!(ax3d, solved_r)
+    scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color="green")
+end
+
+function save_with_views!(ax3d, f, prefix)
+    save(prefix*"_3d.png", f)
+    
+    az = [pi/2, 0, 0]
+    el = [0, 0, pi/2]
+    name = ["y+", "x+", "z+"]
+    for (a, e, n) in zip(az, el, name)
+        ax3d.azimuth = a
+        ax3d.elevation = e
+        save(prefix*"_"*n*".png", f)
+    end
 end
 
 export orbital_period
@@ -74,7 +91,7 @@ function add_coast_segment(model, deltat, N, ind; dyn=(X -> two_body_dyn(X, GM_E
     r, v
 end
 
-export p0dot_tpbvp
+export p0dot_tpbvp, ppdot_deltavs, diagnose_ppdot
 function p0dot_tpbvp(p0, pf, delta_t, prop)
     Phi = TG.Phi_time(prop, delta_t)
 
@@ -82,6 +99,7 @@ function p0dot_tpbvp(p0, pf, delta_t, prop)
     N = Phi[1:3, 4:6]
 
     if abs(det(N)) <= 1e-10
+        @warn "N singular"
         #CHECK THIS IS TRUE
         #only works for coplanar transfers?
         r1, v1 = kepler_to_rv(prop.tbd.orb₀)
@@ -93,6 +111,40 @@ function p0dot_tpbvp(p0, pf, delta_t, prop)
     end
 
     p0dot
+end
+
+
+function ppdot_deltavs(transfer_propagator, deltav1, deltav2, delta_t, N)
+    p0 = deltav1 / norm(deltav1)
+    pf = deltav2 / norm(deltav2)
+    p0dot = p0dot_tpbvp(p0, pf, delta_t, transfer_propagator)
+    tspan = range(0, delta_t, N)
+    ppdot = [TG.Phi_time(transfer_propagator, t) * [p0; p0dot] for t in tspan]
+    tspan, ppdot
+end
+
+#doesn't account for continuity yet
+@enum PRIMER_DIAGNOSTIC IC_FC IC_LA ED_FC ED_LA MID OPT
+function diagnose_ppdot(normp, normp_dot, rtol = 1e-4)
+    normp_dot0 = normp_dot[1]
+    normp_dotf = normp_dot[end]
+    
+    max_normp_dot = maximum(abs.(normp_dot))
+    tol = rtol*max_normp_dot
+
+    if normp_dot0 > tol && normp_dotf < -tol
+        IC_FC
+    elseif normp_dot0 > tol && normp_dotf > tol
+        IC_LA
+    elseif normp_dot0 < -tol && normp_dotf < -tol
+        ED_FC
+    elseif normp_dot0 < -tol && normp_dotf > tol
+        ED_LA
+    elseif any(normp .> 1 + rtol)
+        MID
+    else
+        OPT
+    end
 end
 
 end # module TG
