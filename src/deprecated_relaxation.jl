@@ -110,6 +110,11 @@ model = Model(
 
 dt1 = @variable(model, base_name="dt1", lower_bound=0, upper_bound=transfer_time)
 dt2 = @variable(model, base_name="dt2", lower_bound=0, upper_bound=transfer_time)
+dt3 = @variable(model, base_name="dt3", lower_bound=0, upper_bound=transfer_time)
+@constraint(model, dt1 + dt2 + dt3 == transfer_time)
+
+@constraint(model, dt1 == 0)
+@constraint(model, dt3 == 0)
 
 @constraint(model, dt1+dt2 <= transfer_time)
 
@@ -124,7 +129,7 @@ deltaV2dir = @variable(model, [1:3], base_name="dV2dir")
 
 rcoast1, vcoast1 = add_coast_segment(model, dt1, N, 1)
 rcoast2, vcoast2 = add_coast_segment(model, dt2, N, 2)
-rcoast3, vcoast3 = add_coast_segment(model, transfer_time-dt1-dt2, N, 3)
+rcoast3, vcoast3 = add_coast_segment(model, dt3, N, 3)
 
 @constraint(model, rcoast1[:, 1] .== r1)
 @constraint(model, vcoast1[:, 1] .== v1)
@@ -146,8 +151,9 @@ deltaV2 = deltaV2mag * deltaV2dir
 
 #start condition - set to maneuvers along lambert between start and end
 #lambert maneuver
-set_start_value(dt1, dt10)
-set_start_value(dt2, dt20)
+# set_start_value(dt1, dt10)
+# set_start_value(dt2, dt20)
+# set_start_value(dt2, transfer_time - dt10 - dt20)
 
 dv1 = value.(v[:, 1]) - v1
 set_start_value(deltaV1mag, norm(dv1))
