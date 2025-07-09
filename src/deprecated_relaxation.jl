@@ -101,10 +101,13 @@ ax3d.azimuth = -π/2
 ax3d.elevation = orb1.i
 save("./report/img/hohmann_lambert_guess_in_plane.png", f)
 ##
+
+nimp = 2
+
 N=50
 model = Model(
     optimizer_with_attributes(Ipopt.Optimizer,
-    "max_iter" => 10_000
+    "max_iter" => 3_000
     )
 )
 
@@ -112,11 +115,6 @@ dt1 = @variable(model, base_name="dt1", lower_bound=0, upper_bound=transfer_time
 dt2 = @variable(model, base_name="dt2", lower_bound=0, upper_bound=transfer_time)
 dt3 = @variable(model, base_name="dt3", lower_bound=0, upper_bound=transfer_time)
 @constraint(model, dt1 + dt2 + dt3 == transfer_time)
-
-@constraint(model, dt1 == 0)
-@constraint(model, dt3 == 0)
-
-@constraint(model, dt1+dt2 <= transfer_time)
 
 deltaV1mag = @variable(model, lower_bound = 0, base_name="dV1mag")
 deltaV2mag = @variable(model, lower_bound = 0, base_name="dV2mag")
@@ -151,9 +149,9 @@ deltaV2 = deltaV2mag * deltaV2dir
 
 #start condition - set to maneuvers along lambert between start and end
 #lambert maneuver
-# set_start_value(dt1, dt10)
-# set_start_value(dt2, dt20)
-# set_start_value(dt2, transfer_time - dt10 - dt20)
+set_start_value(dt1, dt10)
+set_start_value(dt2, dt20)
+set_start_value(dt3, transfer_time - dt10 - dt20)
 
 dv1 = value.(v[:, 1]) - v1
 set_start_value(deltaV1mag, norm(dv1))
