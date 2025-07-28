@@ -116,7 +116,7 @@ model = Model(
 # dt3 = @variable(model, base_name="dt3", lower_bound=0, upper_bound=transfer_time)
 # @constraint(model, dt1 + dt2 + dt3 == transfer_time)
 
-dts = @variable(model, [1:nimp], base_name = "dt", lower_bound=0, upper_bound=transfer_time)
+dts = @variable(model, [1:nimp+1], base_name = "dt", lower_bound=0, upper_bound=transfer_time)
 @constraint(model, sum(dts) == transfer_time)
 
 # deltaV1mag = @variable(model, lower_bound = 0, base_name="dV1mag")
@@ -131,66 +131,80 @@ deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
 deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
 @constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
 
-rcoast1, vcoast1 = add_coast_segment(model, dt1, N, 1)
-rcoast2, vcoast2 = add_coast_segment(model, dt2, N, 2)
-rcoast3, vcoast3 = add_coast_segment(model, dt3, N, 3)
+# rcoast1, vcoast1 = add_coast_segment(model, dt1, N, 1)
+# rcoast2, vcoast2 = add_coast_segment(model, dt2, N, 2)
+# rcoast3, vcoast3 = add_coast_segment(model, dt3, N, 3)
 
-@constraint(model, rcoast1[:, 1] .== r1)
-@constraint(model, vcoast1[:, 1] .== v1)
+rvcoasts = [add_coast_segment(model, dts[i], N, i) for i = 1:nimp+1]
 
-@constraint(model, rcoast2[:, 1] .== rcoast1[:, end])
-deltaV1 = deltaV1mag * deltaV1dir
-@constraint(model, vcoast2[:, 1] .== vcoast1[:, end] + deltaV1)
+rcoast = cat(first.(rvcoasts)..., dims=3)
+vcoast = cat(last.(rvcoasts)..., dims=3)
+
+@constraint(model, rcoast[:, 1, 1] .== r1)
+@constraint(model, vcoast[:, 1, 1] .== v1)
+
+# @constraint(model, rcoast[:, 1, 2] .== rcoast[:, end, 1])
+# deltaV1 = deltaV1mag * deltaV1dir
+# @constraint(model, vcoast2[:, 1] .== vcoast1[:, end] + deltaV1)
 
 
-@constraint(model, rcoast3[:, 1] .== rcoast2[:, end])
-deltaV2 = deltaV2mag * deltaV2dir
-@constraint(model, vcoast3[:, 1] .== vcoast2[:, end] + deltaV2)
+# @constraint(model, rcoast3[:, 1] .== rcoast2[:, end])
+# deltaV2 = deltaV2mag * deltaV2dir
+# @constraint(model, vcoast3[:, 1] .== vcoast2[:, end] + deltaV2)
+
+#continuity constraints
+for i = 1:nimp
+    @constraint(model, rcoast[:, 1, i+1] .== rcoast[:, end, i])
+    deltaV = deltaVmags[i] * deltaVdirs[:, i]
+    @constraint(model, vcoast[:, 1, i+1] .== vcoast[:, end, i] + deltaV)
+end
 
 
-@constraint(model, rcoast3[:, end] .== r2)
-@constraint(model, vcoast3[:, end] .== v2)
+@constraint(model, rcoast[:, end, end] .== r2)
+@constraint(model, vcoast[:, end, end] .== v2)
 
-@objective(model, MIN_SENSE, deltaV1mag + deltaV2mag)
+@objective(model, MIN_SENSE, sum(deltaVmags))
 
 #start condition - set to maneuvers along lambert between start and end
 #lambert maneuver
-set_start_value(dt1, dt10)
-set_start_value(dt2, dt20)
-set_start_value(dt3, transfer_time - dt10 - dt20)
+set_start_value.(dts, [dt10; dt20; transfer_time-dt10-dt20])
+# set_start_value(dt2, dt20)
+# set_start_value(dt3, transfer_time - dt10 - dt20)
 
 dv1 = value.(v[:, 1]) - v1
-set_start_value(deltaV1mag, norm(dv1))
-set_start_value.(deltaV1dir, dv1/norm(dv1))
+set_start_value(deltaVmags[1], norm(dv1))
+set_start_value.(deltaVdirs[1], dv1/norm(dv1))
 
 dv2 = value.(v[:, end]) - v2
-set_start_value(deltaV2mag, norm(dv2))
-set_start_value.(deltaV2dir, dv2/norm(dv2))
+set_start_value(deltaVmags[2], norm(dv2))
+set_start_value.(deltaVdirs[2], dv2/norm(dv2))
 
 for i = 1:(N+1)
     r1i, v1i = Propagators.propagate!(prop1, dt10*(i-1)/N)
-    set_start_value.(rcoast1[:, i], r1i)
-    set_start_value.(vcoast1[:, i], v1i)
+    set_start_value.(rcoast[:, i, 1], r1i)
+    set_start_value.(vcoast[:, i, 1], v1i)
     
     r2i, v2i = Propagators.propagate!(lamb_prop, dt20*(i-1)/N)
-    set_start_value.(rcoast2[:, i], r2i)
-    set_start_value.(vcoast2[:, i], v2i)
+    set_start_value.(rcoast[:, i, 2], r2i)
+    set_start_value.(vcoast[:, i, 2], v2i)
     
     r3i, v3i = Propagators.propagate!(prop2, (transfer_time-dt10-dt20)*((i-1)/N - 1))
-    set_start_value.(rcoast3[:, i], r3i)
-    set_start_value.(vcoast3[:, i], v3i)
+    set_start_value.(rcoast[:, i, 3], r3i)
+    set_start_value.(vcoast[:, i, 3], v3i)
 end
 ##
 optimize!(model)
 ##
-deltaV1_solved = value.(deltaV1)
-deltaV2_solved = value.(deltaV2)
+deltaVmag_solved = value.(deltaVmags)
+deltaVdir_solved = value.(deltaVdirs)
+
+deltaV_solved = deltaVdir_solved .* deltaVmag_solved'
 ##
 deltaVmodel = objective_value(model)
 ##
-transf_orb1 = rv_to_kepler(value.(rcoast1[:, 1]), value.(vcoast1[:, 1]))
-transf_orb2 = rv_to_kepler(value.(rcoast2[:, 1]), value.(vcoast2[:, 1]))
-transf_orb3 = rv_to_kepler(value.(rcoast3[:, 1]), value.(vcoast3[:, 1]))
+transf_orb1 = rv_to_kepler(value.(rcoast[:, 1, 1]), value.(vcoast[:, 1, 1]))
+transf_orb2 = rv_to_kepler(value.(rcoast[:, 1, 2]), value.(vcoast[:, 1, 2]))
+transf_orb3 = rv_to_kepler(value.(rcoast[:, 1, 3]), value.(vcoast[:, 1, 3]))
 ##
 v1n = norm(v1)
 v2n = norm(v2)
@@ -198,7 +212,7 @@ vtransf1 = √(2*GM_EARTH*(1/a1 - 1/(a1+a2)))
 vtransf2 = √(2*GM_EARTH*(1/a2 - 1/(a1+a2)))
 deltaV_hohmann = v2n - vtransf2 + vtransf1 - v1n
 ##
-solved_r = [value.(rcoast1) value.(rcoast2) value.(rcoast3)]
+solved_r = [value.(rcoast[:, :, 1]) value.(rcoast[:, :, 2]) value.(rcoast[:, :, 3])]
 ##
 # f = Figure()
 # ax3d = Axis3(f[1, 1])
