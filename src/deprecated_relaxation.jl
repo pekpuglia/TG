@@ -111,19 +111,25 @@ model = Model(
     )
 )
 
-dt1 = @variable(model, base_name="dt1", lower_bound=0, upper_bound=transfer_time)
-dt2 = @variable(model, base_name="dt2", lower_bound=0, upper_bound=transfer_time)
-dt3 = @variable(model, base_name="dt3", lower_bound=0, upper_bound=transfer_time)
-@constraint(model, dt1 + dt2 + dt3 == transfer_time)
+# dt1 = @variable(model, base_name="dt1", lower_bound=0, upper_bound=transfer_time)
+# dt2 = @variable(model, base_name="dt2", lower_bound=0, upper_bound=transfer_time)
+# dt3 = @variable(model, base_name="dt3", lower_bound=0, upper_bound=transfer_time)
+# @constraint(model, dt1 + dt2 + dt3 == transfer_time)
 
-deltaV1mag = @variable(model, lower_bound = 0, base_name="dV1mag")
-deltaV2mag = @variable(model, lower_bound = 0, base_name="dV2mag")
+dts = @variable(model, [1:nimp], base_name = "dt", lower_bound=0, upper_bound=transfer_time)
+@constraint(model, sum(dts) == transfer_time)
 
-deltaV1dir = @variable(model, [1:3], base_name="dV1dir")
-@constraint(model, deltaV1dir' * deltaV1dir == 1)
-deltaV2dir = @variable(model, [1:3], base_name="dV2dir")
-@constraint(model, deltaV2dir' * deltaV2dir == 1)
+# deltaV1mag = @variable(model, lower_bound = 0, base_name="dV1mag")
+# deltaV2mag = @variable(model, lower_bound = 0, base_name="dV2mag")
 
+# deltaV1dir = @variable(model, [1:3], base_name="dV1dir")
+# @constraint(model, deltaV1dir' * deltaV1dir == 1)
+# deltaV2dir = @variable(model, [1:3], base_name="dV2dir")
+# @constraint(model, deltaV2dir' * deltaV2dir == 1)
+
+deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
+deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
+@constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
 
 rcoast1, vcoast1 = add_coast_segment(model, dt1, N, 1)
 rcoast2, vcoast2 = add_coast_segment(model, dt2, N, 2)
