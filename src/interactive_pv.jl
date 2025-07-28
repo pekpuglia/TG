@@ -48,7 +48,7 @@ function lambert_transfer_model(X1, X2, deltat, MU, N)
 
     model = Model(Ipopt.Optimizer)
 
-    r, v = add_coast_segment(model, deltat, N, "")
+    r, v = add_coast_segment(model, deltat, N, "", dyn=(X -> two_body_dyn(X, MU)))
 
     dV = @variable(model, [1:2], lower_bound=0)
     dVdirs = @variable(model, [1:3, 1:2])
@@ -65,23 +65,27 @@ function lambert_transfer_model(X1, X2, deltat, MU, N)
     model, Transfer(X1, X2, MU, deltat, r, v, dV, dVdirs, [deltat])
 end
 ##
-case_ind = 1
+case_ind = 3
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
 tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
+L = (orb1.a+orb2.a)/2
+T = tf1
+MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
+
 model = Model(Ipopt.Optimizer)
 
-model, model_transfer = lambert_transfer_model([r1; v1], [r2; v2], tf1, GM_EARTH, 100)
+model, model_transfer = lambert_transfer_model([r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 20)
 
 initial_guess_initorb!(orb1, tf1, model_transfer.rcoast, model_transfer.vcoast)
 ##
 optimize!(model)
 ##
-solved_r = value.(model_transfer.rcoast)
-solved_v = value.(model_transfer.vcoast)
+solved_r = L * value.(model_transfer.rcoast)
+solved_v = L / T * value.(model_transfer.vcoast)
 solved_orb = rv_to_kepler(solved_r[:, 1], solved_v[:, 1])
 solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
