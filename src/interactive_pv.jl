@@ -21,6 +21,8 @@ function initial_guess_initorb!(orb1, tf, r, v)
     end
 end
 
+#rescale(transfer)
+#value(transfer)
 struct Transfer
     X1::Vector
     X2::Vector
@@ -33,7 +35,7 @@ struct Transfer
     dts::Vector
 end
 
-struct ScaledTransfer
+struct ScaledTransfer # remove
     transfer::Transfer
     L #always include?
     T
@@ -115,3 +117,4 @@ f
 ##
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
+#next steps of pv algo
