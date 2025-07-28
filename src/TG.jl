@@ -92,13 +92,13 @@ function add_coast_segment(model, deltat, N, ind; dyn=(X -> two_body_dyn(X, GM_E
 end
 
 export p0dot_tpbvp, ppdot_deltavs, diagnose_ppdot
-function p0dot_tpbvp(p0, pf, delta_t, prop)
+function p0dot_tpbvp(p0, pf, delta_t, prop; det_tol=1e-6, planar=false)
     Phi = TG.Phi_time(prop, delta_t)
 
     M = Phi[1:3, 1:3]
     N = Phi[1:3, 4:6]
 
-    if abs(det(N)) <= 1e-10
+    if abs(det(N)) <= det_tol || planar
         @warn "N singular"
         #CHECK THIS IS TRUE
         #only works for coplanar transfers?
@@ -114,10 +114,10 @@ function p0dot_tpbvp(p0, pf, delta_t, prop)
 end
 
 
-function ppdot_deltavs(transfer_propagator, deltav1, deltav2, delta_t, N)
+function ppdot_deltavs(transfer_propagator, deltav1, deltav2, delta_t, N; tpbvp_kwargs...)
     p0 = deltav1 / norm(deltav1)
     pf = deltav2 / norm(deltav2)
-    p0dot = p0dot_tpbvp(p0, pf, delta_t, transfer_propagator)
+    p0dot = p0dot_tpbvp(p0, pf, delta_t, transfer_propagator; tpbvp_kwargs...)
     tspan = range(0, delta_t, N)
     ppdot = [TG.Phi_time(transfer_propagator, t) * [p0; p0dot] for t in tspan]
     tspan, ppdot
