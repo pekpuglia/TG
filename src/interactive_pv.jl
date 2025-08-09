@@ -189,7 +189,7 @@ tspan, ppdot = tspan_ppdot[1]
 normp = norm.(getindex.(ppdot, Ref(1:3)))
 normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in ppdot]
 # ##
-diagnose_ppdot(normp, normpdot)
+pv_diag = diagnose_ppdot(normp, normpdot)
 ##
 f = Figure()
 ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
@@ -203,3 +203,61 @@ f
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
 #next steps of pv algo
+
+nimp = (pv_diag == TG.MID) ? 3 : 2 #MAGIC NUMBER
+
+#can have ncoasts = nimp - 1 (1 case), ncoasts = nimp (2 cases), ncoasts = nimp + 1 (1 case)
+#in all cases, transfer time is subject to optimization
+if pv_diag == TG.IC_FC
+    ncoasts = nimp + 1
+elseif pv_diag == TG.IC_LA
+    ncoasts = nimp
+elseif pv_diag == TG.ED_FC
+    ncoasts = nimp
+elseif pv_diag == TG.ED_LA
+    ncoasts = nimp - 1
+elseif pv_diag == TG.MID
+    #increases number of coasts by 1
+    ncoasts = 2 #MAGIC NUMBER
+end
+
+N=50
+model = Model(
+    optimizer_with_attributes(Ipopt.Optimizer,
+    "max_iter" => 3_000
+    )
+)
+
+#CONTINUE HERE
+
+dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0, upper_bound=transfer_time / T)
+
+
+@constraint(model, sum(dts) == transfer_time / T)
+
+deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
+deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
+@constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
+
+rvcoasts = [add_coast_segment(
+    model, dts[i], N, i,
+    dyn=(X -> two_body_dyn(X, MUPRIME))) for i = 1:nimp+1]
+
+rcoast = cat(first.(rvcoasts)..., dims=3)
+vcoast = cat(last.(rvcoasts)..., dims=3)
+
+@constraint(model, rcoast[:, 1, 1] .== r1)
+@constraint(model, vcoast[:, 1, 1] .== v1)
+
+#continuity constraints
+for i = 1:nimp
+    @constraint(model, rcoast[:, 1, i+1] .== rcoast[:, end, i])
+    deltaV = deltaVmags[i] * deltaVdirs[:, i]
+    @constraint(model, vcoast[:, 1, i+1] .== vcoast[:, end, i] + deltaV)
+end
+
+
+@constraint(model, rcoast[:, end, end] .== r2)
+@constraint(model, vcoast[:, end, end] .== v2)
+
+@objective(model, MIN_SENSE, sum(deltaVmags))

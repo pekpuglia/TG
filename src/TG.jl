@@ -124,6 +124,7 @@ function ppdot_deltavs(transfer_propagator, deltav1, deltav2, delta_t, N; tpbvp_
 end
 
 #doesn't account for continuity yet
+export PRIMER_DIAGNOSTIC, IC_FC, IC_LA, ED_FC, ED_LA, MID, OPT
 @enum PRIMER_DIAGNOSTIC IC_FC IC_LA ED_FC ED_LA MID OPT
 function diagnose_ppdot(normp, normp_dot, rtol = 1e-4)
     normp_dot0 = normp_dot[1]
