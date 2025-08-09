@@ -35,11 +35,39 @@ struct Transfer
     dts::Vector
 end
 
-struct ScaledTransfer # remove
-    transfer::Transfer
-    L #always include?
-    T
+function solved(t::Transfer)
+    Transfer(
+        t.X1,
+        t.X2,
+        t.mu,
+        t.transfer_time,
+        value.(t.rcoast),
+        value.(t.vcoast),
+        value.(t.deltaVmags),
+        value.(t.deltaVdirs),
+        t.dts
+    )
 end
+
+function unscale(t::Transfer, L, T)
+    Transfer(
+        diagm([L, L, L, L/T, L/T, L/T]) * t.X1,
+        diagm([L, L, L, L/T, L/T, L/T]) * t.X2,
+        L^3 / T^2 * t.mu,
+        T * t.transfer_time,
+        L * t.rcoast,
+        L / T * t.vcoast,
+        L/T * t.deltaVmags,
+        t.deltaVdirs,
+        T * t.dts
+    )
+end
+
+# struct ScaledTransfer # remove
+#     transfer::Transfer
+#     L #always include?
+#     T
+# end
 
 #scale options?
 function lambert_transfer_model(X1, X2, deltat, MU, N)
@@ -78,21 +106,18 @@ L = (orb1.a+orb2.a)/2
 T = tf1
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
 
-model = Model(Ipopt.Optimizer)
-
 model, model_transfer = lambert_transfer_model([r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 20)
 
 initial_guess_initorb!(orb1, tf1, model_transfer.rcoast, model_transfer.vcoast)
 ##
 optimize!(model)
 ##
-solved_r = L * value.(model_transfer.rcoast)
-solved_v = L / T * value.(model_transfer.vcoast)
-solved_orb = rv_to_kepler(solved_r[:, 1], solved_v[:, 1])
+solved_model = unscale(solved(model_transfer), L, T)
+solved_orb = rv_to_kepler(solved_model.rcoast[:, 1], solved_model.vcoast[:, 1])
 solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
-add_discretized_trajectory!(ax3d, solved_r)
+add_discretized_trajectory!(ax3d, solved_model.rcoast)
 f
 ##
 save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
