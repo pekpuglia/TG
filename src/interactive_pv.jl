@@ -68,8 +68,9 @@ function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bo
 
     coasts = Coast.(first.(rvcoasts), last.(rvcoasts), dts)
     
-    #build sequence - add initial condition to sequence?
+    #build sequence - add initial condition to sequence? could simplify logic
     sequence = Vector{Union{Impulse, Coast}}(undef, nimp + ncoasts)
+
 
     #add coasts
     for i = 1:ncoasts
@@ -84,14 +85,48 @@ function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bo
 
     #add impulses
     for i = 1:nimp
-        if init_coast
-            sequence[2*i] = impulses[i]
-        else
-            sequence[2*i-1] = impulses[i]
+        imp_ind = (init_coast) ? 2*i : 2*i-1
+        sequence[imp_ind] = impulses[i]
+
+        #add continuity constraints between coasts
+        if 1 < imp_ind < nimp+ncoasts && sequence[imp_ind-1] isa Coast && sequence[imp_ind+1] isa Coast
+            last_coast = sequence[imp_ind-1]
+            imp = sequence[imp_ind]
+            next_coast = sequence[imp_ind+1]
+            @constraint(model, last_coast.rcoast[:, end] .== next_coast.rcoast[:, 1])
+            @constraint(model, next_coast.vcoast[:, 1] .== last_coast.vcoast[:, 1] + imp.deltaVmag * imp.deltaVdir)
         end
     end
 
+    #initial boundary condition
+    if init_coast
+        @constraint(model, coasts[1].rcoast[:, 1] .== X1[1:3])
+        @constraint(model, coasts[1].vcoast[:, 1] .== X1[4:6])
+    else
+        #init cond -> imp -> coast
+        i = sequence[1]
+        c = sequence[2]
+        @constraint(model, c.rcoast[:, 1] .== X1[1:3])
+        @constraint(model, c.vcoast[:, 1] .== X1[4:6] + i.deltaVmag * i.deltaVdir)
+    end
+
+    #final boundary condition
+    if final_coast
+        @constraint(model, coasts[end].rcoast[:, end] .== X2[1:3])
+        @constraint(model, coasts[end].vcoast[:, end] .== X2[4:6])
+    else
+        #init cond -> imp -> coast
+        i = sequence[end]
+        c = sequence[end-1]
+        @constraint(model, c.rcoast[:, end] .== X2[1:3])
+        @constraint(model, X2[4:6] .== c.vcoast[:, end] + i.deltaVmag * i.deltaVdir)
+    end
+
+    @objective(model, Min, sum(deltaVmags))
+
     transfer = Transfer(X1, X2, mu, tf, sequence)
+
+    model, transfer
 end
 
 function solved(t::Transfer)
@@ -154,7 +189,8 @@ L = (orb1.a+orb2.a)/2
 T = tf1
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
 
-model, model_transfer = lambert_transfer_model([r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 100)
+model = Model(Ipopt.Optimizer)
+model, model_transfer = n_impulse_model(model, [r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 20, 2, false, false)
 
 initial_guess_initorb!(orb1, tf1, model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast)
 ##
