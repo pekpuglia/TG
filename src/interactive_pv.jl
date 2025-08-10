@@ -183,15 +183,21 @@ orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
-tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
+tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)
 
 L = (orb1.a+orb2.a)/2
 T = tf1
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
 
-model = Model(Ipopt.Optimizer)
-model, model_transfer = n_impulse_model(model, [r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 20, 2, false, false)
 
+X1 = [r1 / L; v1 * T / L]
+X2 = [r2 / L; v2 * T / L]
+
+
+model = Model(Ipopt.Optimizer)
+model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 20, 2, false, false)
+
+#this is not scaled!!!
 initial_guess_initorb!(orb1, tf1, model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast)
 ##
 optimize!(model)
@@ -277,74 +283,22 @@ f
 ##
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
-# #next steps of pv algo
-#neglect early departure & late arrival
+# try free impulse time solutions
+model = Model(Ipopt.Optimizer)
+model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 20, 2, true, true)
 
-# nimp = (pv_diag == TG.MID) ? 3 : 2 #MAGIC NUMBER
+initial_guess_initorb!(orb1, 0, model_transfer.sequence[1].rcoast, model_transfer.sequence[1].vcoast)
+initial_guess_initorb!(orb1, tf1, model_transfer.sequence[3].rcoast, model_transfer.sequence[3].vcoast)
+initial_guess_initorb!(orb1, 0, model_transfer.sequence[5].rcoast, model_transfer.sequence[5].vcoast)
 
-# #can have ncoasts = nimp - 1 (1 case), ncoasts = nimp (2 cases), ncoasts = nimp + 1 (1 case)
-# #in all cases, transfer time is subject to optimization
-# if pv_diag == TG.IC_FC
-#     ncoasts = nimp + 1
-# elseif pv_diag == TG.IC_LA
-#     ncoasts = nimp
-# elseif pv_diag == TG.ED_FC
-#     ncoasts = nimp
-# elseif pv_diag == TG.ED_LA
-#     ncoasts = nimp - 1
-# elseif pv_diag == TG.MID
-#     #increases number of coasts by 1
-#     ncoasts = 2 #MAGIC NUMBER
-# end
-
-# N=50
-# model = Model(
-#     optimizer_with_attributes(Ipopt.Optimizer,
-#     "max_iter" => 3_000
-#     )
-# )
-
-# #CONTINUE HERE
-# #if early departure, dt1 < 0.
-
-# dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0)
-
-# #sum all coasts  except first/last
-# if pv_diag == TG.IC_FC
-#     @constraint(model, sum(dts) == tf1 / T)
-# elseif pv_diag == TG.IC_LA
-#     @constraint(model, sum(dts) == tf1 / T)
-# elseif pv_diag == TG.ED_FC
-#     @constraint(model, sum(dts) == tf1 / T)
-# elseif pv_diag == TG.ED_LA
-#     @constraint(model, sum(dts) == tf1 / T)
-# elseif pv_diag == TG.MID
-#     @constraint(model, sum(dts) == tf1 / T)
-# end
-
-# deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
-# deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
-# @constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
-
-# rvcoasts = [add_coast_segment(
-#     model, dts[i], N, i,
-#     dyn=(X -> two_body_dyn(X, MUPRIME))) for i = 1:nimp+1]
-
-# rcoast = cat(first.(rvcoasts)..., dims=3)
-# vcoast = cat(last.(rvcoasts)..., dims=3)
-
-# @constraint(model, rcoast[:, 1, 1] .== r1)
-# @constraint(model, vcoast[:, 1, 1] .== v1)
-
-# #continuity constraints
-# for i = 1:nimp
-#     @constraint(model, rcoast[:, 1, i+1] .== rcoast[:, end, i])
-#     deltaV = deltaVmags[i] * deltaVdirs[:, i]
-#     @constraint(model, vcoast[:, 1, i+1] .== vcoast[:, end, i] + deltaV)
-# end
-
-
-# @constraint(model, rcoast[:, end, end] .== r2)
-# @constraint(model, vcoast[:, end, end] .== v2)
-
-# @objective(model, MIN_SENSE, sum(deltaVmags))
+optimize!(model)
+##
+solved_model = unscale(solved(model_transfer), L, T)
+solved_orbs = [rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1]) for c in solved_model.sequence if c isa Coast]
+# solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
+##
+f, ax3d = plot_orbit(orb1, orb2)
+# add_discretized_trajectory!(ax3d, solved_model.sequence[1].rcoast)
+add_discretized_trajectory!(ax3d, solved_model.sequence[3].rcoast)
+# add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
+f
