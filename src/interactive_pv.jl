@@ -9,12 +9,6 @@ using LinearAlgebra
 using Setfield
 include("sample_orbits.jl")
 ##
-# function n_impulse_model()
-    
-# end
-
-
-
 function initial_guess_initorb!(orb1, tf, r, v)
     prop = Propagators.init(Val(:TwoBody), orb1)
 
@@ -53,6 +47,51 @@ struct Transfer
     # deltaVdirs::Matrix
     # dts::Vector
     sequence::Vector{Union{Impulse, Coast}}
+end
+
+#scaling agnostic!
+function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool)
+    ncoasts = nimp - 1 + init_coast + final_coast
+
+    dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0, upper_bound=tf)
+    @constraint(model, sum(dts) == tf)
+
+    deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
+    deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
+    @constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
+
+    impulses = Impulse.(deltaVmags, eachcol(deltaVdirs))
+
+    rvcoasts = [add_coast_segment(
+    model, dts[i], Ndisc, i,
+    dyn=(X -> two_body_dyn(X, mu))) for i = 1:ncoasts]
+
+    coasts = Coast.(first.(rvcoasts), last.(rvcoasts), dts)
+    
+    #build sequence - add initial condition to sequence?
+    sequence = Vector{Union{Impulse, Coast}}(undef, nimp + ncoasts)
+
+    
+    if init_coast
+        for i = 1:nimp
+            sequence[2*i-1] = coasts[i]
+            sequence[2*i] = impulses[i]
+        end
+        if final_coast
+            sequence[end] = coasts[end]
+        end
+    else
+        for i = 1:ncoasts
+            sequence[2*i-1] = impulses[i]
+            sequence[2*i] = coasts[i]
+        end
+        if !final_coast
+            sequence[end] = impulses[end]
+        end
+    end
+
+
+    transfer = Transfer(X1, X2, mu, tf, sequence)
 end
 
 function solved(t::Transfer)
@@ -115,7 +154,7 @@ L = (orb1.a+orb2.a)/2
 T = tf1
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
 
-model, model_transfer = lambert_transfer_model([r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 20)
+model, model_transfer = lambert_transfer_model([r1 / L; v1 * T / L], [r2 / L; v2 * T / L], tf1 / T, MUPRIME, 100)
 
 initial_guess_initorb!(orb1, tf1, model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast)
 ##
@@ -189,7 +228,7 @@ tspan, ppdot = tspan_ppdot[1]
 normp = norm.(getindex.(ppdot, Ref(1:3)))
 normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in ppdot]
 # ##
-pv_diag = diagnose_ppdot(normp, normpdot)
+pv_diag = diagnose_ppdot(normp, normpdot) #remove?
 ##
 f = Figure()
 ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
@@ -202,62 +241,74 @@ f
 ##
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
-#next steps of pv algo
+# #next steps of pv algo
+#neglect early departure & late arrival
 
-nimp = (pv_diag == TG.MID) ? 3 : 2 #MAGIC NUMBER
+# nimp = (pv_diag == TG.MID) ? 3 : 2 #MAGIC NUMBER
 
-#can have ncoasts = nimp - 1 (1 case), ncoasts = nimp (2 cases), ncoasts = nimp + 1 (1 case)
-#in all cases, transfer time is subject to optimization
-if pv_diag == TG.IC_FC
-    ncoasts = nimp + 1
-elseif pv_diag == TG.IC_LA
-    ncoasts = nimp
-elseif pv_diag == TG.ED_FC
-    ncoasts = nimp
-elseif pv_diag == TG.ED_LA
-    ncoasts = nimp - 1
-elseif pv_diag == TG.MID
-    #increases number of coasts by 1
-    ncoasts = 2 #MAGIC NUMBER
-end
+# #can have ncoasts = nimp - 1 (1 case), ncoasts = nimp (2 cases), ncoasts = nimp + 1 (1 case)
+# #in all cases, transfer time is subject to optimization
+# if pv_diag == TG.IC_FC
+#     ncoasts = nimp + 1
+# elseif pv_diag == TG.IC_LA
+#     ncoasts = nimp
+# elseif pv_diag == TG.ED_FC
+#     ncoasts = nimp
+# elseif pv_diag == TG.ED_LA
+#     ncoasts = nimp - 1
+# elseif pv_diag == TG.MID
+#     #increases number of coasts by 1
+#     ncoasts = 2 #MAGIC NUMBER
+# end
 
-N=50
-model = Model(
-    optimizer_with_attributes(Ipopt.Optimizer,
-    "max_iter" => 3_000
-    )
-)
+# N=50
+# model = Model(
+#     optimizer_with_attributes(Ipopt.Optimizer,
+#     "max_iter" => 3_000
+#     )
+# )
 
-#CONTINUE HERE
+# #CONTINUE HERE
+# #if early departure, dt1 < 0.
 
-dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0, upper_bound=transfer_time / T)
+# dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0)
+
+# #sum all coasts  except first/last
+# if pv_diag == TG.IC_FC
+#     @constraint(model, sum(dts) == tf1 / T)
+# elseif pv_diag == TG.IC_LA
+#     @constraint(model, sum(dts) == tf1 / T)
+# elseif pv_diag == TG.ED_FC
+#     @constraint(model, sum(dts) == tf1 / T)
+# elseif pv_diag == TG.ED_LA
+#     @constraint(model, sum(dts) == tf1 / T)
+# elseif pv_diag == TG.MID
+#     @constraint(model, sum(dts) == tf1 / T)
+# end
+
+# deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
+# deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
+# @constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
+
+# rvcoasts = [add_coast_segment(
+#     model, dts[i], N, i,
+#     dyn=(X -> two_body_dyn(X, MUPRIME))) for i = 1:nimp+1]
+
+# rcoast = cat(first.(rvcoasts)..., dims=3)
+# vcoast = cat(last.(rvcoasts)..., dims=3)
+
+# @constraint(model, rcoast[:, 1, 1] .== r1)
+# @constraint(model, vcoast[:, 1, 1] .== v1)
+
+# #continuity constraints
+# for i = 1:nimp
+#     @constraint(model, rcoast[:, 1, i+1] .== rcoast[:, end, i])
+#     deltaV = deltaVmags[i] * deltaVdirs[:, i]
+#     @constraint(model, vcoast[:, 1, i+1] .== vcoast[:, end, i] + deltaV)
+# end
 
 
-@constraint(model, sum(dts) == transfer_time / T)
+# @constraint(model, rcoast[:, end, end] .== r2)
+# @constraint(model, vcoast[:, end, end] .== v2)
 
-deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
-deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
-@constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
-
-rvcoasts = [add_coast_segment(
-    model, dts[i], N, i,
-    dyn=(X -> two_body_dyn(X, MUPRIME))) for i = 1:nimp+1]
-
-rcoast = cat(first.(rvcoasts)..., dims=3)
-vcoast = cat(last.(rvcoasts)..., dims=3)
-
-@constraint(model, rcoast[:, 1, 1] .== r1)
-@constraint(model, vcoast[:, 1, 1] .== v1)
-
-#continuity constraints
-for i = 1:nimp
-    @constraint(model, rcoast[:, 1, i+1] .== rcoast[:, end, i])
-    deltaV = deltaVmags[i] * deltaVdirs[:, i]
-    @constraint(model, vcoast[:, 1, i+1] .== vcoast[:, end, i] + deltaV)
-end
-
-
-@constraint(model, rcoast[:, end, end] .== r2)
-@constraint(model, vcoast[:, end, end] .== v2)
-
-@objective(model, MIN_SENSE, sum(deltaVmags))
+# @objective(model, MIN_SENSE, sum(deltaVmags))
