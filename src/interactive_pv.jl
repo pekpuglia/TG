@@ -71,25 +71,25 @@ function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bo
     #build sequence - add initial condition to sequence?
     sequence = Vector{Union{Impulse, Coast}}(undef, nimp + ncoasts)
 
-    
-    if init_coast
-        for i = 1:nimp
+    #add coasts
+    for i = 1:ncoasts
+        #implicitly takes care of final_coast
+        #if initial coast, coasts are on odd indices
+        if init_coast
             sequence[2*i-1] = coasts[i]
-            sequence[2*i] = impulses[i]
-        end
-        if final_coast
-            sequence[end] = coasts[end]
-        end
-    else
-        for i = 1:ncoasts
-            sequence[2*i-1] = impulses[i]
+        else    #coasts on even indices
             sequence[2*i] = coasts[i]
-        end
-        if !final_coast
-            sequence[end] = impulses[end]
         end
     end
 
+    #add impulses
+    for i = 1:nimp
+        if init_coast
+            sequence[2*i] = impulses[i]
+        else
+            sequence[2*i-1] = impulses[i]
+        end
+    end
 
     transfer = Transfer(X1, X2, mu, tf, sequence)
 end
