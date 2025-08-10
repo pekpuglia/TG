@@ -8,16 +8,16 @@ using GLMakie
 using LinearAlgebra
 using Setfield
 include("sample_orbits.jl")
-##
-function initial_guess_initorb!(orb1, tf, r, v)
+## REPRODUCE ORBITS IN INTERACTIVE PRIMER VECTOR
+function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1)
     prop = Propagators.init(Val(:TwoBody), orb1)
 
     N = size(r)[2]
 
     for i = 1:N
         rguess, vguess = Propagators.propagate!(prop, (i-1)*tf/(N-1))
-        set_start_value.(r[:, i], rguess)
-        set_start_value.(v[:, i], vguess)
+        set_start_value.(r[:, i], rguess / L)
+        set_start_value.(v[:, i], vguess * T/L)
     end
 end
 
@@ -53,8 +53,8 @@ end
 function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool)
     ncoasts = nimp - 1 + init_coast + final_coast
 
-    dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0, upper_bound=tf)
-    @constraint(model, sum(dts) == tf)
+    dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0)#, upper_bound=tf)
+    # @constraint(model, sum(dts) == tf)
 
     deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
     deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
@@ -149,40 +149,13 @@ function unscale(t::Transfer, L, T)
     )
 end
 
-#scale options?
-function lambert_transfer_model(X1, X2, deltat, MU, N)
-    r1 = X1[1:3]
-    v1 = X1[4:6]
-    r2 = X2[1:3]
-    v2 = X2[4:6]
-
-    model = Model(Ipopt.Optimizer)
-
-    r, v = add_coast_segment(model, deltat, N, "", dyn=(X -> two_body_dyn(X, MU)))
-
-    dV = @variable(model, [1:2], lower_bound=0)
-    dVdirs = @variable(model, [1:3, 1:2])
-    @constraint(model, [i=1:2], dVdirs[:, i]' * dVdirs[:, i] == 1)
-
-    @constraint(model, r[:, 1] .== r1)
-    @constraint(model, r[:, end] .== r2)
-
-    @constraint(model, dV[1] * dVdirs[:, 1] == v[:, 1] - v1)
-    @constraint(model, dV[2] * dVdirs[:, 2] == (v[:, end] - v2))
-
-    @objective(model, MIN_SENSE, sum(dV))
-
-    model, Transfer(X1, X2, MU, deltat, [
-        Impulse(dV[1], dVdirs[:, 1]),
-        Coast(r, v, deltat),
-        Impulse(dV[2], dVdirs[:, 2])])
-end
 ##
 case_ind = 3
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
+#vary tf for each orbit
 tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)
 
 L = (orb1.a+orb2.a)/2
@@ -194,11 +167,15 @@ X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
 
-model = Model(Ipopt.Optimizer)
-model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 20, 2, false, false)
+model = Model(optimizer_with_attributes(Ipopt.Optimizer,
+    "max_iter" => 3_000,
+    "max_wall_time" => 30.0
+))
+model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, false, false)
 
-#this is not scaled!!!
-initial_guess_initorb!(orb1, tf1, model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast)
+initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
+#try different initial conditions - make list and bick best
+# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, tf1, L, T)
 ##
 optimize!(model)
 ##
@@ -261,17 +238,14 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
     tspan_ppdot
 end
 
-# deltav1 = solved_model.sequence[2].vcoast[:, 1] - v1
-# deltav2 = v2 - solved_model.sequence[2].vcoast[:, end]
-# ##
-# tspan, ppdot = ppdot_deltavs(solved_prop, deltav1, deltav2, tf1, 100)
+#automate this
 tspan_ppdot = primer_vector(solved_model, 100)
 tspan, ppdot = tspan_ppdot[1]
 normp = norm.(getindex.(ppdot, Ref(1:3)))
 normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in ppdot]
 # ##
 pv_diag = diagnose_ppdot(normp, normpdot) #remove?
-##
+## automate this
 f = Figure()
 ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
 lines!(ax1, tspan, normp)
@@ -284,12 +258,16 @@ f
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
 # try free impulse time solutions
-model = Model(Ipopt.Optimizer)
-model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 20, 2, true, true)
+model = Model(optimizer_with_attributes(Ipopt.Optimizer,
+"max_iter" => 3_000,
+"max_wall_time" => 30.0
+))
+model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, true, true)
 
-initial_guess_initorb!(orb1, 0, model_transfer.sequence[1].rcoast, model_transfer.sequence[1].vcoast)
-initial_guess_initorb!(orb1, tf1, model_transfer.sequence[3].rcoast, model_transfer.sequence[3].vcoast)
-initial_guess_initorb!(orb1, 0, model_transfer.sequence[5].rcoast, model_transfer.sequence[5].vcoast)
+initial_guess_initorb!(model_transfer.sequence[1].rcoast, model_transfer.sequence[1].vcoast, orb1, tf1/2  , L, T)
+#false! need to concatenate initial condition segments
+initial_guess_initorb!(model_transfer.sequence[3].rcoast, model_transfer.sequence[3].vcoast, orb1, tf1, L, T)
+initial_guess_initorb!(model_transfer.sequence[5].rcoast, model_transfer.sequence[5].vcoast, orb1, tf1/2  , L, T)
 
 optimize!(model)
 ##
@@ -298,7 +276,7 @@ solved_orbs = [rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1]) for c in solved_mode
 # solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
-# add_discretized_trajectory!(ax3d, solved_model.sequence[1].rcoast)
+add_discretized_trajectory!(ax3d, solved_model.sequence[1].rcoast)
 add_discretized_trajectory!(ax3d, solved_model.sequence[3].rcoast)
-# add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
+add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
 f
