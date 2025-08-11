@@ -242,7 +242,7 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
     tspan_ppdot
 end
 
-#automate this
+#automate this - discard early departure/late arrival
 tspan_ppdot = primer_vector(solved_model, 100)
 tspan, ppdot = tspan_ppdot[1]
 normp = norm.(getindex.(ppdot, Ref(1:3)))
@@ -267,7 +267,7 @@ model = Model(optimizer_with_attributes(Ipopt.Optimizer,
 # "max_wall_time" => 30.0
 ))
 
-transfer_time = 1.02tf1
+transfer_time = tf1 #1.5 tf1 gives good orbit for case GEO
 model, model_transfer = n_impulse_model(model, X1, X2, transfer_time / T, MUPRIME, 100, 2, true, true)
 
 all_r = cat((model_transfer.sequence[i].rcoast for i = [1, 3, 5])..., dims=2)
