@@ -9,7 +9,7 @@ using LinearAlgebra
 using Setfield
 include("sample_orbits.jl")
 ## REPRODUCE ORBITS IN INTERACTIVE PRIMER VECTOR
-function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1)
+function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1, ret_final_orb=false)
     prop = Propagators.init(Val(:TwoBody), orb1)
 
     N = size(r)[2]
@@ -18,6 +18,10 @@ function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1)
         rguess, vguess = Propagators.propagate!(prop, (i-1)*tf/(N-1))
         set_start_value.(r[:, i], rguess / L)
         set_start_value.(v[:, i], vguess * T/L)
+    end
+
+    if ret_final_orb
+        prop.tbd.orbk
     end
 end
 
@@ -54,7 +58,7 @@ function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bo
     ncoasts = nimp - 1 + init_coast + final_coast
 
     dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0)#, upper_bound=tf)
-    # @constraint(model, sum(dts) == tf)
+    @constraint(model, sum(dts) == tf)
 
     deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
     deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
@@ -260,14 +264,20 @@ save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 # try free impulse time solutions
 model = Model(optimizer_with_attributes(Ipopt.Optimizer,
 "max_iter" => 3_000,
-"max_wall_time" => 30.0
+# "max_wall_time" => 30.0
 ))
-model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, true, true)
 
-initial_guess_initorb!(model_transfer.sequence[1].rcoast, model_transfer.sequence[1].vcoast, orb1, tf1/2  , L, T)
-#false! need to concatenate initial condition segments
-initial_guess_initorb!(model_transfer.sequence[3].rcoast, model_transfer.sequence[3].vcoast, orb1, tf1, L, T)
-initial_guess_initorb!(model_transfer.sequence[5].rcoast, model_transfer.sequence[5].vcoast, orb1, tf1/2  , L, T)
+transfer_time = 1.02tf1
+model, model_transfer = n_impulse_model(model, X1, X2, transfer_time / T, MUPRIME, 100, 2, true, true)
+
+all_r = cat((model_transfer.sequence[i].rcoast for i = [1, 3, 5])..., dims=2)
+all_v = cat((model_transfer.sequence[i].vcoast for i = [1, 3, 5])..., dims=2)
+
+initial_guess_initorb!(all_r, all_v, orb1, transfer_time, L, T)
+
+# #false! need to concatenate initial condition segments
+# initial_guess_initorb!(model_transfer.sequence[3].rcoast, model_transfer.sequence[3].vcoast, orb1, tf1, L, T)
+# initial_guess_initorb!(model_transfer.sequence[5].rcoast, model_transfer.sequence[5].vcoast, orb1, tf1/2  , L, T)
 
 optimize!(model)
 ##
