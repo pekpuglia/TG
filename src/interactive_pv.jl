@@ -8,7 +8,19 @@ using GLMakie
 using LinearAlgebra
 using Setfield
 include("sample_orbits.jl")
-## REPRODUCE ORBITS IN INTERACTIVE PRIMER VECTOR
+
+function hohmann_cost(a1, a2, mu)
+    v1 = sqrt(mu/a1)
+    v2 = sqrt(mu/a2)
+
+    a_transf = (a1+a2)/2
+
+    vt_peri = sqrt(2*mu*(1/a1 - 1/(2*a_transf)))
+    vt_apo = sqrt(2*mu*(1/a2 - 1/(2*a_transf)))
+
+    v2-vt_apo + vt_peri-v1
+end
+
 function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1, ret_final_orb=false)
     prop = Propagators.init(Val(:TwoBody), orb1)
 
@@ -58,7 +70,7 @@ function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bo
     ncoasts = nimp - 1 + init_coast + final_coast
 
     dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0)#, upper_bound=tf)
-    @constraint(model, sum(dts) == tf)
+    @constraint(model, sum(dts) >= tf)
 
     deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
     deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
@@ -154,13 +166,13 @@ function unscale(t::Transfer, L, T)
 end
 
 ##
-case_ind = 3
+case_ind = 1
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
 #vary tf for each orbit
-tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)
+tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
 L = (orb1.a+orb2.a)/2
 T = tf1
@@ -175,11 +187,12 @@ model = Model(optimizer_with_attributes(Ipopt.Optimizer,
     "max_iter" => 3_000,
     "max_wall_time" => 30.0
 ))
-model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, false, false)
+model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 200, 2, false, false)
 
-initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
+# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
 #try different initial conditions - make list and bick best
-# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, tf1, L, T)
+initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, tf1, L, T)
+
 ##
 optimize!(model)
 ##
