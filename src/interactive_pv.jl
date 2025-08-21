@@ -279,7 +279,7 @@ end
 #     end
 # end
 ##
-case_ind = 1
+case_ind = 2
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -312,7 +312,7 @@ solved_model = unscale(solved(model_transfer), L, T)
 solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])
 solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
-function add_transfer!(ax3d, solved_transfer::Transfer)
+function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
     #get first position
     last_r = if solved_transfer.sequence[1] isa Coast
         solved_transfer.sequence[1].rcoast[:, 1]
@@ -329,8 +329,6 @@ function add_transfer!(ax3d, solved_transfer::Transfer)
             #add line on impulse
             dir = el.deltaVdir
             mag = el.deltaVmag
-            
-            scaling = 1e4
 
             arrow_data = [last_r last_r+mag*dir*scaling]
             lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
@@ -390,7 +388,5 @@ solved_orbs = [rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1]) for c in solved_mode
 # solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
-add_discretized_trajectory!(ax3d, solved_model.sequence[1].rcoast)
-add_discretized_trajectory!(ax3d, solved_model.sequence[3].rcoast)
-add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
+add_transfer!(ax3d, solved_model, 1e3)
 f
