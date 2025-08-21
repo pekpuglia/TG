@@ -1,5 +1,3 @@
-export euler, RK4, RK8
-
 function euler(f, X, dt)
     X + f(X)*dt
 end
@@ -12,7 +10,7 @@ function RK4(f, X, dt)
     X + (k1+2k2+2k3+k4)/6
 end
 
-#doesn't work with ipopt
+#doesn't work with JuMP
 function RK8(f, X, dt)
     #time invariant dynamics
     # c = zeros(Float64, (16,))

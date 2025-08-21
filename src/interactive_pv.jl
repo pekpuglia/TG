@@ -1,169 +1,17 @@
-using SatelliteToolboxBase
-using SatelliteToolboxPropagators
-using JuMP
+# using SatelliteToolboxBase
+# using SatelliteToolboxPropagators
+# using JuMP
 using Ipopt
-include("TG.jl")
-using .TG
-using GLMakie
-using LinearAlgebra
+# using GLMakie
+# using LinearAlgebra
 using Setfield
 include("sample_orbits.jl")
-
-function hohmann_cost(a1, a2, mu)
-    v1 = sqrt(mu/a1)
-    v2 = sqrt(mu/a2)
-
-    a_transf = (a1+a2)/2
-
-    vt_peri = sqrt(2*mu*(1/a1 - 1/(2*a_transf)))
-    vt_apo = sqrt(2*mu*(1/a2 - 1/(2*a_transf)))
-
-    v2-vt_apo + vt_peri-v1
-end
-
-function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1, ret_final_orb=false)
-    prop = Propagators.init(Val(:TwoBody), orb1)
-
-    N = size(r)[2]
-
-    for i = 1:N
-        rguess, vguess = Propagators.propagate!(prop, (i-1)*tf/(N-1))
-        set_start_value.(r[:, i], rguess / L)
-        set_start_value.(v[:, i], vguess * T/L)
-    end
-
-    if ret_final_orb
-        prop.tbd.orbk
-    end
-end
-
-struct Impulse
-    deltaVmag
-    deltaVdir
-end
-solved(i::Impulse) = Impulse(value(i.deltaVmag), value.(i.deltaVdir))
-unscale(i::Impulse, L, T) = Impulse(L/T * i.deltaVmag, i.deltaVdir)
-
-struct Coast
-    rcoast::Matrix
-    vcoast::Matrix
-    dt
-end
-solved(c::Coast) = Coast(value.(c.rcoast), value.(c.vcoast), value(c.dt))
-unscale(c::Coast, L, T) = Coast(L * c.rcoast, L/T * c.vcoast, T * c.dt)
-
-struct Transfer
-    X1::Vector
-    X2::Vector
-    mu::Float64
-    transfer_time
-    # rcoast::Array
-    # vcoast::Array
-    # deltaVmags::Vector
-    # deltaVdirs::Matrix
-    # dts::Vector
-    sequence::Vector{Union{Impulse, Coast}}
-end
-
-#scaling agnostic!
-function n_impulse_model(model, X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool)
-    ncoasts = nimp - 1 + init_coast + final_coast
-
-    dts = @variable(model, [1:ncoasts], base_name = "dt", lower_bound=0)#, upper_bound=tf)
-    @constraint(model, sum(dts) >= tf)
-
-    deltaVmags = @variable(model, [1:nimp], lower_bound = 0, base_name = "dVmag")
-    deltaVdirs = @variable(model, [1:3, 1:nimp], base_name = "dVdir")
-    @constraint(model, [i=1:nimp], deltaVdirs[:, i]' * deltaVdirs[:, i] == 1)
-
-    impulses = Impulse.(deltaVmags, eachcol(deltaVdirs))
-
-    rvcoasts = [add_coast_segment(
-    model, dts[i], Ndisc, i,
-    dyn=(X -> two_body_dyn(X, mu))) for i = 1:ncoasts]
-
-    coasts = Coast.(first.(rvcoasts), last.(rvcoasts), dts)
-    
-    #build sequence - add initial condition to sequence? could simplify logic
-    sequence = Vector{Union{Impulse, Coast}}(undef, nimp + ncoasts)
-
-
-    #add coasts
-    for i = 1:ncoasts
-        #implicitly takes care of final_coast
-        #if initial coast, coasts are on odd indices
-        if init_coast
-            sequence[2*i-1] = coasts[i]
-        else    #coasts on even indices
-            sequence[2*i] = coasts[i]
-        end
-    end
-
-    #add impulses
-    for i = 1:nimp
-        imp_ind = (init_coast) ? 2*i : 2*i-1
-        sequence[imp_ind] = impulses[i]
-
-        #add continuity constraints between coasts
-        if 1 < imp_ind < nimp+ncoasts && sequence[imp_ind-1] isa Coast && sequence[imp_ind+1] isa Coast
-            last_coast = sequence[imp_ind-1]
-            imp = sequence[imp_ind]
-            next_coast = sequence[imp_ind+1]
-            @constraint(model, last_coast.rcoast[:, end] .== next_coast.rcoast[:, 1])
-            @constraint(model, next_coast.vcoast[:, 1] .== last_coast.vcoast[:, 1] + imp.deltaVmag * imp.deltaVdir)
-        end
-    end
-
-    #initial boundary condition
-    if init_coast
-        @constraint(model, coasts[1].rcoast[:, 1] .== X1[1:3])
-        @constraint(model, coasts[1].vcoast[:, 1] .== X1[4:6])
-    else
-        #init cond -> imp -> coast
-        i = sequence[1]
-        c = sequence[2]
-        @constraint(model, c.rcoast[:, 1] .== X1[1:3])
-        @constraint(model, c.vcoast[:, 1] .== X1[4:6] + i.deltaVmag * i.deltaVdir)
-    end
-
-    #final boundary condition
-    if final_coast
-        @constraint(model, coasts[end].rcoast[:, end] .== X2[1:3])
-        @constraint(model, coasts[end].vcoast[:, end] .== X2[4:6])
-    else
-        #init cond -> imp -> coast
-        i = sequence[end]
-        c = sequence[end-1]
-        @constraint(model, c.rcoast[:, end] .== X2[1:3])
-        @constraint(model, X2[4:6] .== c.vcoast[:, end] + i.deltaVmag * i.deltaVdir)
-    end
-
-    @objective(model, Min, sum(deltaVmags))
-
-    transfer = Transfer(X1, X2, mu, tf, sequence)
-
-    model, transfer
-end
-
-function solved(t::Transfer)
-    Transfer(
-        t.X1,
-        t.X2,
-        t.mu,
-        t.transfer_time,
-        solved.(t.sequence)
-    )
-end
-
-function unscale(t::Transfer, L, T)
-    Transfer(
-        diagm([L, L, L, L/T, L/T, L/T]) * t.X1,
-        diagm([L, L, L, L/T, L/T, L/T]) * t.X2,
-        L^3 / T^2 * t.mu,
-        T * t.transfer_time,
-        unscale.(t.sequence, L, T)
-    )
-end
+include("transfer.jl")
+include("./primer_vector.jl")
+include("integrators.jl")
+include("orb_mech.jl")
+include("plotting.jl")
+include("jump_base.jl")
 
 ##
 case_ind = 1
@@ -214,49 +62,10 @@ save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 #     diagnostic::PRIMER_DIAGNOSTIC
 # end
 
-function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
-    coast_list = filter(x -> x isa Coast, transfer.sequence)
-    impulse_list = filter(x-> x isa Impulse, transfer.sequence)
 
-    dts = getfield.(coast_list, :dt)
-    
-    impulse_times = cumsum([0; dts])
-
-    #compute primer vector on coasts surrounded by impulses
-    two_impulse_coasts = []
-    for (e1, e2, e3) in zip(transfer.sequence[1:end-2], transfer.sequence[2:end-1], transfer.sequence[3:end])
-        if e1 isa Impulse && e2 isa Coast && e3 isa Impulse
-            push!(two_impulse_coasts, (e1, e2, e3))
-        end
-    end
-
-    if transfer.sequence[1] isa Coast || transfer.sequence[end] isa Coast
-        @warn "Unimplemented edge coast case!!!!"
-    end
-
-    tspan_ppdot = []
-
-    for tic in two_impulse_coasts
-        i1, c, i2 = tic
-        dv1 = i1.deltaVmag * i1.deltaVdir
-        dv2 = i2.deltaVmag * i2.deltaVdir
-
-        orbit = rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1])
-
-        propagator = Propagators.init(Val(:TwoBody), orbit)
-
-        push!(tspan_ppdot, ppdot_deltavs(propagator, dv1, dv2, c.dt, npoints; tpbvp_kwargs...))
-    end
-
-    # tspan = first.(tspan_ppdot)
-    # ppdot = last.(tspan_ppdot)
-
-    #plug diagnostic function, which is incomplete
-    tspan_ppdot
-end
 
 #automate this - discard early departure/late arrival
-tspan_ppdot = primer_vector(solved_model, 100)
+tspan_ppdot = primer_vector(solved_model, 1000, planar=true)
 tspan, ppdot = tspan_ppdot[1]
 normp = norm.(getindex.(ppdot, Ref(1:3)))
 normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in ppdot]
