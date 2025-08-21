@@ -38,6 +38,7 @@ struct Transfer
     # dts::Vector
     sequence::Vector{Union{Impulse, Coast}}
 end
+total_dV(t::Transfer) = sum(el.deltaVmag for el in t.sequence)
 
 function unscale(t::Transfer, L, T)
     Transfer(
