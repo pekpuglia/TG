@@ -8,23 +8,7 @@ using GLMakie
 using LinearAlgebra
 using Setfield
 include("sample_orbits.jl")
-## REPRODUCE ORBITS IN INTERACTIVE PRIMER VECTOR
-function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1, ret_final_orb=false)
-    prop = Propagators.init(Val(:TwoBody), orb1)
-
-    N = size(r)[2]
-
-    for i = 1:N
-        rguess, vguess = Propagators.propagate!(prop, (i-1)*tf/(N-1))
-        set_start_value.(r[:, i], rguess / L)
-        set_start_value.(v[:, i], vguess * T/L)
-    end
-
-    if ret_final_orb
-        prop.tbd.orbk
-    end
-end
-
+##
 struct Impulse
     deltaVmag
     deltaVdir
@@ -53,6 +37,26 @@ struct Transfer
     # deltaVdirs::Matrix
     # dts::Vector
     sequence::Vector{Union{Impulse, Coast}}
+end
+
+function unscale(t::Transfer, L, T)
+    Transfer(
+        diagm([L, L, L, L/T, L/T, L/T]) * t.X1,
+        diagm([L, L, L, L/T, L/T, L/T]) * t.X2,
+        L^3 / T^2 * t.mu,
+        T * t.transfer_time,
+        unscale.(t.sequence, L, T)
+    )
+end
+
+function scale(t::Transfer, L, T)
+    Transfer(
+        diagm([L, L, L, L/T, L/T, L/T]) \ t.X1,
+        diagm([L, L, L, L/T, L/T, L/T]) \ t.X2,
+        T^2 / L^3 * t.mu,
+        T \ t.transfer_time,
+        scale.(t.sequence, L, T)
+    )
 end
 
 function create_sequence(nimp::Int, init_coast::Bool, final_coast::Bool)
@@ -112,6 +116,47 @@ function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, fina
     end
 
     [scale(s, L, T) for s = sequence]
+end
+
+function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
+    coast_list = filter(x -> x isa Coast, transfer.sequence)
+    impulse_list = filter(x-> x isa Impulse, transfer.sequence)
+
+    dts = getfield.(coast_list, :dt)
+    
+    impulse_times = cumsum([0; dts])
+
+    #compute primer vector on coasts surrounded by impulses
+    two_impulse_coasts = []
+    for (e1, e2, e3) in zip(transfer.sequence[1:end-2], transfer.sequence[2:end-1], transfer.sequence[3:end])
+        if e1 isa Impulse && e2 isa Coast && e3 isa Impulse
+            push!(two_impulse_coasts, (e1, e2, e3))
+        end
+    end
+
+    if transfer.sequence[1] isa Coast || transfer.sequence[end] isa Coast
+        @warn "Unimplemented edge coast case!!!!"
+    end
+
+    tspan_ppdot = []
+
+    for tic in two_impulse_coasts
+        i1, c, i2 = tic
+        dv1 = i1.deltaVmag * i1.deltaVdir
+        dv2 = i2.deltaVmag * i2.deltaVdir
+
+        orbit = rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1])
+
+        propagator = Propagators.init(Val(:TwoBody), orbit)
+
+        push!(tspan_ppdot, ppdot_deltavs(propagator, dv1, dv2, c.dt, npoints; tpbvp_kwargs...))
+    end
+
+    # tspan = first.(tspan_ppdot)
+    # ppdot = last.(tspan_ppdot)
+
+    #plug diagnostic function, which is incomplete
+    tspan_ppdot
 end
 
 #scaling agnostic!
@@ -204,26 +249,6 @@ function solved(t::Transfer)
     )
 end
 
-function unscale(t::Transfer, L, T)
-    Transfer(
-        diagm([L, L, L, L/T, L/T, L/T]) * t.X1,
-        diagm([L, L, L, L/T, L/T, L/T]) * t.X2,
-        L^3 / T^2 * t.mu,
-        T * t.transfer_time,
-        unscale.(t.sequence, L, T)
-    )
-end
-
-function scale(t::Transfer, L, T)
-    Transfer(
-        diagm([L, L, L, L/T, L/T, L/T]) \ t.X1,
-        diagm([L, L, L, L/T, L/T, L/T]) \ t.X2,
-        T^2 / L^3 * t.mu,
-        T \ t.transfer_time,
-        scale.(t.sequence, L, T)
-    )
-end
-
 function set_initial_guess(model_transfer::Transfer, initial_sequence::Vector)
     for (model_el, el) in zip(model_transfer.sequence, initial_sequence)
         if el isa Impulse
@@ -237,6 +262,21 @@ function set_initial_guess(model_transfer::Transfer, initial_sequence::Vector)
     end
 end
 
+# function initial_guess_initorb!(r, v, orb1, tf, L=1, T=1, ret_final_orb=false)
+#     prop = Propagators.init(Val(:TwoBody), orb1)
+
+#     N = size(r)[2]
+
+#     for i = 1:N
+#         rguess, vguess = Propagators.propagate!(prop, (i-1)*tf/(N-1))
+#         set_start_value.(r[:, i], rguess / L)
+#         set_start_value.(v[:, i], vguess * T/L)
+#     end
+
+#     if ret_final_orb
+#         prop.tbd.orbk
+#     end
+# end
 ##
 case_ind = 1
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
@@ -259,16 +299,8 @@ model = Model(optimizer_with_attributes(Ipopt.Optimizer,
     "max_iter" => 3_000,
     "max_wall_time" => 30.0
 ))
-model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, false, false)
 
-# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
-#try different initial conditions - make list and bick best
-# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, tf1, L, T)
-# set_start_value.(model_transfer.sequence[1].deltaVdir, X1[4:6]/norm(X1[4:6]))
-# set_start_value(model_transfer.sequence[1].deltaVmag, 0)
-# set_start_value.(model_transfer.sequence[3].deltaVdir, X2[4:6]/norm(X2[4:6]))
-# set_start_value(model_transfer.sequence[3].deltaVmag, 0)
-# set_start_value(model_transfer.sequence[2].dt, tf1/T)
+model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, false, false)
 
 #doesn't work - check
 set_initial_guess(model_transfer, initial_orb_sequence(orb1, tf1, 100, 2, false, false, [1.0], L, T))
@@ -279,60 +311,39 @@ solved_model = unscale(solved(model_transfer), L, T)
 solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])
 solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
+function add_transfer!(ax3d, solved_transfer::Transfer)
+    #get first position
+    last_r = if solved_transfer.sequence[1] isa Coast
+        solved_transfer.sequence[1].rcoast[:, 1]
+    else
+        solved_transfer.sequence[2].rcoast[:, 1]
+    end
+
+    for el in solved_transfer.sequence
+        if el isa Coast
+            add_discretized_trajectory!(ax3d, el.rcoast)
+            last_r = el.rcoast[:, end]
+        else
+            scatter!(ax3d, last_r..., color="red")
+            #add line on impulse
+            dir = el.deltaVdir
+            mag = el.deltaVmag
+            
+            scaling = 1e4
+
+            arrow_data = [last_r last_r+mag*dir*scaling]
+            lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
+        end
+    end
+end
+
 f, ax3d = plot_orbit(orb1, orb2)
-add_discretized_trajectory!(ax3d, solved_model.sequence[2].rcoast)
+# add_discretized_trajectory!(ax3d, solved_model.sequence[2].rcoast)
+add_transfer!(ax3d, solved_model)
 f
 ##
 save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
-# struct PVTrajectory
-#     impulse_times::Vector
-#     #list of trajectories for each coasting arc
-#     #therefore length(p) = nimp - 1
-#     p::Vector{Matrix}
-#     diagnostic::PRIMER_DIAGNOSTIC
-# end
-
-function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
-    coast_list = filter(x -> x isa Coast, transfer.sequence)
-    impulse_list = filter(x-> x isa Impulse, transfer.sequence)
-
-    dts = getfield.(coast_list, :dt)
-    
-    impulse_times = cumsum([0; dts])
-
-    #compute primer vector on coasts surrounded by impulses
-    two_impulse_coasts = []
-    for (e1, e2, e3) in zip(transfer.sequence[1:end-2], transfer.sequence[2:end-1], transfer.sequence[3:end])
-        if e1 isa Impulse && e2 isa Coast && e3 isa Impulse
-            push!(two_impulse_coasts, (e1, e2, e3))
-        end
-    end
-
-    if transfer.sequence[1] isa Coast || transfer.sequence[end] isa Coast
-        @warn "Unimplemented edge coast case!!!!"
-    end
-
-    tspan_ppdot = []
-
-    for tic in two_impulse_coasts
-        i1, c, i2 = tic
-        dv1 = i1.deltaVmag * i1.deltaVdir
-        dv2 = i2.deltaVmag * i2.deltaVdir
-
-        orbit = rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1])
-
-        propagator = Propagators.init(Val(:TwoBody), orbit)
-
-        push!(tspan_ppdot, ppdot_deltavs(propagator, dv1, dv2, c.dt, npoints; tpbvp_kwargs...))
-    end
-
-    # tspan = first.(tspan_ppdot)
-    # ppdot = last.(tspan_ppdot)
-
-    #plug diagnostic function, which is incomplete
-    tspan_ppdot
-end
 
 #automate this - discard early departure/late arrival
 tspan_ppdot = primer_vector(solved_model, 100)
