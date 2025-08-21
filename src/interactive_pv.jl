@@ -31,6 +31,7 @@ struct Impulse
 end
 solved(i::Impulse) = Impulse(value(i.deltaVmag), value.(i.deltaVdir))
 unscale(i::Impulse, L, T) = Impulse(L/T * i.deltaVmag, i.deltaVdir)
+scale(i::Impulse, L, T) = Impulse(T/L * i.deltaVmag, i.deltaVdir)
 
 struct Coast
     rcoast::Matrix
@@ -39,6 +40,7 @@ struct Coast
 end
 solved(c::Coast) = Coast(value.(c.rcoast), value.(c.vcoast), value(c.dt))
 unscale(c::Coast, L, T) = Coast(L * c.rcoast, L/T * c.vcoast, T * c.dt)
+scale(c::Coast, L, T) = Coast(L \ c.rcoast, T/L * c.vcoast, T \ c.dt)
 
 struct Transfer
     X1::Vector
@@ -69,7 +71,7 @@ function create_sequence(nimp::Int, init_coast::Bool, final_coast::Bool)
     sequence, ncoasts
 end
 
-function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool, time_partition)
+function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool, time_partition, L=1, T=1)
     type_sequence, ncoasts = create_sequence(nimp, init_coast, final_coast)
 
     coast_times = tf * time_partition
@@ -109,7 +111,7 @@ function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, fina
         end
     end
 
-    sequence
+    [scale(s, L, T) for s = sequence]
 end
 
 #scaling agnostic!
@@ -212,17 +214,40 @@ function unscale(t::Transfer, L, T)
     )
 end
 
+function scale(t::Transfer, L, T)
+    Transfer(
+        diagm([L, L, L, L/T, L/T, L/T]) \ t.X1,
+        diagm([L, L, L, L/T, L/T, L/T]) \ t.X2,
+        T^2 / L^3 * t.mu,
+        T \ t.transfer_time,
+        scale.(t.sequence, L, T)
+    )
+end
+
+function set_initial_guess(model_transfer::Transfer, initial_sequence::Vector)
+    for (model_el, el) in zip(model_transfer.sequence, initial_sequence)
+        if el isa Impulse
+            set_start_value.(model_el.deltaVdir, el.deltaVdir)
+            set_start_value(model_el.deltaVmag, el.deltaVmag)
+        elseif el isa Coast
+            set_start_value.(model_el.rcoast, el.rcoast)
+            set_start_value.(model_el.vcoast, el.vcoast)
+            set_start_value(model_el.dt, el.dt)
+        end
+    end
+end
+
 ##
-case_ind = 3
+case_ind = 1
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
 #vary tf for each orbit
-tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)
+tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)/2
 
 L = (orb1.a+orb2.a)/2
-T = tf1
+T = 1
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
 
 
@@ -236,10 +261,18 @@ model = Model(optimizer_with_attributes(Ipopt.Optimizer,
 ))
 model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 100, 2, false, false)
 
-initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
+# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
 #try different initial conditions - make list and bick best
 # initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, tf1, L, T)
-##
+# set_start_value.(model_transfer.sequence[1].deltaVdir, X1[4:6]/norm(X1[4:6]))
+# set_start_value(model_transfer.sequence[1].deltaVmag, 0)
+# set_start_value.(model_transfer.sequence[3].deltaVdir, X2[4:6]/norm(X2[4:6]))
+# set_start_value(model_transfer.sequence[3].deltaVmag, 0)
+# set_start_value(model_transfer.sequence[2].dt, tf1/T)
+
+#doesn't work - check
+set_initial_guess(model_transfer, initial_orb_sequence(orb1, tf1, 100, 2, false, false, [1.0], L, T))
+
 optimize!(model)
 ##
 solved_model = unscale(solved(model_transfer), L, T)
@@ -323,20 +356,20 @@ save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 # try free impulse time solutions
 model = Model(optimizer_with_attributes(Ipopt.Optimizer,
 "max_iter" => 3_000,
-# "max_wall_time" => 30.0
+"max_wall_time" => 30.0
 ))
 
 transfer_time = tf1 #1.5 tf1 gives good orbit for case GEO
-model, model_transfer = n_impulse_model(model, X1, X2, transfer_time / T, MUPRIME, 100, 2, true, true)
+model, model_transfer = n_impulse_model(model, X1, X2, transfer_time / T, MUPRIME, 200, 2, true, true)
 
-all_r = cat((model_transfer.sequence[i].rcoast for i = [1, 3, 5])..., dims=2)
-all_v = cat((model_transfer.sequence[i].vcoast for i = [1, 3, 5])..., dims=2)
+# all_r = cat((model_transfer.sequence[i].rcoast for i = [1, 3, 5])..., dims=2)
+# all_v = cat((model_transfer.sequence[i].vcoast for i = [1, 3, 5])..., dims=2)
 
-initial_guess_initorb!(all_r, all_v, orb1, transfer_time, L, T)
+init_seq = initial_orb_sequence(orb1, transfer_time, 200, 2, true, true, [0, 1.0, 0])
 
-# #false! need to concatenate initial condition segments
-# initial_guess_initorb!(model_transfer.sequence[3].rcoast, model_transfer.sequence[3].vcoast, orb1, tf1, L, T)
-# initial_guess_initorb!(model_transfer.sequence[5].rcoast, model_transfer.sequence[5].vcoast, orb1, tf1/2  , L, T)
+init_seq = [scale(el, L, T) for el in init_seq]
+
+set_initial_guess(model_transfer, init_seq)
 
 optimize!(model)
 ##
