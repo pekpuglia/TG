@@ -19,6 +19,6 @@ planner.prob["f"] = f
 
 S = casadi.nlpsol("S", "ipopt", planner.prob)
 
-sol, solvetime = solve_planner(S, planner, [0.0,0])
+sol = solve_planner(S, planner, [0.0,0])
 
 println("Optimal solution: x = ", sol["x"].toarray()[1], ", y = ", sol["x"].toarray()[2])

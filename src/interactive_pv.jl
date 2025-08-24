@@ -35,11 +35,11 @@ X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
 N = 100
-tabX = SX("X", 6, N)
-dVmag = SX("dVmag", 2)
-dVdir = SX("dVdir", 3, 2)
+tabX = cvar("X", 6, N)
+dVmag = cvar("dVmag", 2)
+dVdir = cvar("dVdir", 3, 2)
 
-variables = vcat(sx_iterator(tabX)..., sx_iterator(dVmag)..., sx_iterator(dVdir)...)
+variables = [tabX..., dVmag..., dVdir...]
 
 planner = CasADiPlanner(variables)
 
@@ -60,9 +60,30 @@ for i = 1:(N-1)
     add_equality!(planner, tabX[:, i+1] .- RK8(f, tabX[:, i], tfprime/(N-1)), zeros(6));
 end
 
-planner.prob["f"] = sum(sx_iterator(dVmag));
+planner.prob["f"] = sum(sx_iterator(dVmag))
 ##
-# optimize!(model)
+solver = casadi.nlpsol("S", "ipopt", planner.prob)
+## initial guess
+tabx0 = []
+dVmag0 = []
+dVdir0 = []
+
+dVmags0 = [0; 0];
+dVdirs0 = [X1[4:6]/norm(X1[4:6]) X2[4:6]/norm(X2[4:6])];
+#integrate motion along initial orbit
+tabX0 = repeat(X1, 1, N);
+
+for i = 2:N
+    tabX0[:, i] = RK8(f, tabX0[:, i-1], tfprime/(N-1));
+end
+
+tab0 = [
+    reshape(tabX0, 6*N, 1);
+    dVmags0;
+    reshape(dVdirs0, 3*2, 1)
+];
+##
+sol = solve_planner(solver, planner, tab0)
 ##
 solved_model = unscale(solved(model_transfer), L, T)
 solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])
