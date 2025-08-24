@@ -1,7 +1,7 @@
 # using SatelliteToolboxBase
 # using SatelliteToolboxPropagators
 # using JuMP
-using Ipopt
+# using Ipopt
 # using GLMakie
 # using LinearAlgebra
 using Setfield
@@ -11,7 +11,8 @@ include("./primer_vector.jl")
 include("integrators.jl")
 include("orb_mech.jl")
 include("plotting.jl")
-include("jump_base.jl")
+# include("jump_base.jl")
+include("casadi_interface.jl")
 
 ##
 case_ind = 1
@@ -20,29 +21,48 @@ r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
 #vary tf for each orbit
-tf1 = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
+tf_real = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
 L = (orb1.a+orb2.a)/2
-T = tf1
+T = tf_real
+tfprime = tf_real / T
+
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
+f = X -> two_body_dyn(X, MUPRIME)
 
 
 X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
+N = 100
+tabX = SX("X", 6, N)
+dVmag = SX("dVmag", 2)
+dVdir = SX("dVdir", 3, 2)
 
-model = Model(optimizer_with_attributes(Ipopt.Optimizer,
-    "max_iter" => 3_000,
-    "max_wall_time" => 30.0
-))
-model, model_transfer = n_impulse_model(model, X1, X2, tf1 / T, MUPRIME, 200, 2, false, false)
+variables = vcat(sx_iterator(tabX)..., sx_iterator(dVmag)..., sx_iterator(dVdir)...)
 
-# initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, 0, L, T)
-#try different initial conditions - make list and bick best
-initial_guess_initorb!(model_transfer.sequence[2].rcoast, model_transfer.sequence[2].vcoast, orb1, tf1, L, T)
+planner = CasADiPlanner(variables)
 
+add_bounds!(planner, dVmag[1], 0, Inf)
+add_bounds!(planner, dVmag[2], 0, Inf)
+
+add_equality!(planner, dVdir[:, 1]' * dVdir[:, 1], 1)
+add_equality!(planner, dVdir[:, 2]' * dVdir[:, 2], 1)
+
+#boundary conditions
+add_equality!(planner, tabX[1:3, 1], X1[1:3]);
+add_equality!(planner, tabX[4:6, 1] - dVmag[1]*dVdir[:, 1], X1[4:6]);
+add_equality!(planner, tabX[1:3, end], X2[1:3]);
+add_equality!(planner, tabX[4:6, end] + dVmag[2]*dVdir[:, 2], X2[4:6]);
+
+#integration
+for i = 1:(N-1)
+    add_equality!(planner, tabX[:, i+1] .- RK8(f, tabX[:, i], tfprime/(N-1)), zeros(6));
+end
+
+planner.prob["f"] = sum(sx_iterator(dVmag));
 ##
-optimize!(model)
+# optimize!(model)
 ##
 solved_model = unscale(solved(model_transfer), L, T)
 solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])

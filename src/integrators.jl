@@ -185,33 +185,29 @@ function RK8(f, X, dt)
     b[15] =  .2947744761261941714007911131590716605202e-1
     b[16] =  0
 
-    Ftype = promote_type(eltype(X), typeof(dt))
-
-    Ftype = (Ftype <: Number) ? Ftype : NonlinearExpr
-
-    F = zeros(Ftype, (length(X),16))
+    F = [zeros(length(X), 1), [[] for i = 1:15]...]
 
     for i = 1:16
         #compute increment in Y
-        dY = zeros(Ftype, length(X))
-        for j = 1:(i-1)
+        dY = a[i, 1] * F[1];
+        for j = 2:(i-1)
             if a[i, j] != 0
-                dY += a[i, j] * F[:, j]
+                dY = dY + a[i, j] * F[j];
             end
         end
-        Y = X + dt * dY
-        F[:, i] = f(Y)
+        Y = X .+ dt * dY;
+        F[i] = f(Y);
     end
 
     #increment in X
-    dX = zeros(Ftype, length(X))
+    dX = zeros(length(X), 1);
     for i = 1:16
         if b[i] != 0
-            dX += b[i] * F[:, i]
+            dX = dX + b[i] * F[i];
         end
     end
 
-    X + dt*dX
+    Xnext = X .+ dt*dX;
 end
 
 function sol_ode(f, X0, dt, N, integrator=euler)
