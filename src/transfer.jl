@@ -4,6 +4,7 @@ struct Impulse
     deltaVdir
 end
 unscale(i::Impulse, L, T) = Impulse(L/T * i.deltaVmag, i.deltaVdir)
+scale(i::Impulse, L, T) = Impulse(T/L * i.deltaVmag, i.deltaVdir)
 
 struct Coast
     rcoast::Matrix
@@ -11,7 +12,9 @@ struct Coast
     dt
 end
 unscale(c::Coast, L, T) = Coast(L * c.rcoast, L/T * c.vcoast, T * c.dt)
+scale(c::Coast, L, T) = Coast(L \ c.rcoast, T/L * c.vcoast, T \ c.dt)
 
+#add nimp, ncoasts, init_coast, final_coast to struct
 struct Transfer
     X1::Vector
     X2::Vector

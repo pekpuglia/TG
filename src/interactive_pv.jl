@@ -15,6 +15,48 @@ include("plotting.jl")
 # include("casadi_interface.jl")
 include("casadi_transfer_model.jl")
 
+function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool, time_partition)
+    type_sequence, ncoasts = create_sequence(nimp, init_coast, final_coast)
+
+    coast_times = tf * time_partition
+    # cum_time = cumsum([0, coast_times...])
+
+    # prop0 = Propagators.init(Val(:TwoBody), orb1)
+
+    # props = []
+
+    # for i = 1:ncoasts
+    #     Propagators.propagate(prop0, cum_time[i])
+    #     orbk = prop0.tbd.orbk
+    #     push!(props, Propagators.init(Val(:TwoBody), orbk))
+    # end
+
+    sequence = []
+
+    last_r, last_v = kepler_to_rv(orb1)
+    coast_ind = 0
+    for t in type_sequence
+        if t == Impulse #impulse in velocity direction
+            push!(sequence, Impulse(0.0, last_v/norm(last_v)))
+        elseif t == Coast
+            coast_ind += 1
+            orb = rv_to_kepler(last_r, last_v)
+            prop = Propagators.init(Val(:TwoBody), orb)
+            tabr = zeros(3, Ndisc)
+            tabv = zeros(3, Ndisc)
+            for i = 1:Ndisc
+                r, v = Propagators.propagate!(prop, coast_times[coast_ind] * (i-1) / (Ndisc-1))
+                tabr[:, i] = r
+                tabv[:, i] = v
+            end
+            last_r = tabr[:, end]
+            last_v = tabv[:, end]
+            push!(sequence, Coast(tabr, tabv, coast_times[coast_ind]))
+        end
+    end
+
+    sequence
+end
 ##
 case_ind = 1
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
@@ -25,7 +67,7 @@ r2, v2 = kepler_to_rv(orb2)
 tf_real = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
 L = (orb1.a+orb2.a)/2
-T = tf_real
+T = 1
 tfprime = tf_real / T
 
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
@@ -36,53 +78,17 @@ X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
 N = 100
-tabX = cvar("X", 6, N)
-dVmag = cvar("dVmag", 2)
-dVdir = cvar("dVdir", 3, 2)
-
-variables = [tabX..., dVmag..., dVdir...]
-
-planner = CasADiPlanner(variables)
-
-add_bounds!(planner, dVmag[1], 0, Inf)
-add_bounds!(planner, dVmag[2], 0, Inf)
-
-add_equality!(planner, dVdir[:, 1]' * dVdir[:, 1], 1)
-add_equality!(planner, dVdir[:, 2]' * dVdir[:, 2], 1)
-
-#boundary conditions
-add_equality!(planner, tabX[1:3, 1], X1[1:3]);
-add_equality!(planner, tabX[4:6, 1] - dVmag[1]*dVdir[:, 1], X1[4:6]);
-add_equality!(planner, tabX[1:3, end], X2[1:3]);
-add_equality!(planner, tabX[4:6, end] + dVmag[2]*dVdir[:, 2], X2[4:6]);
-
-#integration
-for i = 1:(N-1)
-    add_equality!(planner, tabX[:, i+1] .- RK8(f, tabX[:, i], tfprime/(N-1)), zeros(6));
-end
-
-planner.prob["f"] = sum(sx_iterator(dVmag))
+planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, false, false)
 ##
 solver = casadi.nlpsol("S", "ipopt", planner.prob)
 ## initial guess
-tabx0 = []
-dVmag0 = []
-dVdir0 = []
 
-dVmags0 = [0; 0];
-dVdirs0 = [X1[4:6]/norm(X1[4:6]) X2[4:6]/norm(X2[4:6])];
-#integrate motion along initial orbit
-tabX0 = repeat(X1, 1, N);
+seq0 = [scale(s, L, T) 
+    for s = initial_orb_sequence(orb1, tf_real, N, 2, false, false, [1.0])
+    ]
 
-for i = 2:N
-    tabX0[:, i] = RK8(f, tabX0[:, i-1], tfprime/(N-1));
-end
+tab0 = vcat(varlist.(seq0)...)
 
-tab0 = [
-    reshape(tabX0, 6*N, 1);
-    dVmags0;
-    reshape(dVdirs0, 3*2, 1)
-];
 ##
 sol = solve_planner(solver, planner, tab0)
 ##
