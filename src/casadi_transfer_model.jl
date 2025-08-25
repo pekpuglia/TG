@@ -126,15 +126,31 @@ function n_impulse_transfer(X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, 
     planner, transfer
 end
 
-#redo with casadi
-# solved(i::Impulse) = Impulse(value(i.deltaVmag), value.(i.deltaVdir))
-# solved(c::Coast) = Coast(value.(c.rcoast), value.(c.vcoast), value(c.dt))
-# function solved(t::Transfer)
-#     Transfer(
-#         t.X1,
-#         t.X2,
-#         t.mu,
-#         t.transfer_time,
-#         solved.(t.sequence)
-#     )
-# end
+function sol_to_transfer(sol::Dict, casadi_transfer::Transfer)
+    x = sol["x"].toarray()
+    variables = varlist(casadi_transfer)
+
+    solved_sequence = []
+
+    for el = casadi_transfer.sequence
+        if el isa Impulse
+            imp_ind = findfirst(v -> casadi.is_equal(v, el.deltaVmag), variables)
+            push!(solved_sequence, Impulse(x[imp_ind], x[(imp_ind+1):(imp_ind+3)]))
+        elseif el isa Coast
+            cst_ind = findfirst(v -> casadi.is_equal(v, el.rcoast[1, 1]), variables)
+            cst_array_len = length(el.rcoast)
+            cst_array_size = size(el.rcoast)
+            push!(solved_sequence, Coast(
+                reshape(x[(cst_ind                ):(cst_ind +cst_array_len-1)], cst_array_size),
+                reshape(x[(cst_ind+cst_array_len):(cst_ind+2cst_array_len-1)], cst_array_size),
+                x[cst_ind+2cst_array_len]
+            ))
+        end
+    end
+    Transfer(
+        casadi_transfer.X1,
+        casadi_transfer.X2,
+        casadi_transfer.mu,
+        casadi_transfer.transfer_time,
+        solved_sequence)
+end

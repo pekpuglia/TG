@@ -58,7 +58,7 @@ function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, fina
     sequence
 end
 ##
-case_ind = 1
+case_ind = 5
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -92,7 +92,7 @@ tab0 = vcat(varlist.(seq0)...)
 ##
 sol = solve_planner(solver, planner, tab0)
 ##
-solved_model = unscale(solved(model_transfer), L, T)
+solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
 solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])
 solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
@@ -123,10 +123,10 @@ pv_diag = diagnose_ppdot(normp, normpdot) #remove?
 f = Figure()
 ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
 lines!(ax1, tspan, normp)
-vlines!(ax1, tf1, linestyle=:dash, color=:gray)
+vlines!(ax1, tf_real, linestyle=:dash, color=:gray)
 ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
 lines!(ax2, tspan, normpdot)
-vlines!(ax2, tf1, linestyle=:dash, color=:gray)
+vlines!(ax2, tf_real, linestyle=:dash, color=:gray)
 f
 ##
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)

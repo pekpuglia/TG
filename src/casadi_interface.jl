@@ -62,3 +62,7 @@ function solve_planner(nlpsol, planner::CasADiPlanner, guess)
     # stats.value, stats.time
     nlpsol(x0 = guess, lbg=planner.tab_lbg, ubg=planner.tab_ubg, lbx=planner.tab_lbx, ubx=planner.tab_ubx)
 end
+
+function solved_variable(var, sol_x_array, varlist)
+    sol_x_array[findfirst(v -> casadi.is_equal(var, v), varlist)]
+end
