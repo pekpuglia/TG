@@ -57,6 +57,85 @@ function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, fina
 
     sequence
 end
+
+function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
+    coast_list = filter(x -> x isa Coast, transfer.sequence)
+    impulse_list = filter(x-> x isa Impulse, transfer.sequence)
+
+    dts = getfield.(coast_list, :dt)
+    
+    impulse_times = cumsum([0; dts])
+
+    #compute primer vector on coasts surrounded by impulses
+    two_impulse_coasts = []
+    for (e1, e2, e3) in zip(transfer.sequence[1:end-2], transfer.sequence[2:end-1], transfer.sequence[3:end])
+        if e1 isa Impulse && e2 isa Coast && e3 isa Impulse
+            push!(two_impulse_coasts, (e1, e2, e3))
+        end
+    end
+
+    # if transfer.sequence[1] isa Coast || transfer.sequence[end] isa Coast
+    #     @warn "Unimplemented edge coast case!!!!"
+    # end
+
+    tspan_ppdot = []
+
+    for tic in two_impulse_coasts
+        i1, c, i2 = tic
+        dv1 = i1.deltaVmag * i1.deltaVdir
+        dv2 = i2.deltaVmag * i2.deltaVdir
+
+        orbit = rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1])
+
+        propagator = Propagators.init(Val(:TwoBody), orbit)
+
+        push!(tspan_ppdot, ppdot_deltavs(propagator, dv1, dv2, c.dt, npoints; tpbvp_kwargs...))
+    end
+
+    if transfer.sequence[1] isa Coast
+        #ppdot at the first impulse
+        #[first coast between 2 impulses][2nd element in (tspan, ppdot)][first ppdot in the coast]
+        ppdot_end = tspan_ppdot[1][2][1]
+
+        first_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.X1[1:3], transfer.X1[4:6]))
+        first_coast_duration = transfer.sequence[1].dt
+
+        #backwards propagation
+        tspan = range(0, first_coast_duration, npoints)
+        ppdot = []
+        for t in tspan
+            Phi = TG.Phi_time(first_coast_propagator, t-first_coast_duration)
+            push!(ppdot, Phi*ppdot_end)
+        end
+        tspan_ppdot = [(tspan, ppdot), tspan_ppdot...]
+    end
+
+    if transfer.sequence[end] isa Coast
+        #ppdot at the last impulse
+        #[last coast between 2 impulses][2nd element in (tspan, ppdot)][last ppdot in the coast]
+        ppdot_start = tspan_ppdot[end][2][end]
+
+        last_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.sequence[end].rcoast[:, 1], transfer.sequence[end].vcoast[:, 1]))
+        last_coast_duration = transfer.sequence[end].dt
+
+        #backwards propagation
+        tspan = range(0, last_coast_duration, npoints)
+        ppdot = []
+        for t in tspan
+            Phi = TG.Phi_time(last_coast_propagator, t)
+            push!(ppdot, Phi*ppdot_start)
+        end
+        push!(tspan_ppdot, (tspan, ppdot))
+    end
+
+    # #merge everything
+    # tspans = first.(tspan_ppdot)
+    # prev_time = [0, last.(tspans)]
+    # tspan = []
+    # #accumulate tspan?
+    tspan_ppdot
+end
+
 ##
 case_ind = 3
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
@@ -97,21 +176,37 @@ solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
 solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])
 solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
+function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
+    #get first position
+    last_r = if solved_transfer.sequence[1] isa Coast
+        solved_transfer.sequence[1].rcoast[:, 1]
+    else
+        solved_transfer.sequence[2].rcoast[:, 1]
+    end
+
+    for el in solved_transfer.sequence
+        if el isa Coast
+            add_discretized_trajectory!(ax3d, el.rcoast)
+            last_r = el.rcoast[:, end]
+        else
+            scatter!(ax3d, last_r..., color="red")
+            #add line on impulse
+            dir = el.deltaVdir
+            mag = el.deltaVmag
+
+            arrow_data = [last_r last_r+mag*dir*scaling]
+            lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
+        end
+    end
+end
+
 f, ax3d = plot_orbit(orb1, orb2)
-add_discretized_trajectory!(ax3d, solved_model.sequence[2].rcoast)
+# add_discretized_trajectory!(ax3d, solved_model.sequence[2].rcoast)
+add_transfer!(ax3d, solved_model)
 f
 ##
 save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
-# struct PVTrajectory
-#     impulse_times::Vector
-#     #list of trajectories for each coasting arc
-#     #therefore length(p) = nimp - 1
-#     p::Vector{Matrix}
-#     diagnostic::PRIMER_DIAGNOSTIC
-# end
-
-
 
 #automate this - discard early departure/late arrival
 tspan_ppdot = primer_vector(solved_model, 1000)
@@ -151,7 +246,16 @@ solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
 # solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
-add_discretized_trajectory!(ax3d, solved_model.sequence[1].rcoast)
-add_discretized_trajectory!(ax3d, solved_model.sequence[3].rcoast)
-add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
+add_transfer!(ax3d, solved_model, 1e3)
 f
+##
+tspan_ppdot = primer_vector(solved_model, 100)
+tspans = first.(tspan_ppdot)
+prevtime = cumsum([0; last.(tspans[1:end-1])])
+tspan = vcat((ts .+ pv for (ts, pv) in zip(tspans, prevtime))...)
+ppdots = hcat(vcat(last.(tspan_ppdot)...)...)
+normp = norm.(eachcol(ppdots[1:3, :]))
+plot(tspan, normp)
+##
+normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdots)]
+plot(tspan, normpdot)

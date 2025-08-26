@@ -23,8 +23,8 @@ function plot_orbit(orbs::KeplerianElements...)
     fig, ax3d
 end
 
-function add_discretized_trajectory!(ax3d, solved_r)
-    scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color="green")
+function add_discretized_trajectory!(ax3d, solved_r, color="green")
+    scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color=color)
 end
 
 function save_with_views!(ax3d, f, prefix)
