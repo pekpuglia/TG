@@ -104,7 +104,7 @@ function n_impulse_transfer(X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, 
     for (c1, i, c2) in zip(sequence[1:end-2], sequence[2:end-1], sequence[3:end])
         if c1 isa Coast && i isa Impulse && c2 isa Coast
             add_equality!(planner, c1.rcoast[:, end] - c2.rcoast[:, 1], zeros(3))
-            add_equality!(planner, c1.vcoast[:, end] - (c2.rcoast[:, 1] + i.deltaVmag * i.deltaVdir), zeros(3))
+            add_equality!(planner, c2.vcoast[:, end] - (c1.vcoast[:, 1] + i.deltaVmag * i.deltaVdir), zeros(3))
         end
     end
 

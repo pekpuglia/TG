@@ -147,7 +147,7 @@ tab0 = vcat(varlist.(seq0)...)
 sol = solve_planner(solver, planner, tab0)
 ##
 solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
-solved_orbs = [rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1]) for c in solved_model.sequence if c isa Coast]
+# solved_orbs = [rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1]) for c in solved_model.sequence if c isa Coast]
 # solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
