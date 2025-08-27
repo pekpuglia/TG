@@ -27,6 +27,30 @@ function add_discretized_trajectory!(ax3d, solved_r, color="green")
     scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color=color)
 end
 
+function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
+    #get first position
+    last_r = if solved_transfer.sequence[1] isa Coast
+        solved_transfer.sequence[1].rcoast[:, 1]
+    else
+        solved_transfer.sequence[2].rcoast[:, 1]
+    end
+
+    for el in solved_transfer.sequence
+        if el isa Coast
+            add_discretized_trajectory!(ax3d, el.rcoast)
+            last_r = el.rcoast[:, end]
+        else
+            scatter!(ax3d, last_r..., color="red")
+            #add line on impulse
+            dir = el.deltaVdir
+            mag = el.deltaVmag
+
+            arrow_data = [last_r last_r+mag*dir*scaling]
+            lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
+        end
+    end
+end
+
 function save_with_views!(ax3d, f, prefix)
     save(prefix*"_3d.png", f)
     

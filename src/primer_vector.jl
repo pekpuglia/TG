@@ -134,6 +134,7 @@ function diagnose_ppdot(normp, normp_dot, rtol = 1e-4)
     end
 end
 
+#change to numerical alg??
 function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
     coast_list = filter(x -> x isa Coast, transfer.sequence)
     impulse_list = filter(x-> x isa Impulse, transfer.sequence)
@@ -150,10 +151,6 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
         end
     end
 
-    if transfer.sequence[1] isa Coast || transfer.sequence[end] isa Coast
-        @warn "Unimplemented edge coast case!!!!"
-    end
-
     tspan_ppdot = []
 
     for tic in two_impulse_coasts
@@ -168,9 +165,46 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
         push!(tspan_ppdot, ppdot_deltavs(propagator, dv1, dv2, c.dt, npoints; tpbvp_kwargs...))
     end
 
-    # tspan = first.(tspan_ppdot)
-    # ppdot = last.(tspan_ppdot)
+    if transfer.sequence[1] isa Coast
+        #ppdot at the first impulse
+        #[first coast between 2 impulses][2nd element in (tspan, ppdot)][first ppdot in the coast]
+        ppdot_end = tspan_ppdot[1][2][1]
 
-    #plug diagnostic function, which is incomplete
-    tspan_ppdot
+        first_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.X1[1:3], transfer.X1[4:6]))
+        first_coast_duration = transfer.sequence[1].dt
+
+        #backwards propagation
+        tspan = range(0, first_coast_duration, npoints)
+        ppdot = []
+        for t in tspan
+            Phi = Phi_time(first_coast_propagator, t-first_coast_duration)
+            push!(ppdot, Phi*ppdot_end)
+        end
+        tspan_ppdot = [(tspan, ppdot), tspan_ppdot...]
+    end
+
+    if transfer.sequence[end] isa Coast
+        #ppdot at the last impulse
+        #[last coast between 2 impulses][2nd element in (tspan, ppdot)][last ppdot in the coast]
+        ppdot_start = tspan_ppdot[end][2][end]
+
+        last_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.sequence[end].rcoast[:, 1], transfer.sequence[end].vcoast[:, 1]))
+        last_coast_duration = transfer.sequence[end].dt
+
+        #backwards propagation
+        tspan = range(0, last_coast_duration, npoints)
+        ppdot = []
+        for t in tspan
+            Phi = Phi_time(last_coast_propagator, t)
+            push!(ppdot, Phi*ppdot_start)
+        end
+        push!(tspan_ppdot, (tspan, ppdot))
+    end
+
+    # #merge everything
+    tspans = first.(tspan_ppdot)
+    prevtime = cumsum([0; last.(tspans[1:end-1])])
+    tspan = vcat((ts .+ pv for (ts, pv) in zip(tspans, prevtime))...)
+    ppdots = hcat(vcat(last.(tspan_ppdot)...)...)
+    (tspan, ppdots)
 end

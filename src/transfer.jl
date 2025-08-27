@@ -49,3 +49,46 @@ function scale(t::Transfer, L, T)
         scale.(t.sequence, L, T)
     )
 end
+
+function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool, time_partition)
+    type_sequence, ncoasts = create_sequence(nimp, init_coast, final_coast)
+
+    coast_times = tf * time_partition
+    # cum_time = cumsum([0, coast_times...])
+
+    # prop0 = Propagators.init(Val(:TwoBody), orb1)
+
+    # props = []
+
+    # for i = 1:ncoasts
+    #     Propagators.propagate(prop0, cum_time[i])
+    #     orbk = prop0.tbd.orbk
+    #     push!(props, Propagators.init(Val(:TwoBody), orbk))
+    # end
+
+    sequence = []
+
+    last_r, last_v = kepler_to_rv(orb1)
+    coast_ind = 0
+    for t in type_sequence
+        if t == Impulse #impulse in velocity direction
+            push!(sequence, Impulse(0.0, last_v/norm(last_v)))
+        elseif t == Coast
+            coast_ind += 1
+            orb = rv_to_kepler(last_r, last_v)
+            prop = Propagators.init(Val(:TwoBody), orb)
+            tabr = zeros(3, Ndisc)
+            tabv = zeros(3, Ndisc)
+            for i = 1:Ndisc
+                r, v = Propagators.propagate!(prop, coast_times[coast_ind] * (i-1) / (Ndisc-1))
+                tabr[:, i] = r
+                tabv[:, i] = v
+            end
+            last_r = tabr[:, end]
+            last_v = tabv[:, end]
+            push!(sequence, Coast(tabr, tabv, coast_times[coast_ind]))
+        end
+    end
+
+    sequence
+end
