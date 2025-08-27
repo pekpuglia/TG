@@ -104,7 +104,7 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
         tspan = range(0, first_coast_duration, npoints)
         ppdot = []
         for t in tspan
-            Phi = TG.Phi_time(first_coast_propagator, t-first_coast_duration)
+            Phi = Phi_time(first_coast_propagator, t-first_coast_duration)
             push!(ppdot, Phi*ppdot_end)
         end
         tspan_ppdot = [(tspan, ppdot), tspan_ppdot...]
@@ -122,7 +122,7 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
         tspan = range(0, last_coast_duration, npoints)
         ppdot = []
         for t in tspan
-            Phi = TG.Phi_time(last_coast_propagator, t)
+            Phi = Phi_time(last_coast_propagator, t)
             push!(ppdot, Phi*ppdot_start)
         end
         push!(tspan_ppdot, (tspan, ppdot))
@@ -137,7 +137,7 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
 end
 
 ##
-case_ind = 3
+case_ind = 4
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
