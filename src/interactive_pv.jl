@@ -76,13 +76,15 @@ f
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
 # try free impulse time solutions
-N = 50
+N = 200
 planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, true, true)
 
-solver = casadi.nlpsol("s", "ipopt", planner.prob)
+solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
+    "max_iter" => 3000,
+    "constr_viol_tol" => 1e-5)))
 ##
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 2, true, true, [0.5, 0, 0.5])
+    for s = initial_orb_sequence(orb1, tf_real, N, 2, true, true, [0.3, 0.3, 0.3])
 ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -95,6 +97,7 @@ solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
 add_transfer!(ax3d, solved_model, 1e3)
+# add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
 f
 ##
 tspan_ppdot = primer_vector(solved_model, 100)
