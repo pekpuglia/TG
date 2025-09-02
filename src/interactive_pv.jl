@@ -7,13 +7,13 @@ include("orb_mech.jl")
 include("plotting.jl")
 include("casadi_transfer_model.jl")
 ##
-case_ind = 4
+case_ind = 2
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
 
 #vary tf for each orbit
-tf_real = orbital_period((orb1.a+orb2.a)/2, GM_EARTH)
+tf_real = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
 L = (orb1.a+orb2.a)/2
 T = 1
@@ -26,17 +26,17 @@ f = X -> two_body_dyn(X, MUPRIME)
 X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
-N = 200
+N = 100
 ##
 planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, false, false);
-##
+
 solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
     "constr_viol_tol" => 1e-5)));
 ## initial guess
 
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 2, false, false, [1.0])
+    for s = initial_orb_sequence(orb1, tf_real, N, 2, false, false, [0.8])
     ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -76,15 +76,15 @@ f
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
 # try free impulse time solutions
-N = 200
-planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, true, true)
+N = 100
+planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 4, true, true)
 
 solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
     "constr_viol_tol" => 1e-5)))
 ##
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 2, true, true, [0.3, 0.3, 0.3])
+    for s = initial_orb_sequence(orb1, tf_real, N, 4, true, true, [0.2, 0.2, 0.2, 0.2, 0.2])
 ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -99,11 +99,15 @@ f, ax3d = plot_orbit(orb1, orb2)
 add_transfer!(ax3d, solved_model, 1e3)
 # add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
 f
+## impulse times
+cumtime = cumsum([0; getfield.(filter(x -> x isa Coast, solved_model.sequence), :dt)])
 ##
 tspan_ppdot = primer_vector(solved_model, 100)
 tspan, ppdot = tspan_ppdot
 normp = norm.(eachcol(ppdot[1:3, :]))
-plot(tspan, normp)
+f, ax, plt = plot(tspan, normp)
+vlines!(ax, cumtime, linestyle=:dash)
+f
 ##
-normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdots)]
+normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
 plot(tspan, normpdot)

@@ -191,7 +191,7 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
         last_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.sequence[end].rcoast[:, 1], transfer.sequence[end].vcoast[:, 1]))
         last_coast_duration = transfer.sequence[end].dt
 
-        #backwards propagation
+        #forward propagation
         tspan = range(0, last_coast_duration, npoints)
         ppdot = []
         for t in tspan
