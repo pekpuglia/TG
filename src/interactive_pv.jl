@@ -30,7 +30,9 @@ N = 200
 ##
 planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, false, false);
 ##
-solver = casadi.nlpsol("S", "ipopt", planner.prob);
+solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
+    "max_iter" => 3000,
+    "constr_viol_tol" => 1e-5)));
 ## initial guess
 
 seq0 = [scale(s, L, T) 
