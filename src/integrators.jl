@@ -210,10 +210,11 @@ function RK8(f, X, dt)
     Xnext = X .+ dt*dX;
 end
 
-function sol_ode(f, X0, dt, N, integrator=euler)
-    sol = [X0]
-    for i = 1:N
-        push!(sol, integrator(f, sol[i], dt))
+function final_X(f, X0, tf, N, integrator=euler)
+    X = X0
+    dt = tf / (N-1)
+    for i = 1:N-1
+        X = integrator(f, X, dt)
     end
-    sol
+    X
 end
