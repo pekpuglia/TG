@@ -169,8 +169,10 @@ function primer_vector(transfer::Transfer, npoints; tpbvp_kwargs...)
         #ppdot at the first impulse
         #[first coast between 2 impulses][2nd element in (tspan, ppdot)][first ppdot in the coast]
         ppdot_end = tspan_ppdot[1][2][1]
-
-        first_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.X1[1:3], transfer.X1[4:6]))
+        final_r = transfer.sequence[1].rcoast[:, end]
+        final_v = transfer.sequence[1].vcoast[:, end]
+        #wroooooong!
+        first_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(final_r, final_v))
         first_coast_duration = transfer.sequence[1].dt
 
         #backwards propagation
