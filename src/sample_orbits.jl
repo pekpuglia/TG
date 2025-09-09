@@ -106,26 +106,6 @@ GEO_INSERTION_START, GEO_INSERTION_END = let
     HOHMANN_START, orb2
 end
 
-COPLANAR_RDV_START = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    6748e3,
-    0.0,
-    5 |> deg2rad,
-    35    |> deg2rad,
-    0     |> deg2rad,
-    0     |> deg2rad
-)
-
-COPLANAR_RDV_END = KeplerianElements(
-    HOHMANN_START.t,
-    6778e3,
-    0.0,
-    HOHMANN_START.i,
-    HOHMANN_START.Ω,
-    HOHMANN_START.ω,
-    deg2rad(2) + HOHMANN_START.f
-)
-
 ORBIT_STARTS = [
     HOHMANN_START,
     LEO_MAINTENANCE_START,
