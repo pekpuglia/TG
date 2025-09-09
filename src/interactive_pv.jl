@@ -7,7 +7,7 @@ include("orb_mech.jl")
 include("plotting.jl")
 include("casadi_transfer_model.jl")
 ##
-case_ind = 2
+case_ind = 1
 orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
 r1, v1 = kepler_to_rv(orb1)
 r2, v2 = kepler_to_rv(orb2)
@@ -36,7 +36,7 @@ solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
 ## initial guess
 
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 2, false, false, [0.8])
+    for s = initial_orb_sequence(orb1, tf_real, N, 2, false, false, [1])
     ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -57,7 +57,7 @@ save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
 
 #automate this - discard early departure/late arrival
-tspan_ppdot = primer_vector(solved_model, 1000)
+tspan_ppdot = primer_vector(solved_model, 1000, planar=true)
 tspan, ppdot = tspan_ppdot
 normp = norm.(eachcol(ppdot[1:3, :]))
 normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
@@ -74,8 +74,65 @@ vlines!(ax2, tf_real, linestyle=:dash, color=:gray)
 f
 ##
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
-##
-# try free impulse time solutions
+## new pv algorithm
+using ForwardDiff
+
+xcoast_start = [solved_model.sequence[2].rcoast[:, 1]; solved_model.sequence[2].vcoast[:, 1]]
+
+coast_end_state(coast_initial_state) = final_X(X -> two_body_dyn(X, GM_EARTH), coast_initial_state, tf_real, N, RK8)
+
+Phi_tf_t0 = ForwardDiff.jacobian(coast_end_state, xcoast_start) #check is actually STM
+# ppdot[:, end] - Phi_tf_t0 * ppdot[:, 1]
+## build pv TPBVP casadi model
+deltaV1 = solved_model.sequence[1].deltaVdir * solved_model.sequence[1].deltaVmag
+deltaV2 = solved_model.sequence[3].deltaVdir * solved_model.sequence[3].deltaVmag
+
+p0 = deltaV1 / norm(deltaV1)
+pf = deltaV2 / norm(deltaV2)
+
+pdot0 = SX("pdot0", 3)
+# pdotf = SX("pdotf", 3)
+
+# much simples way of doing this?
+prob = Dict(
+    "f" => pdot0' * pdot0,
+    "x" => pdot0,
+    "g" => vcat(pf - Phi_tf_t0[1:3, :] * [p0; sx_iterator(pdot0)...])
+)
+
+solver = casadi.nlpsol("S", "ipopt", prob, Dict("ipopt" => Dict(
+    "max_iter" => 3000,
+    "constr_viol_tol" => 1e-5)))
+
+sol = solver(x0 = [0.0,0,0], lbg=[0.0,0,0], ubg=[0.0,0,0])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## try free impulse time solutions
 N = 100
 planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 4, true, true)
 
