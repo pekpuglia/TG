@@ -35,7 +35,7 @@ r2, v2 = kepler_to_rv(orb2)
 tf_real = 4500.0
 
 L = (orb1.a+orb2.a)/2
-T = 1
+T = tf_real
 tfprime = tf_real / T
 
 MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
@@ -45,8 +45,8 @@ f = X -> two_body_dyn(X, MUPRIME)
 X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
-N = 200
 ##
+N = 200
 planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, false, false);
 
 solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
@@ -127,6 +127,35 @@ normp = norm.(eachcol(ppdot[1:3, :]))
 f, ax, plt = plot(tspan, normp)
 vlines!(ax, cumtime, linestyle=:dash)
 f
+## 3 imp
+N = 100
+planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 3, false, false)
+
+solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
+    "max_iter" => 3000,
+    "constr_viol_tol" => 1e-5,
+    "max_wall_time" => 60)))
 ##
-normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
-plot(tspan, normpdot)
+seq0 = [scale(s, L, T) 
+    for s = initial_orb_sequence(orb1, tf_real, N, 3, false, false, [0.4, 0.4])
+]
+
+tab0 = vcat(varlist.(seq0)...)
+##
+sol = solve_planner(solver, planner, tab0)
+##
+solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
+total_dV(solved_model)
+##
+f, ax3d = plot_orbit(orb1, orb2)
+add_transfer!(ax3d, solved_model, 1e3)
+f
+## impulse times
+cumtime = cumsum([0; getfield.(filter(x -> x isa Coast, solved_model.sequence), :dt)]) #impulse times function
+##
+tspan_ppdot = primer_vector(solved_model, 100)
+tspan, ppdot = tspan_ppdot
+normp = norm.(eachcol(ppdot[1:3, :]))
+f, ax, plt = plot(tspan, normp)
+vlines!(ax, cumtime, linestyle=:dash)
+f
