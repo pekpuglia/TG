@@ -81,22 +81,21 @@ end
 function p0dot_tpbvp(p0, pf, delta_t, prop; det_tol=1e-6, planar=false)
     Phi = Phi_time(prop, delta_t)
 
-    M = Phi[1:3, 1:3]
-    N = Phi[1:3, 4:6]
+    pdot0 = SX("pdot0", 3)
 
-    if abs(det(N)) <= det_tol || planar
-        @warn "N singular"
-        #CHECK THIS IS TRUE
-        #only works for coplanar transfers?
-        r1, v1 = kepler_to_rv(prop.tbd.orb₀)
-        A = N * [r1 v1]
-        b = pf - M * p0
-        p0dot = [r1 v1] * (A \ b)
-    else
-        p0dot = N \ (pf - M * p0)
-    end
+    prob = Dict(
+        "f" => pdot0' * pdot0,
+        "x" => pdot0,
+        "g" => vcat(pf - Phi_tf_t0[1:3, :] * [p0; sx_iterator(pdot0)...])
+    )
 
-    p0dot
+    solver = casadi.nlpsol("S", "ipopt", prob, Dict("ipopt" => Dict(
+        "max_iter" => 3000,
+        "constr_viol_tol" => 1e-5)))
+
+    sol = solver(x0 = [0.0,0,0], lbg=[0.0,0,0], ubg=[0.0,0,0])
+
+    sol["x"].toarray() |> vec
 end
 
 
