@@ -222,15 +222,14 @@ function primer_vector(transfer::Transfer, pvtm::AbstractPVTMAlgo, npoints; tpbv
         ppdot_end = tspan_ppdot[1][2][1]
         final_r = transfer.sequence[1].rcoast[:, end]
         final_v = transfer.sequence[1].vcoast[:, end]
-        #wroooooong!
-        first_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(final_r, final_v))
+        final_x = [final_r; final_v]
         first_coast_duration = transfer.sequence[1].dt
 
         #backwards propagation
         tspan = range(0, first_coast_duration, npoints)
         ppdot = []
         for t in tspan
-            Phi = Phi_time(pvtm, transfer.model,  first_coast_propagator, t-first_coast_duration)
+            Phi = Phi_time(pvtm, transfer.model,  final_x, t-first_coast_duration)
             push!(ppdot, Phi*ppdot_end)
         end
         tspan_ppdot = [(tspan, ppdot), tspan_ppdot...]
@@ -241,14 +240,14 @@ function primer_vector(transfer::Transfer, pvtm::AbstractPVTMAlgo, npoints; tpbv
         #[last coast between 2 impulses][2nd element in (tspan, ppdot)][last ppdot in the coast]
         ppdot_start = tspan_ppdot[end][2][end]
 
-        last_coast_propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(transfer.sequence[end].rcoast[:, 1], transfer.sequence[end].vcoast[:, 1]))
+        first_x = [transfer.sequence[end].rcoast[:, 1]; transfer.sequence[end].vcoast[:, 1]]
         last_coast_duration = transfer.sequence[end].dt
 
         #forward propagation
         tspan = range(0, last_coast_duration, npoints)
         ppdot = []
         for t in tspan
-            Phi = Phi_time(pvtm, transfer.model, last_coast_propagator, t)
+            Phi = Phi_time(pvtm, transfer.model, first_x, t)
             push!(ppdot, Phi*ppdot_start)
         end
         push!(tspan_ppdot, (tspan, ppdot))
