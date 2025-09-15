@@ -24,7 +24,7 @@ end
 
 
 #scaling agnostic!
-function n_impulse_transfer(X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool)
+function n_impulse_transfer(model::AbstractOrbitalMechanicsModel, X1, X2, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool)
     type_sequence, ncoasts = create_sequence(nimp, init_coast, final_coast)
 
     deltaVmags = cvar("dVmag", nimp)
@@ -53,7 +53,7 @@ function n_impulse_transfer(X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, 
         push!(sequence, el)
     end
 
-    transfer = Transfer(X1, X2, mu, tf, sequence)
+    transfer = Transfer(X1, X2, model, tf, sequence)
     vars = varlist(transfer)
 
     planner = CasADiPlanner(vars)
@@ -75,7 +75,7 @@ function n_impulse_transfer(X1, X2, tf, mu, Ndisc, nimp::Int, init_coast::Bool, 
         add_equality!(planner, deltaVdirs[:, i]' * deltaVdirs[:, i], 1)
     end
 
-    f = X -> two_body_dyn(X, mu)
+    f = X -> dynamics(X, model)
 
     #coast integration
     for c = 1:ncoasts
@@ -150,7 +150,7 @@ function sol_to_transfer(sol::Dict, casadi_transfer::Transfer)
     Transfer(
         casadi_transfer.X1,
         casadi_transfer.X2,
-        casadi_transfer.mu,
+        casadi_transfer.model,
         casadi_transfer.transfer_time,
         solved_sequence)
 end

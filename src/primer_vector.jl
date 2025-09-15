@@ -71,11 +71,11 @@ function Pinv_glandorf(R, V, t)
     ]
 end
 
-abstract type AbstractPVTMmodel end
+abstract type AbstractPVTMAlgo end
 
-struct PVTMGlandorf <: AbstractPVTMmodel end
+struct PVTMGlandorf <: AbstractPVTMAlgo end
 
-function Phi_time(::PVTMGlandorf, x0, t)
+function Phi_time(::PVTMGlandorf, ::TwoBodyModel, x0, t)
     r0, v0 = x0[1:3], x0[4:6]
     propagator = Propagators.init(Val(:TwoBody), rv_to_kepler(r0, v0))
     r, v = Propagators.propagate!(propagator, t)
@@ -86,31 +86,36 @@ end
 using ForwardDiff
 
 
-struct PVTMFromSTM <: AbstractPVTMmodel
+struct PVTMFromSTM <: AbstractPVTMAlgo
     N
     integrator
 end
 
-function Phi_time(pvtm_model::PVTMFromSTM, x0, t)
-    end_state(initial_state) = final_X(X -> two_body_dyn(X, GM_EARTH), initial_state, t, pvtm_model.N, pvtm_model.integrator)
+function Phi_time(pvtm_algo::PVTMFromSTM, orb_model::AbstractOrbitalMechanicsModel, x0, t)
+    end_state(initial_state) = final_X(X -> dynamics(X, orb_model), initial_state, t, pvtm_algo.N, pvtm_algo.integrator)
     
     ForwardDiff.jacobian(end_state, x0)
 end
 
 # Phi with integration of diff eqs
-struct PVTMFromODE <: AbstractPVTMmodel
+struct PVTMFromODE <: AbstractPVTMAlgo
     N
     integrator
 end
 
-function Phi_time(pvtm_model::PVTMFromODE, x0, t)
-    lambdadot_matrix(x) = - ForwardDiff.jacobian(X -> two_body_dyn(X, GM_EARTH), x)'
+function Phi_time(pvtm_algo::PVTMFromODE, orb_model::AbstractOrbitalMechanicsModel, x0, t)
+    f = X -> dynamics(X, orb_model)
+
+    lambdadot_matrix(x) = - ForwardDiff.jacobian(f, x)'
+    #MAYBE THIS ONLY WORKS FOR CONSERVATIVE MODEL???
     J = [zeros(3, 3) I(3)
         -I(3) zeros(3,3)]
     pvdot_matrix(x) = J' * lambdadot_matrix(x) * J
+    
     pvdot(p, x) = pvdot_matrix(x) * p
+    
     full_sys(xp) = [
-        two_body_dyn(xp[1:6], GM_EARTH)
+        f(xp[1:6])
         pvdot(xp[7:12], xp[1:6])
     ]
     
@@ -118,14 +123,14 @@ function Phi_time(pvtm_model::PVTMFromODE, x0, t)
 
     #integration per column
     for i = 1:6
-        Phi_tf_t0[:, i] = final_X(full_sys, [x0; Phi_tf_t0[:, i]], t, pvtm_model.N, pvtm_model.integrator)[7:12]
+        Phi_tf_t0[:, i] = final_X(full_sys, [x0; Phi_tf_t0[:, i]], t, pvtm_algo.N, pvtm_algo.integrator)[7:12]
     end
 
     Phi_tf_t0
 end
 
-function p0dot_tpbvp(p0, pf, delta_t, x0, pvtm_model::AbstractPVTMmodel)
-    Phi = Phi_time(pvtm_model, x0, delta_t)
+function p0dot_tpbvp(p0, pf, delta_t, x0, pvtm_algo::AbstractPVTMAlgo, orb_model::AbstractOrbitalMechanicsModel)
+    Phi = Phi_time(pvtm_algo, orb_model, x0, delta_t)
 
     pdot0 = SX("pdot0", 3)
 
@@ -145,12 +150,12 @@ function p0dot_tpbvp(p0, pf, delta_t, x0, pvtm_model::AbstractPVTMmodel)
 end
 
 
-function ppdot_deltavs(pvtm::AbstractPVTMmodel, x0, deltav1, deltav2, delta_t, N; tpbvp_kwargs...)
+function ppdot_deltavs(pvtm::AbstractPVTMAlgo, orb_model::AbstractOrbitalMechanicsModel, x0, deltav1, deltav2, delta_t, N; tpbvp_kwargs...)
     p0 = deltav1 / norm(deltav1)
     pf = deltav2 / norm(deltav2)
-    p0dot = p0dot_tpbvp(p0, pf, delta_t, x0, pvtm)
+    p0dot = p0dot_tpbvp(p0, pf, delta_t, x0, pvtm, orb_model)
     tspan = range(0, delta_t, N)
-    ppdot = [Phi_time(pvtm, x0, t) * [p0; p0dot] for t in tspan]
+    ppdot = [Phi_time(pvtm, orb_model, x0, t) * [p0; p0dot] for t in tspan]
     tspan, ppdot
 end
 
@@ -180,7 +185,7 @@ function diagnose_ppdot(normp, normp_dot, rtol = 1e-4)
 end
 
 #change to numerical alg??
-function primer_vector(transfer::Transfer, pvtm::AbstractPVTMmodel, npoints; tpbvp_kwargs...)
+function primer_vector(transfer::Transfer, pvtm::AbstractPVTMAlgo, npoints; tpbvp_kwargs...)
     coast_list = filter(x -> x isa Coast, transfer.sequence)
     impulse_list = filter(x-> x isa Impulse, transfer.sequence)
 
@@ -208,7 +213,7 @@ function primer_vector(transfer::Transfer, pvtm::AbstractPVTMmodel, npoints; tpb
 
         # propagator = Propagators.init(Val(:TwoBody), orbit)
 
-        push!(tspan_ppdot, ppdot_deltavs(pvtm, x0, dv1, dv2, c.dt, npoints))
+        push!(tspan_ppdot, ppdot_deltavs(pvtm, transfer.model, x0, dv1, dv2, c.dt, npoints))
     end
 
     if transfer.sequence[1] isa Coast
@@ -225,7 +230,7 @@ function primer_vector(transfer::Transfer, pvtm::AbstractPVTMmodel, npoints; tpb
         tspan = range(0, first_coast_duration, npoints)
         ppdot = []
         for t in tspan
-            Phi = Phi_time(pvtm, first_coast_propagator, t-first_coast_duration)
+            Phi = Phi_time(pvtm, transfer.model,  first_coast_propagator, t-first_coast_duration)
             push!(ppdot, Phi*ppdot_end)
         end
         tspan_ppdot = [(tspan, ppdot), tspan_ppdot...]
@@ -243,7 +248,7 @@ function primer_vector(transfer::Transfer, pvtm::AbstractPVTMmodel, npoints; tpb
         tspan = range(0, last_coast_duration, npoints)
         ppdot = []
         for t in tspan
-            Phi = Phi_time(pvtm, last_coast_propagator, t)
+            Phi = Phi_time(pvtm, transfer.model, last_coast_propagator, t)
             push!(ppdot, Phi*ppdot_start)
         end
         push!(tspan_ppdot, (tspan, ppdot))

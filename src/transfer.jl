@@ -1,4 +1,5 @@
 using LinearAlgebra
+include("orb_mech.jl")
 struct Impulse
     deltaVmag
     deltaVdir
@@ -18,7 +19,7 @@ scale(c::Coast, L, T) = Coast(L \ c.rcoast, T/L * c.vcoast, T \ c.dt)
 struct Transfer
     X1::Vector
     X2::Vector
-    mu::Float64
+    model::AbstractOrbitalMechanicsModel
     transfer_time
     # rcoast::Array
     # vcoast::Array
@@ -34,7 +35,7 @@ function unscale(t::Transfer, L, T)
     Transfer(
         diagm([L, L, L, L/T, L/T, L/T]) * t.X1,
         diagm([L, L, L, L/T, L/T, L/T]) * t.X2,
-        L^3 / T^2 * t.mu,
+        unscale(t.model, L, T),
         T * t.transfer_time,
         unscale.(t.sequence, L, T)
     )
@@ -44,7 +45,7 @@ function scale(t::Transfer, L, T)
     Transfer(
         diagm([L, L, L, L/T, L/T, L/T]) \ t.X1,
         diagm([L, L, L, L/T, L/T, L/T]) \ t.X2,
-        T^2 / L^3 * t.mu,
+        scale(t.model, L, T),
         T \ t.transfer_time,
         scale.(t.sequence, L, T)
     )

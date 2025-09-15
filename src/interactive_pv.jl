@@ -19,16 +19,17 @@ L = (orb1.a+orb2.a)/2
 T = 1
 tfprime = tf_real / T
 
-MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
-f = X -> two_body_dyn(X, MUPRIME)
+# MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
+# f = X -> two_body_dyn(X, MUPRIME)
 
+orb_model = normalize(TwoBodyModel(GM_EARTH), L, T)
 
 X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
 
 N = 100
 ##
-planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 2, false, false);
+planner, transfer = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 2, false, false);
 
 solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,

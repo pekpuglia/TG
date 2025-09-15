@@ -18,11 +18,29 @@ end
 
 orbital_period(a, m0) = 2π√(a^3/m0)
 
-function two_body_dyn(X, mu)
+abstract type AbstractOrbitalMechanicsModel end
+
+normalize(m::AbstractOrbitalMechanicsModel, L, T) = error("not implemented")
+
+abstract type AbstractConservativeModel <: AbstractOrbitalMechanicsModel end
+
+struct TwoBodyModel <: AbstractConservativeModel
+    mu
+end
+
+scale(tbm::TwoBodyModel, L, T) = TwoBodyModel(tbm.mu * T ^ 2 / L ^ 3)
+unscale(tbm::TwoBodyModel, L, T) = TwoBodyModel(tbm.mu * L^3 / T ^ 2)
+
+function dynamics(X, model::TwoBodyModel)
     r = X[1:3]
     v = X[4:6]
     [
         v
-        -mu/(√(r'*r)^3)*r
+        -model.mu/(√(r'*r)^3)*r
     ]
 end
+
+# struct J2model <: AbstractOrbitalMechanicsModel
+#     mu
+#     J2
+# end
