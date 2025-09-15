@@ -115,17 +115,11 @@ f, ax3d = plot_orbit(orb1, orb2)
 add_transfer!(ax3d, solved_transfer, 1e3)
 f
 ## impulse times
-cumtime = cumsum([0; getfield.(filter(x -> x isa Coast, solved_transfer.sequence), :dt)]) #impulse times function
-##
 tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
-tspan, ppdot = tspan_ppdot
-normp = norm.(eachcol(ppdot[1:3, :]))
-f, ax, plt = plot(tspan, normp)
-vlines!(ax, cumtime, linestyle=:dash)
-f
+plot_primer_vector(solved_transfer, tspan_ppdot)[1]
 ## 3 imp
-N = 100
-planner, transfer = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 3, false, false)
+N = 50
+planner, transfer = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 3, true, true)
 
 solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
@@ -133,7 +127,7 @@ solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_wall_time" => 60)))
 ##
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 3, false, false, [0.4, 0.4])
+    for s = initial_orb_sequence(orb1, tf_real, N, 3, true, true, [0.25, 0.25, 0.25, 0.25])
 ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -150,8 +144,4 @@ f
 cumtime = cumsum([0; getfield.(filter(x -> x isa Coast, solved_transfer.sequence), :dt)]) #impulse times function
 ##
 tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
-tspan, ppdot = tspan_ppdot
-normp = norm.(eachcol(ppdot[1:3, :]))
-f, ax, plt = plot(tspan, normp)
-vlines!(ax, cumtime, linestyle=:dash)
-f
+plot_primer_vector(solved_transfer, tspan_ppdot)[1]

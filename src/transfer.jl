@@ -51,6 +51,21 @@ function scale(t::Transfer, L, T)
     )
 end
 
+function impulse_times(t::Transfer)
+    ts = []
+
+    last_time = 0.0
+
+    for el in t.sequence
+        if el isa Coast
+            last_time += el.dt
+        elseif el isa Impulse
+            push!(ts, last_time)
+        end
+    end
+    ts
+end
+
 function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool, time_partition)
     type_sequence, ncoasts = create_sequence(nimp, init_coast, final_coast)
 

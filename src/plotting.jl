@@ -63,3 +63,26 @@ function save_with_views!(ax3d, f, prefix)
         save(prefix*"_"*n*".png", f)
     end
 end
+
+function plot_primer_vector(transfer::Transfer, tspan_ppdot::Tuple)
+    tspan, ppdot = tspan_ppdot
+    normp = norm.(eachcol(ppdot[1:3, :]))
+    normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
+    
+    imp_ts = impulse_times(transfer)
+
+    f = Figure()
+    ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
+    
+
+    #decide wich elements of cumtime to keep for plotting
+
+    lines!(ax1, tspan, normp)
+    vlines!(ax1, imp_ts, linestyle=:dash, color=:gray)
+    
+    ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
+    lines!(ax2, tspan, normpdot)
+    vlines!(ax2, imp_ts, linestyle=:dash, color=:gray)
+
+    f, (ax1, ax2)
+end
