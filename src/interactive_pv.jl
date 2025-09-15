@@ -45,8 +45,6 @@ tab0 = vcat(varlist.(seq0)...)
 sol = solve_planner(solver, planner, tab0)
 ##
 solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
-solved_orb = rv_to_kepler(solved_model.sequence[2].rcoast[:, 1], solved_model.sequence[2].vcoast[:, 1])
-solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
 # add_discretized_trajectory!(ax3d, solved_model.sequence[2].rcoast)
@@ -57,13 +55,15 @@ save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
 
 #automate this - discard early departure/late arrival
-tspan_ppdot = primer_vector(solved_model, 1000, planar=true)
+# tspan_ppdot = primer_vector(solved_model, PVTMFromSTM(100, RK8), 100)
+# tspan_ppdot = primer_vector(solved_model, PVTMGlandorf(), 100)
+tspan_ppdot = primer_vector(solved_model, PVTMFromODE(100, RK8), 100)
 tspan, ppdot = tspan_ppdot
 normp = norm.(eachcol(ppdot[1:3, :]))
 normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
 # ##
 pv_diag = diagnose_ppdot(normp, normpdot) #remove?
-## automate this
+# automate this
 f = Figure()
 ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
 lines!(ax1, tspan, normp)
@@ -74,14 +74,12 @@ vlines!(ax2, tf_real, linestyle=:dash, color=:gray)
 f
 ##
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
-## new pv algorithm
-using ForwardDiff
+## PV WITH PERTURBATION TRANSITION MATRIX
 
-xcoast_start = [solved_model.sequence[2].rcoast[:, 1]; solved_model.sequence[2].vcoast[:, 1]]
 
-coast_end_state(coast_initial_state) = final_X(X -> two_body_dyn(X, GM_EARTH), coast_initial_state, tf_real, N, RK8)
 
-Phi_tf_t0 = ForwardDiff.jacobian(coast_end_state, xcoast_start) #check is actually STM
+
+
 # ppdot[:, end] - Phi_tf_t0 * ppdot[:, 1]
 ## build pv TPBVP casadi model
 deltaV1 = solved_model.sequence[1].deltaVdir * solved_model.sequence[1].deltaVmag
@@ -105,7 +103,6 @@ solver = casadi.nlpsol("S", "ipopt", prob, Dict("ipopt" => Dict(
     "constr_viol_tol" => 1e-5)))
 
 sol = solver(x0 = [0.0,0,0], lbg=[0.0,0,0], ubg=[0.0,0,0])
-
 
 
 
