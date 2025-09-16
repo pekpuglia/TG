@@ -30,6 +30,9 @@ struct Transfer
 end
 total_dV(t::Transfer) = sum(el.deltaVmag for el in t.sequence if el isa Impulse)
 
+impulses(t::Transfer) = [i for i in t.sequence if i isa Impulse]
+coasts(t::Transfer) = [c for c in t.sequence if c isa Coast]
+
 
 function unscale(t::Transfer, L, T)
     Transfer(
