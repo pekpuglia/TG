@@ -22,6 +22,7 @@ function create_sequence(nimp::Int, init_coast::Bool, final_coast::Bool)
     sequence, ncoasts
 end
 
+scale(x::Vector, L, T) = [x[1:3] / L; x[4:6] * T / L]
 
 #scaling agnostic!
 function n_impulse_transfer(model::AbstractOrbitalMechanicsModel, X1, X2, tf, Ndisc, nimp::Int, init_coast::Bool, final_coast::Bool)
