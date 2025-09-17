@@ -113,68 +113,8 @@ solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
     "constr_viol_tol" => 1e-5,
     "max_wall_time" => 60)))
-## add null impulse
-seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 3, true, true, [0.25, 0.25, 0.25, 0.25])
-]
-
-tab0 = vcat(varlist.(seq0)...)
-##
-N = 50 #change N later
-tspan, ppdot = tspan_ppdot
-
-# normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
-
-normp = norm.(eachcol(ppdot[1:3, :]))
-
-max_norm_time_ind = findall(
-    (prev_el_next) -> prev_el_next[1] <= prev_el_next[2] && prev_el_next[2] >= prev_el_next[3], 
-    collect(zip(normp[1:end-2], normp[2:end-1], normp[3:end]))) .+ 1
-
-max_norm_time_ind = max_norm_time_ind[findmax(i -> normp[i], max_norm_time_ind)[2]]
-
-max_norm_time = tspan[max_norm_time_ind]
-#find where to insert impulse
-imp_ts = impulse_times(solved_transfer)
-#last impulse before maxnorm
-#if = 0, new impulse comes at the beginning
-new_impulse_ind = something(findlast(<=(max_norm_time), imp_ts), 0)
-
-#coast to split index
-impulse_indices = findall(el -> el isa Impulse, solved_transfer.sequence)
-
-coast_to_split_sequence_index = (new_impulse_ind == 0) ? 1 : (impulse_indices.+1)[new_impulse_ind]
-
-coast_to_split = solved_transfer.sequence[coast_to_split_sequence_index]
-
-delta_t_split = max_norm_time - [0; imp_ts][new_impulse_ind+1]
-
-xcoast_before = zeros(6, N)
-
-xcoast_before[:, 1] = [coast_to_split.rcoast[:, 1]; coast_to_split.vcoast[:, 1]]
-
-for i = 2:N
-    xcoast_before[:, i] =  RK8(X -> dynamics(X, solved_transfer.model), xcoast_before[:, i-1], delta_t_split / (N-1))
-end
-
-delta_t_after = coast_to_split.dt - delta_t_split
-
-xcoast_after = zeros(6, N)
-
-xcoast_after[:, 1] = xcoast_before[:, end]
-
-for i = 2:N
-    xcoast_after[:, i] =  RK8(X -> dynamics(X, solved_transfer.model), xcoast_after[:, i-1], delta_t_after / (N-1))
-end
-
-coast_before = Coast(xcoast_before[1:3, :], xcoast_before[4:6, :], delta_t_split)
-coast_after = Coast(xcoast_after[1:3, :], xcoast_after[4:6, :], delta_t_after)
-
-
-new_impulse = Impulse(0.0, (x -> x / norm(x))(ppdot[1:3, max_norm_time_ind]))
-
-new_seq = [solved_transfer.sequence[1:coast_to_split_sequence_index-1]; coast_before; new_impulse; coast_after; solved_transfer.sequence[coast_to_split_sequence_index+1:end]]
-new_transfer = Transfer(solved_transfer.X1, solved_transfer.X2, solved_transfer.model, solved_transfer.transfer_time, new_seq)
+## add null impulse at optimal position
+new_transfer = add_null_impulse(solved_transfer, tspan_ppdot)
 
 new_transfer_scaled = scale(new_transfer, L, T)
 tab0 = vcat(varlist.(new_transfer_scaled.sequence)...)
