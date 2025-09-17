@@ -170,3 +170,33 @@ function add_null_impulse(solved_transfer::Transfer, tspan_ppdot)
 
     new_transfer
 end
+
+function rediscretize_coast(c::Coast, model::AbstractOrbitalMechanicsModel, N, integrator)
+    x = [c.rcoast[:, 1]; c.vcoast[:, 1]]
+
+    rcoast = zeros(3, N)
+    rcoast[:, 1] = x[1:3]
+    vcoast = zeros(3, N)
+    vcoast[:, 1] = x[4:6]
+
+
+    for i = 2:N
+        x = integrator(X -> dynamics(X, model), x, c.dt / (N-1))
+
+        rcoast[:, i] = x[1:3]
+        vcoast[:, i] = x[4:6]
+    end
+
+    Coast(rcoast, vcoast, c.dt)
+end
+
+function rediscretize_transfer(t::Transfer, N, integrator=RK8)
+    new_transfer = deepcopy(t)
+
+    coast_indices = findall(el -> el isa Coast, t.sequence)
+
+    for (i, c) = enumerate(coasts(t))
+        new_transfer.sequence[coast_indices[i]] = rediscretize_coast(c, t.model, N, integrator)
+    end
+    new_transfer
+end

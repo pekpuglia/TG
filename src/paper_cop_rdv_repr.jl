@@ -79,10 +79,10 @@ plot_primer_vector(solved_transfer, tspan_ppdot)[1]
 save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
 ##
 # try free impulse time solutions
-N = 50
-planner, transfer = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 2, true, true)
+N = 100
+planner_2, transfer_2 = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 2, true, true)
 
-solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
+solver_2 = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
     "constr_viol_tol" => 1e-5,
     "max_wall_time" => 30)))
@@ -95,11 +95,16 @@ tab0 = vcat(varlist.(seq0)...)
 ##
 sol = solve_planner(solver, planner, tab0)
 ##
-solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
-total_dV(solved_transfer)
+solved_transfer_2 = unscale(sol_to_transfer(sol, transfer), L, T)
+total_dV(solved_transfer_2)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
-add_transfer!(ax3d, solved_transfer, 1e3)
+add_transfer!(ax3d, solved_transfer_2, 1e3)
+f
+##
+st2_simpl = rediscretize_transfer(solved_transfer_2, 50)
+f, ax3d = plot_orbit(orb1, orb2)
+add_transfer!(ax3d, st2_simpl, 1e3)
 f
 ## impulse times
 tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
@@ -107,14 +112,14 @@ plot_primer_vector(solved_transfer, tspan_ppdot)[1]
 ## 3 imp - use last solution
 #do j2 case!!!
 N = 50
-planner, transfer = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 3, true, true)
+planner_3, transfer_3 = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 3, true, true)
 
-solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
+solver_3 = casadi.nlpsol("s", "ipopt", planner_3.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
     "constr_viol_tol" => 1e-5,
     "max_wall_time" => 60)))
 ## add null impulse at optimal position
-new_transfer = add_null_impulse(solved_transfer, tspan_ppdot)
+new_transfer = add_null_impulse(st2_simpl, tspan_ppdot)
 
 new_transfer_scaled = scale(new_transfer, L, T)
 tab0 = vcat(varlist.(new_transfer_scaled.sequence)...)
@@ -123,9 +128,9 @@ f, ax3d = plot_orbit(orb1, orb2)
 add_transfer!(ax3d, new_transfer, 1e3)
 f
 ##
-sol = solve_planner(solver, planner, tab0)
+sol = solve_planner(solver_3, planner_3, tab0)
 ##
-solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
+solved_transfer = unscale(sol_to_transfer(sol, transfer_3), L, T)
 total_dV(solved_transfer)
 ##
 f, ax3d = plot_orbit(orb1, orb2)
