@@ -80,8 +80,8 @@ function n_impulse_transfer(model::AbstractOrbitalMechanicsModel, X1, X2, tf, Nd
 
     #coast integration
     for c = 1:ncoasts
-        dtc = dts[c] / (N-1)
-        for i = 1:(N-1)
+        dtc = dts[c] / (Ndisc-1)
+        for i = 1:(Ndisc-1)
             Xi = [rcoasts[c][:, i]; vcoasts[c][:, i]]
             Xi1 = [rcoasts[c][:, i+1]; vcoasts[c][:, i+1]]
             
