@@ -99,7 +99,7 @@ solver_2f = casadi.nlpsol("s", "ipopt", planner_2f.prob, Dict("ipopt" => Dict(
 ## 0.1 0.1 0.8 - 67
 # 0.1 0.8 0.1 - 55
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N_2, 2, true, true, [0.1, 0.8, 0.1])
+    for s = initial_orb_sequence(orb1, tf_real, N_2, 2, true, true, [0.7, 0.1, 0.2])
 ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -128,7 +128,7 @@ solver_3 = casadi.nlpsol("s", "ipopt", planner_3.prob, Dict("ipopt" => Dict(
     "max_wall_time" => 180)))
 ## add null impulse
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [0.5, 0.1, 0.2, 0.1])
+    for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [0.1, 0.4, 0.3, 0.2])
 ]
 
 ## init cond from sol 2
@@ -152,7 +152,5 @@ f, ax3d = plot_orbit(orb1, orb2)
 add_transfer!(ax3d, solved_transfer, 1e3)
 f
 ## impulse times
-cumtime = cumsum([0; getfield.(filter(x -> x isa Coast, solved_transfer.sequence), :dt)]) #impulse times function
-##
 tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
 plot_primer_vector(solved_transfer, tspan_ppdot)[1]
