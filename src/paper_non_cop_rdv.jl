@@ -209,4 +209,31 @@ total_dV(best_transfer)
 ## impulse times
 tspan_ppdot = primer_vector(best_transfer, PVTMGlandorf(), 100)
 plot_primer_vector(best_transfer, tspan_ppdot)[1]
-#do 4 impulses
+## do 4 impulses - still not equal to paper
+N_4 = 50
+planner_4, transfer_4 = n_impulse_transfer(orbm, X1, X2, tfprime, N_4, 4, true, true)
+
+# add_inequality!(planner_3, sum(getfield.(impulses(transfer_3), :deltaVmag)), 0, tdv2 * T / L)
+
+solver_4 = casadi.nlpsol("s", "ipopt", planner_4.prob, Dict("ipopt" => Dict(
+    "max_iter" => 3000,
+    "constr_viol_tol" => 1e-5,
+    "max_wall_time" => 180))
+)
+
+null_imp_transf_3 = scale(
+    add_null_impulse(
+        solved_transfer_3, 
+        tspan_ppdot_3), L, T)
+
+seq0 = null_imp_transf_3.sequence
+##
+tab0 = vcat(varlist.(seq0)...)
+
+sol = solve_planner(solver_4, planner_4, tab0)
+##
+solved_transfer_4 = unscale(sol_to_transfer(sol, transfer_4), L, T)
+total_dV(solved_transfer)
+##
+tspan_ppdot = primer_vector(solved_transfer_4, PVTMGlandorf(), 100)
+plot_primer_vector(solved_transfer_4, tspan_ppdot)[1]
