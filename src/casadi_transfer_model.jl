@@ -54,7 +54,7 @@ function n_impulse_transfer(model::AbstractOrbitalMechanicsModel, X1, X2, tf, Nd
         push!(sequence, el)
     end
 
-    transfer = Transfer(X1, X2, model, tf, sequence)
+    transfer = Transfer(X1, X2, model, tf, nimp, init_coast, final_coast, sequence)
     vars = varlist(transfer)
 
     planner = CasADiPlanner(vars)
@@ -153,5 +153,8 @@ function sol_to_transfer(sol::Dict, casadi_transfer::Transfer)
         casadi_transfer.X2,
         casadi_transfer.model,
         casadi_transfer.transfer_time,
+        casadi_transfer.nimp,
+        casadi_transfer.init_coast,
+        casadi_transfer.final_coast,
         solved_sequence)
 end

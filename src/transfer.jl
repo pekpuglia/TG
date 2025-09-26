@@ -21,11 +21,9 @@ struct Transfer
     X2::Vector
     model::AbstractOrbitalMechanicsModel
     transfer_time
-    # rcoast::Array
-    # vcoast::Array
-    # deltaVmags::Vector
-    # deltaVdirs::Matrix
-    # dts::Vector
+    nimp::Int
+    init_coast::Bool
+    final_coast::Bool
     sequence::Vector{Union{Impulse, Coast}}
 end
 total_dV(t::Transfer) = sum(el.deltaVmag for el in t.sequence if el isa Impulse)
@@ -40,6 +38,9 @@ function unscale(t::Transfer, L, T)
         diagm([L, L, L, L/T, L/T, L/T]) * t.X2,
         unscale(t.model, L, T),
         T * t.transfer_time,
+        t.nimp,
+        t.init_coast,
+        t.final_coast,
         unscale.(t.sequence, L, T)
     )
 end
@@ -50,6 +51,9 @@ function scale(t::Transfer, L, T)
         diagm([L, L, L, L/T, L/T, L/T]) \ t.X2,
         scale(t.model, L, T),
         T \ t.transfer_time,
+        t.nimp,
+        t.init_coast,
+        t.final_coast,
         scale.(t.sequence, L, T)
     )
 end
