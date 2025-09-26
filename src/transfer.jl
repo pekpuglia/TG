@@ -170,7 +170,14 @@ function add_null_impulse(solved_transfer::Transfer, tspan_ppdot)
     new_impulse = Impulse(0.0, (x -> x / norm(x))(ppdot[1:3, max_norm_time_ind]))
 
     new_seq = [solved_transfer.sequence[1:coast_to_split_sequence_index-1]; coast_before; new_impulse; coast_after; solved_transfer.sequence[coast_to_split_sequence_index+1:end]]
-    new_transfer = Transfer(solved_transfer.X1, solved_transfer.X2, solved_transfer.model, solved_transfer.transfer_time, new_seq)
+    new_transfer = Transfer(
+        solved_transfer.X1, 
+        solved_transfer.X2, 
+        solved_transfer.model, 
+        solved_transfer.transfer_time,
+        solved_transfer.nimp + 1,
+        solved_transfer.init_coast,
+        solved_transfer.final_coast, new_seq)
 
     new_transfer
 end
