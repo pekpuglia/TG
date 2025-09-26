@@ -120,7 +120,7 @@ plot_primer_vector(solved_transfer_2f, tspan_ppdot_2f)[1]
 N_3 = 50
 planner_3, transfer_3 = n_impulse_transfer(orbm, X1, X2, tfprime, N_3, 3, true, true)
 
-add_inequality!(planner_3, sum(getfield.(impulses(transfer_3), :deltaVmag)), 0, tdv2 * T / L)
+# add_inequality!(planner_3, sum(getfield.(impulses(transfer_3), :deltaVmag)), 0, tdv2 * T / L)
 
 solver_3 = casadi.nlpsol("s", "ipopt", planner_3.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
@@ -130,7 +130,52 @@ solver_3 = casadi.nlpsol("s", "ipopt", planner_3.prob, Dict("ipopt" => Dict(
 seq0 = [scale(s, L, T) 
     for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [0.1, 0.4, 0.3, 0.2])
 ]
+##
+function summarize_transf(t::Transfer)
+    newseq = []
 
+    for el in t.sequence
+        if el isa Coast
+            push!(newseq, Coast(
+                [el.rcoast[:, 1] el.rcoast[:, end]],
+                [el.vcoast[:, 1] el.vcoast[:, end]],
+                el.dt
+            )) 
+        else
+            push!(newseq, el)
+        end
+    end
+    Transfer(t.X1, t.X2, t.model, t.transfer_time, t.nimp, t.init_coast, t.final_coast, newseq)
+end
+
+function random_starts(solver, planner::CasADiPlanner, sc_t::Transfer, orb1, tf_real, L, T, n_starts)
+    _, ncoasts = create_sequence(sc_t.nimp, sc_t.init_coast, sc_t.final_coast)
+
+    N = size(coasts(sc_t)[1].rcoast)[2]
+
+    min_dV = Inf
+
+    best_partition = nothing
+    best_transfer = nothing
+
+    for i = 1:n_starts
+        partition = rand(ncoasts)
+        partition /= sum(partition)
+        seq0 = [scale(s, L, T) 
+            for s = initial_orb_sequence(orb1, tf_real, N, sc_t.nimp, sc_t.init_coast, sc_t.final_coast, partition)
+        ]
+        sol = solve_planner(solver, planner, vcat(varlist.(seq0)...))
+        solved_transfer = unscale(sol_to_transfer(sol, sc_t), L, T)
+        dv = total_dV(solved_transfer)
+
+        if dv <= min_dV
+            min_dV = dv
+            best_partition = partition
+            best_transfer = summarize_transf(solved_transfer)
+        end
+    end
+    best_transfer, best_partition
+end
 ## init cond from sol 2
 transfer_2f_redisc = rediscretize_transfer(solved_transfer_2f, N_3)
 
@@ -144,13 +189,24 @@ seq0 = null_imp_transf_2.sequence
 tab0 = vcat(varlist.(seq0)...)
 
 sol = solve_planner(solver_3, planner_3, tab0)
-
-solved_transfer = unscale(sol_to_transfer(sol, transfer_3), L, T)
+##
+solved_transfer_3 = unscale(sol_to_transfer(sol, transfer_3), L, T)
 total_dV(solved_transfer)
+## equal to paper with manual init cond
+tspan_ppdot_3 = primer_vector(solved_transfer_3, PVTMGlandorf(), 100)
+plot_primer_vector(solved_transfer_3, tspan_ppdot_3)[1]
 ##
 f, ax3d = plot_orbit(orb1, orb2)
 add_transfer!(ax3d, solved_transfer, 1e3)
 f
+##
+best_transfer, best_part = random_starts(solver_3, planner_3, transfer_3, orb1, tf_real, L, T, 10)
+total_dV(best_transfer)
+#impulse times: [  1131.0896958664634
+#  8773.458597861762
+#  11107.157595175846] give 39.8
+
 ## impulse times
-tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
-plot_primer_vector(solved_transfer, tspan_ppdot)[1]
+tspan_ppdot = primer_vector(best_transfer, PVTMGlandorf(), 100)
+plot_primer_vector(best_transfer, tspan_ppdot)[1]
+#do 4 impulses
