@@ -1,28 +1,18 @@
-using Setfield
-include("sample_orbits.jl")
-include("transfer.jl")
-include("./primer_vector.jl")
-include("integrators.jl")
-include("orb_mech.jl")
-include("plotting.jl")
-include("casadi_transfer_model.jl")
+include("../lib.jl")
+include("../orbits/hohmann.jl")
 ##
-case_ind = 1
-orb1, orb2 = ORBIT_STARTS[case_ind], ORBIT_ENDS[case_ind]
-r1, v1 = kepler_to_rv(orb1)
-r2, v2 = kepler_to_rv(orb2)
+r1, v1 = kepler_to_rv(HOHMANN_START)
+r2, v2 = kepler_to_rv(HOHMANN_END)
 
-#vary tf for each orbit
-tf_real = orbital_period((orb1.a+orb2.a)/2, GM_EARTH) / 2
 
-L = (orb1.a+orb2.a)/2
+#plot scenario
+
+##
+L = (HOHMANN_START.a+HOHMANN_END.a)/2
 T = 1
-tfprime = tf_real / T
+tfprime = TRANSFER_TIME / T
 
-# MUPRIME = GM_EARTH * T ^ 2 / L ^ 3
-# f = X -> two_body_dyn(X, MUPRIME)
-
-orb_model = normalize(TwoBodyModel(GM_EARTH), L, T)
+orb_model = scale(TwoBodyModel(GM_EARTH), L, T)
 
 X1 = [r1 / L; v1 * T / L]
 X2 = [r2 / L; v2 * T / L]
@@ -37,7 +27,7 @@ solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
 ## initial guess
 
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 2, false, false, [1])
+    for s = initial_orb_sequence(HOHMANN_START, TRANSFER_TIME, N, 2, false, false, [1])
     ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -45,124 +35,21 @@ tab0 = vcat(varlist.(seq0)...)
 ##
 sol = solve_planner(solver, planner, tab0)
 ##
-solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
+solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
-f, ax3d = plot_orbit(orb1, orb2)
-# add_discretized_trajectory!(ax3d, solved_model.sequence[2].rcoast)
-add_transfer!(ax3d, solved_model)
+f, ax3d = plot_orbit(HOHMANN_START, HOHMANN_END)
+add_transfer!(ax3d, solved_transfer, 1e4)
 f
 ##
-save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
+# save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
-
-#automate this - discard early departure/late arrival
-# tspan_ppdot = primer_vector(solved_model, PVTMFromSTM(100, RK8), 100)
-# tspan_ppdot = primer_vector(solved_model, PVTMGlandorf(), 100)
-tspan_ppdot = primer_vector(solved_model, PVTMFromODE(100, RK8), 100)
-tspan, ppdot = tspan_ppdot
-normp = norm.(eachcol(ppdot[1:3, :]))
-normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
-# ##
-pv_diag = diagnose_ppdot(normp, normpdot) #remove?
-# automate this
-f = Figure()
-ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Diagnostic: "*string(diagnose_ppdot(normp, normpdot)))
-lines!(ax1, tspan, normp)
-vlines!(ax1, tf_real, linestyle=:dash, color=:gray)
-ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
-lines!(ax2, tspan, normpdot)
-vlines!(ax2, tf_real, linestyle=:dash, color=:gray)
-f
+# tspan_ppdot = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
+tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
+# tspan_ppdot = primer_vector(solved_transfer, PVTMFromODE(100, RK8), 100)
+plot_primer_vector(solved_transfer, tspan_ppdot)[1]
+## data summary
+total_dV(solved_transfer)
 ##
-save("results/"*PREFIXES[case_ind]*"_primer_vector.png", f)
-## PV WITH PERTURBATION TRANSITION MATRIX
-
-
-
-
-
-# ppdot[:, end] - Phi_tf_t0 * ppdot[:, 1]
-## build pv TPBVP casadi model
-deltaV1 = solved_model.sequence[1].deltaVdir * solved_model.sequence[1].deltaVmag
-deltaV2 = solved_model.sequence[3].deltaVdir * solved_model.sequence[3].deltaVmag
-
-p0 = deltaV1 / norm(deltaV1)
-pf = deltaV2 / norm(deltaV2)
-
-pdot0 = SX("pdot0", 3)
-# pdotf = SX("pdotf", 3)
-
-# much simples way of doing this?
-prob = Dict(
-    "f" => pdot0' * pdot0,
-    "x" => pdot0,
-    "g" => vcat(pf - Phi_tf_t0[1:3, :] * [p0; sx_iterator(pdot0)...])
-)
-
-solver = casadi.nlpsol("S", "ipopt", prob, Dict("ipopt" => Dict(
-    "max_iter" => 3000,
-    "constr_viol_tol" => 1e-5)))
-
-sol = solver(x0 = [0.0,0,0], lbg=[0.0,0,0], ubg=[0.0,0,0])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## try free impulse time solutions
-N = 100
-planner, transfer = n_impulse_transfer(X1, X2, tfprime, MUPRIME, N, 4, true, true)
-
-solver = casadi.nlpsol("s", "ipopt", planner.prob, Dict("ipopt" => Dict(
-    "max_iter" => 3000,
-    "constr_viol_tol" => 1e-5)))
-##
-seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N, 4, true, true, [0.2, 0.2, 0.2, 0.2, 0.2])
-]
-
-tab0 = vcat(varlist.(seq0)...)
-##
-sol = solve_planner(solver, planner, tab0)
-##
-solved_model = unscale(sol_to_transfer(sol, transfer), L, T)
-# solved_orbs = [rv_to_kepler(c.rcoast[:, 1], c.vcoast[:, 1]) for c in solved_model.sequence if c isa Coast]
-# solved_prop = Propagators.init(Val(:TwoBody), solved_orb)
-##
-f, ax3d = plot_orbit(orb1, orb2)
-add_transfer!(ax3d, solved_model, 1e3)
-# add_discretized_trajectory!(ax3d, solved_model.sequence[5].rcoast)
-f
-## impulse times
-cumtime = cumsum([0; getfield.(filter(x -> x isa Coast, solved_model.sequence), :dt)])
-##
-tspan_ppdot = primer_vector(solved_model, 100)
-tspan, ppdot = tspan_ppdot
-normp = norm.(eachcol(ppdot[1:3, :]))
-f, ax, plt = plot(tspan, normp)
-vlines!(ax, cumtime, linestyle=:dash)
-f
-##
-normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
-plot(tspan, normpdot)
+impulse_times(solved_transfer)
+##impulse magnitudes
+impulses(solved_transfer) .|> x -> x.deltaVmag

@@ -1,6 +1,3 @@
-using SatelliteToolboxBase
-include("../orb_mech.jl")
-
 HOHMANN_START = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
     7000e3,
