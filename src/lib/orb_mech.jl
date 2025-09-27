@@ -20,8 +20,6 @@ orbital_period(a, m0) = 2π√(a^3/m0)
 
 abstract type AbstractOrbitalMechanicsModel end
 
-normalize(m::AbstractOrbitalMechanicsModel, L, T) = error("not implemented")
-
 abstract type AbstractConservativeModel <: AbstractOrbitalMechanicsModel end
 
 struct TwoBodyModel <: AbstractConservativeModel
