@@ -98,3 +98,7 @@ f
 ##
 tspan_ppdot_3 = primer_vector(solved_transfer_3, PVTMFromSTM(100, RK8), 100)
 plot_primer_vector(solved_transfer_3, tspan_ppdot_3)[1]
+##
+impulses(solved_transfer_3) .|> x -> x.deltaVmag
+##
+impulse_times(solved_transfer_3)
