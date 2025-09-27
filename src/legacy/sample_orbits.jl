@@ -1,44 +1,6 @@
 using SatelliteToolboxBase
 ##
-HOHMANN_START = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    7000e3,
-    0.0,
-    51 |> deg2rad,
-    0    |> deg2rad,
-    0     |> deg2rad,
-    0     |> deg2rad
-)
 
-HOHMANN_END = KeplerianElements(
-    HOHMANN_START.t,
-    9000e3,
-    0.0,
-    HOHMANN_START.i,
-    HOHMANN_START.Ω,
-    HOHMANN_START.ω,
-    deg2rad(180) + HOHMANN_START.f
-)
-##
-LEO_MAINTENANCE_START = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    EARTH_EQUATORIAL_RADIUS + 400e3,
-    0.003,
-    deg2rad(53),
-    deg2rad(3),
-    0,
-    0
-)
-
-LEO_MAINTENANCE_END = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    EARTH_EQUATORIAL_RADIUS + 600e3,
-    0.001,
-    deg2rad(51),
-    deg2rad(0),
-    0,
-    deg2rad(180)
-)
 ##
 SSO_MAINTENANCE_START = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -60,25 +22,7 @@ SSO_MAINTENANCE_END = KeplerianElements(
     0
 )
 ##
-PHASING_START = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    EARTH_EQUATORIAL_RADIUS + 800e3,
-    0.001,
-    deg2rad(4),
-    deg2rad(0),
-    0,
-    0
-)
 
-PHASING_END = KeplerianElements(
-    date_to_jd(2023, 1, 1, 0, 0, 0),
-    EARTH_EQUATORIAL_RADIUS + 800e3,
-    0.001,
-    deg2rad(4),
-    deg2rad(0),
-    0,
-    deg2rad(-30)
-)
 ##
 GEO_INSERTION_START, GEO_INSERTION_END = let 
     a0 = EARTH_EQUATORIAL_RADIUS + 600e3
