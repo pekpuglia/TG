@@ -1,5 +1,6 @@
 using GLMakie
 using SatelliteToolboxBase
+using Setfield
 
 function plot_orbit(orbs::KeplerianElements...)
     N = 100
