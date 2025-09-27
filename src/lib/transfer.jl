@@ -116,6 +116,7 @@ function initial_orb_sequence(orb1, tf, Ndisc, nimp::Int, init_coast::Bool, fina
     sequence
 end
 
+#unscaled stuff
 function add_null_impulse(solved_transfer::Transfer, tspan_ppdot)
     tspan, ppdot = tspan_ppdot
 
