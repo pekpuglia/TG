@@ -45,8 +45,8 @@ end
 
 J2model(mu, J2, R) = J2model(mu, J2*mu*R^2)
 
-# scale(tbm::J2model, L, T) = J2model(tbm.mu * T ^ 2 / L ^ 3, )
-# unscale(tbm::J2model, L, T) = J2model(tbm.mu * L^3 / T ^ 2, )
+scale(tbm::J2model, L, T) = J2model(tbm.mu * T ^ 2 / L ^ 3, tbm.J2_mu_R2 * T ^ 2 / L ^ 5)
+unscale(tbm::J2model, L, T) = J2model(tbm.mu * L^3 / T ^ 2, tbm.J2_mu_R2 * L ^ 5 / T ^ 2)
 
 function dynamics(X, model::J2model)
     r = X[1:3]
