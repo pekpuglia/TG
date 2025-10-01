@@ -29,6 +29,8 @@ end
 scale(tbm::TwoBodyModel, L, T) = TwoBodyModel(tbm.mu * T ^ 2 / L ^ 3)
 unscale(tbm::TwoBodyModel, L, T) = TwoBodyModel(tbm.mu * L^3 / T ^ 2)
 
+sat_toolbox_model(::TwoBodyModel) = Val(:TwoBody)
+
 function dynamics(X, model::TwoBodyModel)
     r = X[1:3]
     v = X[4:6]
@@ -38,7 +40,7 @@ function dynamics(X, model::TwoBodyModel)
     ]
 end
 
-struct J2model <: AbstractOrbitalMechanicsModel
+struct J2model <: AbstractConservativeModel
     mu
     J2_mu_R2
 end

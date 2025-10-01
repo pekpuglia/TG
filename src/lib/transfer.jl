@@ -15,7 +15,10 @@ end
 unscale(c::Coast, L, T) = Coast(L * c.rcoast, L/T * c.vcoast, T * c.dt)
 scale(c::Coast, L, T) = Coast(L \ c.rcoast, T/L * c.vcoast, T \ c.dt)
 
-#add nimp, ncoasts, init_coast, final_coast to struct
+#compute:
+#initial, final state
+#impulse states
+#streamline set sequence
 struct Transfer
     X1::Vector
     X2::Vector
@@ -211,4 +214,28 @@ function rediscretize_transfer(t::Transfer, N, integrator=RK8)
         new_transfer.sequence[coast_indices[i]] = rediscretize_coast(c, t.model, N, integrator)
     end
     new_transfer
+end
+
+function recompute_sat_toolbox(t::Transfer)
+    new_seq = []
+
+    x = t.X1
+
+
+    for el in t.sequence
+        if el isa Impulse
+            push!(new_seq, el)
+            x += [zeros(3); el.deltaVmag * el.deltaVdir]
+        else
+            dt = el.dt
+            start_x = x
+            r, v, _ = Propagators.propagate(sat_toolbox_model(t.model), dt, rv_to_kepler(x[1:3], x[4:6]))
+
+            x = [r; v]
+
+            push!(new_seq, Coast([start_x[1:3] r], [start_x[4:6] v], dt))
+        end
+    end
+
+    Transfer(t.X1, t.X2, t.model, t.transfer_time, t.nimp, t.init_coast, t.final_coast, new_seq)
 end

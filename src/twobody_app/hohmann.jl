@@ -53,3 +53,6 @@ total_dV(solved_transfer)
 impulse_times(solved_transfer)
 ##impulse magnitudes
 impulses(solved_transfer) .|> x -> x.deltaVmag
+##
+recomp_transf = recompute_sat_toolbox(solved_transfer)
+[r2 - recomp_transf.sequence[2].rcoast[:, end]]
