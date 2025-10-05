@@ -41,6 +41,9 @@ f, ax3d = plot_orbit(HOHMANN_START, HOHMANN_END)
 add_transfer!(ax3d, solved_transfer, 1e4)
 f
 ##
+valid_transfer = recompute_sat_toolbox(solved_transfer)
+valid_transfer.sequence[2].rcoast[:, end] - r2
+##
 # save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
 tspan_ppdot = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
