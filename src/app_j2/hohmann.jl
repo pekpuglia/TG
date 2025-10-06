@@ -42,7 +42,10 @@ add_transfer!(ax3d, solved_transfer, 1e4)
 f
 ##
 valid_transfer = recompute_sat_toolbox(solved_transfer)
-valid_transfer.sequence[2].rcoast[:, end] - r2
+valid_transfer.sequence[2].rcoast[:, end]
+##
+redisc_transf = rediscretize_transfer(solved_transfer, 100, RK8)
+redisc_transf.sequence[2].rcoast[:, end]
 ##
 # save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
 ##
