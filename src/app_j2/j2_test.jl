@@ -21,3 +21,19 @@ cart_traj = trajectory(X -> dynamics(X, model), [r1; v1], t, 10000, RK8)
 f, ax = plot_orbit(HOHMANN_START)
 add_discretized_trajectory!(ax, cart_traj)
 f
+## solve example 10.2
+orb = KeplerianElements(
+    HOHMANN_START.t,
+    8059e3,
+    0.17136,
+    deg2rad(28),
+    deg2rad(45),
+    deg2rad(30),
+    deg2rad(40)
+)
+t = 48*3600.0
+j2osc_orb = Propagators.propagate(sat_toolbox_model(model), t, orb)[3].j2oscd.orbk
+##1 point / 3 min
+x0 = vcat(kepler_to_rv(orb)...)
+xf = final_X(X -> dynamics(X, model), x0, t, 1000, RK8)
+cart_orb = rv_to_kepler(xf[1:3], xf[4:6])
