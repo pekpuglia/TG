@@ -210,11 +210,21 @@ function RK8(f, X, dt)
     Xnext = X .+ dt*dX;
 end
 
-function final_X(f, X0, tf, N, integrator=euler)
+function final_X(f, X0, tf, N, integrator)
     X = X0
     dt = tf / (N-1)
     for i = 1:N-1
         X = integrator(f, X, dt)
     end
     X
+end
+
+function trajectory(f, X0, tf, N, integrator)
+    traj = zeros(length(X0), N)
+    traj[:, 1] = X0
+    dt = tf / (N-1)
+    for i = 1:N-1
+        traj[:, i+1] = integrator(f, traj[:, i], dt)
+    end
+    traj
 end
