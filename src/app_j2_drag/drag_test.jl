@@ -1,16 +1,15 @@
 include("../lib.jl")
 # include("../orbits/hohmann.jl")
+#check density vs height
+#reproduce 10.1
+##
+hs = 0:10:1000
+rho_if = rho_model_if.(hs)
+rho_smooth = rho_model_smooth.(hs, 10)
+f = lines(hs, log.(rho_if))
+lines!(f.axis, hs, log.(rho_smooth))
+f
 ## curtis
-#km
-h = 600.0
-#kg/m^3
-rho = 1.137e-13
-H = 76.377 #km
-
-DRAG_REF_RADIUS = EARTH_EQUATORIAL_RADIUS + 1000h
-DRAG_REF_RHO = 1.137e-13
-DRAG_REF_H = 76.377e3
-
 model = J2DragModel(
     GM_EARTH, 
     EGM_2008_J2*GM_EARTH*EARTH_EQUATORIAL_RADIUS^2, 
