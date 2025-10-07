@@ -71,3 +71,49 @@ function dynamics(X, model::J2model)
         -model.mu/(rnorm^3)*r + j2_term
     ]
 end
+
+struct J2DragModel <: AbstractOrbitalMechanicsModel
+    mu
+    J2_mu_R2
+    omegaE
+    B
+    r0
+    rho0
+    H0
+end
+
+J2Dragmodel(mu, J2, R) = J2DragModel(mu, J2*mu*R^2)
+
+scale(tbm::J2DragModel, L, T) = J2DragModel(tbm.mu * T ^ 2 / L ^ 3, tbm.J2_mu_R2 * T ^ 2 / L ^ 5)
+unscale(tbm::J2DragModel, L, T) = J2DragModel(tbm.mu * L^3 / T ^ 2, tbm.J2_mu_R2 * L ^ 5 / T ^ 2)
+
+# sat_toolbox_model(::J2DragModel) = Val(:J2osc)
+
+rhomodel(model::J2DragModel, r) = model.rho0 * exp(-(r - model.r0) / model.H0)
+
+function dynamics(X, model::J2DragModel)
+    r = X[1:3]
+    v = X[4:6]
+
+    rnorm = √(r'*r)
+
+    z_r2 = r[3]^2 / (r' * r)
+
+    j2_term = 3/2 * model.J2_mu_R2 / (r'*r)^2 * [
+        r[1] / rnorm * (5*z_r2 - 1)
+        r[2] / rnorm * (5*z_r2 - 1)
+        r[3] / rnorm * (5*z_r2 - 3)
+    ]
+
+    vrel = v - cross([0; 0; model.omegaE], r)
+    rho = rhomodel(model, rnorm)
+
+    vrelnorm = √(vrel' * vrel)
+
+    drag = -1/2 * rho * vrelnorm * model.B * vrel
+
+    [
+        v
+        -model.mu/(rnorm^3)*r + drag
+    ]
+end
