@@ -138,8 +138,12 @@ function rho_model_curtis(r, r_table, rho_table, H_table)
     rho_table[i]*exp(-(r - r_table[i])/H_table[i]);
 end #atmopshere
 
+Base.exp(x::SX) = casadi.exp(x)
+Base.tanh(x::SX) = casadi.tanh(x)
+
 heaviside(x, k) = (tanh(x*k) + 1) / 2
 rect(x, k) = 1/2 * (tanh(k*x) + tanh(k*(1-x)))
+
 
 function rho_model_smooth(r, r_table, rho_table, H_table, k=1000)
      #Exponential interpolation:
