@@ -42,3 +42,21 @@ hps = [o.a * (1 - o.e) for o = orbs] .- EARTH_EQUATORIAL_RADIUS
 # lines!(f.axis, 1:(days*1000), hps)
 # f
 hps[end]
+## scaling doesn't work!!!!!!!!
+L = orb.a
+T = orbital_period(orb, GM_EARTH)
+
+
+rho_model_smooth(norm(x0[1:3]), model.r_table, model.rho_table, model.H_table, 50) * L^3
+
+sc_mod = scale(model, L, T)
+
+rho_model_smooth(norm(x0[1:3]) / L, sc_mod.r_table, sc_mod.rho_table, sc_mod.H_table, 1000)
+
+
+##
+scx0 = [x0[1:3] / L; x0[4:6] * T / L]
+t = T/5
+xf = final_X(X -> dynamics(X, model), x0, t, 10, RK8)
+sc_xf = final_X(X -> dynamics(X, sc_mod), scx0, t / T, 10, RK8)
+# unsc_xf = [sc_xf[1:3] * L; sc_xf[4:6] * L / T]

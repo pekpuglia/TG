@@ -100,6 +100,7 @@ scale(j2d::J2DragModel, L, T) = J2DragModel(
     j2d.rho_table * L^3,
     j2d.H_table / L
     )
+
 unscale(j2d::J2DragModel, L, T) = J2DragModel(
     j2d.mu * L ^ 3 / T ^ 2, 
     j2d.J2_mu_R2 * L ^ 5 / T ^ 2,
@@ -140,7 +141,7 @@ end #atmopshere
 heaviside(x, k) = (tanh(x*k) + 1) / 2
 rect(x, k) = 1/2 * (tanh(k*x) + tanh(k*(1-x)))
 
-function rho_model_smooth(r, r_table, rho_table, H_table, k=50)
+function rho_model_smooth(r, r_table, rho_table, H_table, k=1000)
      #Exponential interpolation:
     sum(
         rho_table[i]*exp(-(r - r_table[i])/H_table[i]) * 
@@ -173,6 +174,6 @@ function dynamics(X, model::J2DragModel, rho_model = rho_model_smooth)
 
     [
         v
-        -model.mu/(rnorm^3)*r + drag
+        -model.mu/(rnorm^3)*r + drag + j2_term
     ]
 end
