@@ -3,26 +3,28 @@ include("../lib.jl")
 #check density vs height
 #reproduce 10.1
 ##
-hs = 0:10:1000
-rho_if = rho_model_if.(hs)
-rho_smooth = rho_model_smooth.(hs, 10)
-f = lines(hs, log.(rho_if))
-lines!(f.axis, hs, log.(rho_smooth))
+rs = EARTH_EQUATORIAL_RADIUS .+ (0:10:1000)*1e3
+rho_if = rho_model_curtis.(rs, [R_TABLE_ATM], [RHO_TABLE_ATM], [H_TABLE_ATM])
+rho_smooth = rho_model_smooth.(rs, [R_TABLE_ATM], [RHO_TABLE_ATM], [H_TABLE_ATM], 10)
+f = lines(rs, log.(rho_if))
+lines!(f.axis, rs, log.(rho_smooth))
 f
+##
+lines(rs, log.(abs.(rho_if .- rho_smooth) ./ rho_if))
 ## curtis
 model = J2DragModel(
     GM_EARTH, 
     EGM_2008_J2*GM_EARTH*EARTH_EQUATORIAL_RADIUS^2, 
-    EARTH_ANGULAR_SPEED, 
-    2.2*pi*0.25/100,
-    DRAG_REF_RADIUS,
-    DRAG_REF_RHO,
-    DRAG_REF_H)
+    2.2*pi*0.25/100, 
+    EARTH_ANGULAR_SPEED,
+    R_TABLE_ATM,
+    RHO_TABLE_ATM,
+    H_TABLE_ATM)
 ##
 orb = KeplerianElements(
     0,
     6955e3,
-    0.052049,
+    0.052,
     deg2rad(65.1),
     deg2rad(340),
     deg2rad(58),
@@ -31,6 +33,12 @@ orb = KeplerianElements(
 
 x0 = vcat(kepler_to_rv(orb)...)
 
-days = 200
-xf = final_X(X -> dynamics(X, model), x0, days*24*3600, days*1000, RK8)
-norm(xf[1:3]) - EARTH_EQUATORIAL_RADIUS - 100e3
+days = 108.99
+xs = trajectory(X -> dynamics(X, model, rho_model_curtis), x0, days*24*3600, round(Int, days*1000), RK8)
+orbs = [rv_to_kepler(x[1:3], x[4:6]) for x = eachcol(xs)]
+has = [o.a * (1 + o.e) for o = orbs] .- EARTH_EQUATORIAL_RADIUS
+hps = [o.a * (1 - o.e) for o = orbs] .- EARTH_EQUATORIAL_RADIUS
+# f = lines(1:(days*1000), has)
+# lines!(f.axis, 1:(days*1000), hps)
+# f
+hps[end]
