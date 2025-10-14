@@ -3,10 +3,11 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
     \begin{table}[htpb]
         \centering
         \begin{tabular}{cccc} \toprule
+        \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{MANEUVER_TYPE} \\ \midrule
         \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
         SCALEL          & SCALET          & TOLEPSILON                & DELTAXFINAL                        \\ \midrule
         \(\max \lVert p \rVert\) & MAXNORMP     & \textbf{Diagnostic}   & DIAGNOSTIC        \\ \midrule
-        \textbf{Impulse} & \(t\) (s) & \(\Delta v\) & \(1 - p \cdot \hat{u}\) \\ \midrule
+        \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
         IMPINDEX                 & IMPTIME          & IMPDV             & IMPDIR                    \\
         \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
         \end{tabular}
@@ -25,6 +26,7 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
     totaldv = total_dV(transfer)
     
     partial_table = replace(format, 
+        "MANEUVER_TYPE" => transfer_type(transfer),
         "SCALEL"      => round(L, digits=3),
         "SCALET"      => round(T, digits=3),
         "TOLEPSILON"  => round(tolepsilon, digits=2),
@@ -41,7 +43,7 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
     p_on_imp = p[:, index_p_on_imp] |> eachcol |> collect
     #add impulses to table
     partial_table_lines = split(partial_table, "\n")
-    impulse_lines = repeat([partial_table_lines[8]], transfer.nimp)
+    impulse_lines = repeat([partial_table_lines[10]], transfer.nimp)
     for (i, t, imp, p) = zip(1:transfer.nimp, imp_ts, impulses(transfer), p_on_imp)
         dv = imp.deltaVmag
         impulse_lines[i] = replace(impulse_lines[i], 
@@ -52,7 +54,7 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
         )
     end
     impulse_lines[end] = impulse_lines[end]*"\\midrule"
-    final_table = join([partial_table_lines[1:7]..., impulse_lines..., partial_table_lines[9:end]...], "\n")
+    final_table = join([partial_table_lines[1:9]..., impulse_lines..., partial_table_lines[11:end]...], "\n")
     final_table
 end
 

@@ -29,18 +29,27 @@
 
 
 
-\begin{table}[]
+
+
+
+
+\begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
     \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
     8.0e6          & 1.0          & 0.0                & 0.0                        \\ \midrule
     \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
-    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 0.0          & 457.74489             & 0.0                    \\
     2                 & 3560.54079          & 429.8171             & 0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 887.56199             &                     \\ \bottomrule   
     \end{tabular}
 \end{table}
+
+
+
+
 
 
 \subsection{Noncoplanar rendez-vous}
