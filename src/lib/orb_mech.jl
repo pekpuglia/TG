@@ -1,4 +1,4 @@
-using SatelliteToolboxBase
+using SatelliteToolboxBase, CasADi
 
 function hohmann_cost(a1, a2, mu)
     v1 = sqrt(mu/a1)

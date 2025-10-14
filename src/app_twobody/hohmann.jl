@@ -4,9 +4,12 @@ include("../orbits/hohmann.jl")
 r1, v1 = kepler_to_rv(HOHMANN_START)
 r2, v2 = kepler_to_rv(HOHMANN_END)
 
-
-#plot scenario
-
+##plot scenario
+fig, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
+axislegend(ax3d, orb_lines, ["Initial orbit", "Final orbit"], position = (0.8, 0.9))
+fig
+##
+save("./results/two_body/hohmann/scenario.png", fig)
 ##
 L = (HOHMANN_START.a+HOHMANN_END.a)/2
 T = 1
@@ -37,16 +40,21 @@ sol = solve_planner(solver, planner, tab0)
 ##
 solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
-f, ax3d = plot_orbit(HOHMANN_START, HOHMANN_END)
-add_transfer!(ax3d, solved_transfer, 1e4)
+f, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
+coast_ps, ia = add_transfer!(ax3d, solved_transfer, 1e4)
+axislegend(ax3d, [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
 f
 ##
-# save_with_views!(ax3d, f, "results/$(PREFIXES[case_ind])")
+save_with_views!(ax3d, f, "results/two_body/hohmann/2ref")
 ##
-# tspan_ppdot = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
-tspan_ppdot = primer_vector(solved_transfer, PVTMGlandorf(), 100)
-# tspan_ppdot = primer_vector(solved_transfer, PVTMFromODE(100, RK8), 100)
-plot_primer_vector(solved_transfer, tspan_ppdot)[1]
+tspan_ppdot_glandorf = primer_vector(solved_transfer, PVTMGlandorf(), 100)
+tspan_ppdot_stm = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
+tspan_ppdot_ode = primer_vector(solved_transfer, PVTMFromODE(100, RK8), 100)
+##
+f, axs = plot_primer_vector(solved_transfer, tspan_ppdot_glandorf, name=NAME, label="Glandorf")
+
+Legend(f[1, 2], axs[1], "Methods")
+f
 ## data summary
 total_dV(solved_transfer)
 ##

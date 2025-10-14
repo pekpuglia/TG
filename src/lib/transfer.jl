@@ -35,6 +35,10 @@ impulses(t::Transfer) = [i for i in t.sequence if i isa Impulse]
 coasts(t::Transfer) = [c for c in t.sequence if c isa Coast]
 
 
+function transfer_type(t::Transfer)
+    prod([((el isa Impulse) ? "I" : "C") for el = t.sequence])
+end
+
 function unscale(t::Transfer, L, T)
     Transfer(
         diagm([L, L, L, L/T, L/T, L/T]) * t.X1,
