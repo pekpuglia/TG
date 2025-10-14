@@ -180,10 +180,10 @@ function diagnose_ppdot(tspan_ppdot, rtol = 1e-4)
         "Initial coast"
     elseif normp_dot0 < -tol && normp_dotf < -tol
         "Final coast"
-    elseif normp_dot0 < -tol && normp_dotf > tol
-        "More time"
     elseif any(normp .> 1 + rtol)
         "Add impulse"
+    # elseif normp_dot0 < -tol && normp_dotf > tol
+    #     "More time"
     else
         "Local optimum"
     end

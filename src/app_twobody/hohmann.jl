@@ -9,7 +9,7 @@ fig, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
 axislegend(ax3d, orb_lines, ["Initial orbit", "Final orbit"], position = (0.8, 0.9))
 fig
 ##
-save("./results/two_body/hohmann/scenario.png", fig)
+save("./results/two_body/hohmann/scenario.png", fig, px_per_unit = 300/96)
 ##
 L = (HOHMANN_START.a+HOHMANN_END.a)/2
 T = 1
@@ -58,7 +58,7 @@ plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_ode, label="
 Legend(f[1, 2], axs[1], "Methods")
 f
 ##
-save("./results/two_body/hohmann/ICI_primer_vector.png", f)
+save("./results/two_body/hohmann/ICI_primer_vector.png", f, px_per_unit = 300/96)
 ## data summary
 #L T constr_viol_tol deltax_tol  final error
 #maxnormp diag

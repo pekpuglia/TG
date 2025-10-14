@@ -63,7 +63,7 @@ function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
 end
 
 function save_with_views!(ax3d, f, prefix)
-    save(prefix*"_3d.png", f)
+    save(prefix*"_3d.png", f, px_per_unit = 300/96)
     
     az = [pi/2, 0, 0]
     el = [0, 0, pi/2]
@@ -71,7 +71,7 @@ function save_with_views!(ax3d, f, prefix)
     for (a, e, n) in zip(az, el, name)
         ax3d.azimuth = a
         ax3d.elevation = e
-        save(prefix*"_"*n*".png", f)
+        save(prefix*"_"*n*".png", f, px_per_unit = 300/96)
     end
 end
 

@@ -1,3 +1,4 @@
+using Printf
 function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon)
     format = raw"
     \begin{table}[htpb]
@@ -29,7 +30,7 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
         "MANEUVER_TYPE" => transfer_type(transfer),
         "SCALEL"      => round(L, digits=3),
         "SCALET"      => round(T, digits=3),
-        "TOLEPSILON"  => round(tolepsilon, digits=2),
+        "TOLEPSILON"  => @sprintf("%.2e", tolepsilon),
         "DELTAXFINAL" => round(deltaxfinal, digits=5),
         "MAXNORMP"    => round(maxnormp, sigdigits=5),
         "DIAGNOSTIC"  => diagnostic,
