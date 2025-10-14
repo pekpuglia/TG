@@ -154,6 +154,21 @@ function rho_model_smooth(r, r_table, rho_table, H_table, k=1000)
     ) + rho_table[1] * heaviside(-r + r_table[1], k) + rho_table[end] * heaviside(r - r_table[end], k)
 end #atmopshere
 
+function drag_acc(X, model::J2DragModel, rho_model = rho_model_smooth)
+    r = X[1:3]
+    v = X[4:6]
+
+    rnorm = √(r'*r)
+
+    vrel = v - cross([0; 0; model.omegaE], r)
+    rho = rho_model(rnorm, model.r_table, model.rho_table, model.H_table)
+
+    vrelnorm = √(vrel' * vrel)
+
+    drag = -(1/2 * rho * model.B) * vrelnorm * vrel
+
+    drag
+end
 
 function dynamics(X, model::J2DragModel, rho_model = rho_model_smooth)
     r = X[1:3]
@@ -169,12 +184,7 @@ function dynamics(X, model::J2DragModel, rho_model = rho_model_smooth)
         r[3] / rnorm * (5*z_r2 - 3)
     ]
 
-    vrel = v - cross([0; 0; model.omegaE], r)
-    rho = rho_model(rnorm, model.r_table, model.rho_table, model.H_table)
-
-    vrelnorm = √(vrel' * vrel)
-
-    drag = -1/2 * rho * vrelnorm * model.B * vrel
+    drag = drag_acc(X, model, rho_model)
 
     [
         v

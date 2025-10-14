@@ -91,6 +91,7 @@ struct PVTMFromSTM <: AbstractPVTMAlgo
     integrator
 end
 
+#restrict this later
 function Phi_time(pvtm_algo::PVTMFromSTM, orb_model::AbstractOrbitalMechanicsModel, x0, t)
     end_state(initial_state) = final_X(X -> dynamics(X, orb_model), initial_state, t, pvtm_algo.N, pvtm_algo.integrator)
     
@@ -103,16 +104,32 @@ struct PVTMFromODE <: AbstractPVTMAlgo
     integrator
 end
 
+function pvdot_matrix(x, orb_model::AbstractConservativeModel)
+    f = X -> dynamics(X, orb_model)
+    J = [zeros(3, 3) I(3)
+        -I(3) zeros(3,3)]
+
+    lambdadot_matrix(x) = - ForwardDiff.jacobian(f, x)'
+
+    J' * lambdadot_matrix(x) * J
+end
+
+function pvdot_matrix(x, orb_model::J2DragModel)
+    f = X -> dynamics(X, orb_model)
+
+    drag_jac = ForwardDiff.jacobian(X -> drag_acc(X, orb_model), x)
+    dyn_jac = ForwardDiff.jacobian(f, x)
+
+    [
+        zeros(3, 3) I(3)
+        dyn_jac[4:6, 1:3]' (-drag_jac[:, 4:6]')
+    ]
+end
+
 function Phi_time(pvtm_algo::PVTMFromODE, orb_model::AbstractOrbitalMechanicsModel, x0, t)
     f = X -> dynamics(X, orb_model)
 
-    lambdadot_matrix(x) = - ForwardDiff.jacobian(f, x)'
-    #MAYBE THIS ONLY WORKS FOR CONSERVATIVE MODEL???
-    J = [zeros(3, 3) I(3)
-        -I(3) zeros(3,3)]
-    pvdot_matrix(x) = J' * lambdadot_matrix(x) * J
-    
-    pvdot(p, x) = pvdot_matrix(x) * p
+    pvdot(p, x) = pvdot_matrix(x, orb_model) * p
     
     full_sys(xp) = [
         f(xp[1:6])
