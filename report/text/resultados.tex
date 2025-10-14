@@ -1,113 +1,58 @@
+\section{Two Body}
 
-The theory and methods exposed previously are to be tested with concrete numerical examples, as well as be improved and expanded. In this chapter, an outline for expected results and deliverables of this work is given, as well as a simple numerical example: that of a Hohmann transfer in LEO. 
+\subsection{Circle to Circle}
 
-\section{Expected results}
 
-Future deliverables shall include:
-\begin{enumerate}
-    \item A more robust code, capable of handling: 
-    \begin{enumerate}
-        \item multiple impulses;
-        \item multiple revolution transfers;
-        \item perturbed orbital dynamics;
-    \end{enumerate}
-    \item Estimation of feasible transfer times \(t_f\), which is currently treated as an arbitrary input;
-    \item Analysis of more complex, practical orbital transfer cases under appropriate models (to be defined, but likely J2-perturbed dynamics):
-    \begin{enumerate}
-        \item LEO orbit maintenance: simultaneous correction in inclination and altitude;
-        \item Sun synchronous orbit maintenance: correction in inclination, RAAN and semimajor-axis;
-        \item Constellation phasing: coplanar maneuver to correct a satellite's phase (true anomaly) on a circular orbit;
-        \item LEO to GEO transfer: multiple impulse, small plane change, numerical challenge (different time and spatial scales between the start and the end)
-        \item \textbf{Optional}: plan series of impulses to use a Moon's gravity assist to increase scape velocity.
-    \end{enumerate}
-\end{enumerate}
 
-\section{Preliminary results: Hohmann Transfer}
 
-To validate the models created, a Hohmann transfer scenario is solved through direct optimization, and this solution is verified with primer vector theory and the known Hohmann transfer analytical solution.
 
-The input orbital elements are given in table~\ref{tab:hohmann_orb_elems} and the orbits can be visualized in Figure~\ref{fig:hohmann_condition}. The blue dot is the initial position of the satellite and the yellow, its target position at the end of the control period. The lines represent the direction of the velocity.
+
 
 \begin{table}[htbp]
     \centering
     \begin{tabular}{ccc} \toprule
         Element & Initial & Final \\ \midrule
-        \(a\)      & \(7000\) km   & \(9000\) km   \\
-        \(e\)      & \(0\)        & \(0\)        \\
-        \(i\)      & \(51^\circ\) & \(51^\circ\) \\
-        \(\Omega\) & \(0^\circ\)  & \(0^\circ\)  \\
-        \(\omega\) & \(0^\circ\)  & \(0^\circ\)  \\
-        \(\theta\) & \(0^\circ\)  & \(180^\circ\)  \\ \bottomrule
+        \(a\)      & \(7000.0\) km         & \(9000.0\) km   \\
+        \(e\)      & \(0.0\)            & \(0.0\)        \\
+        \(i\)      & \(51.0^\circ\)      & \(51.0^\circ\) \\
+        \(\Omega\) & \(0.0^\circ\)   & \(0.0^\circ\)  \\
+        \(\omega\) & \(0.0^\circ\)  & \(0.0^\circ\)  \\
+        \(\theta\) & \(0.0^\circ\)  & \(180.0^\circ\)  \\ 
+        Transfer time & \multicolumn{2}{c}{\(3560.541\)} \\\bottomrule
     \end{tabular}
     \caption{Orbital elements used for the Hohmann transfer case analysis}
     \label{tab:hohmann_orb_elems}
 \end{table}
 
-\begin{figure}[htbp]
+
+
+
+
+
+\begin{table}[]
     \centering
-    \begin{subfigure}{0.49\textwidth}
-        \includegraphics[width=\textwidth]{img/hohmann_condition.png}
-        \caption{3D view.}
-    \end{subfigure}
-    \begin{subfigure}{0.49\textwidth}
-        \includegraphics[width=\textwidth]{img/hohmann_condition_in_plane.png}
-        \caption{Orbital plane view.}
-    \end{subfigure}
-    \caption{Initial (blue), tranfer (green) and final (yellow) orbits for Hohmann transfer case visualization.}
-    \label{fig:hohmann_condition}
-\end{figure}
-
-The total time was set to be equal to the analytical Hohmann transfer time\footnote{Methods for establishing how much time is needed for a certain maneuver shall be discussed in future results}, which from Equation~\eqref{eq:hohmann_time} is calculated as \(t_f = 3560.54\) s. Also from the analytical solution for the total change in velocity required, given in Equation~\eqref{eq:hohmann_deltav}, \(\sum \lVert \Delta \mathbf{v} \rVert = 887.56\) m/s.
-
-Initial guesses for \(\Delta t_1\) and \(\Delta t_2\) were arbitrarily proposed to be \(\frac{t_f}{3}\). The solution of the Lambert problem for the second coasting arc can be visualized in Figure~\ref{fig:hohmann_lambert}. Naturally, this solution is very far from optimal but it is feasible, which is what is expected of it.
-
-\begin{figure}[htbp]
-    \centering
-    \begin{subfigure}{0.49\textwidth}
-        \includegraphics[width=\textwidth]{img/hohmann_lambert_guess.png}
-        \caption{3D view.}
-    \end{subfigure}
-    \begin{subfigure}{0.49\textwidth}
-        \includegraphics[width=\textwidth]{img/hohmann_lambert_guess_in_plane.png}
-        \caption{Orbital plane view.}
-    \end{subfigure}
-    \caption{Lambert problem solution for second coasting arc in Hohmann transfer case. This solution will serve as initial guess for the optimizer.}
-    \label{fig:hohmann_lambert}
-\end{figure}
-
-Then, a discretization with \(N = 50\) was chosen. It was found that few steps lead to fast but imprecise solutions, which can often lead to infeasibility error conditions since the model is imprecise. Conversely, too many steps take much longer for no tangible gain in precision. The values of some variables are presented in table~\ref{tab:hohmann_results}, along with the expected analytical values. The solved, discretized trajectory can be seen in Figure~\ref{fig:hohmann_traj}.
-
-\begin{table}[htbp]
-    \centering
-    \begin{tabular}{ccc} \toprule
-        Variable & Analytical & Solver \\ \midrule
-        \(\Delta t_1\) & 0s & 8e-4s \\
-        \(\Delta t_2\) & 3560.54s & 3560.538s \\
-        \(\sum \lVert \Delta \mathbf{v} \rVert\) & \(887.56m/s\) & \(887.56m/s\) \\ \bottomrule
+    \begin{tabular}{cccc} \toprule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    8.0e6          & 1.0          & 0.0                & 0.0                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 0.0          & 457.74489             & 0.0                    \\
+    2                 & 3560.54079          & 429.8171             & 0.0                    \\\midrule
+    \textbf{Total}   & 3560.54079          & 887.56199             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Comparison of optimized and analytical values of some important variables in the Hohmann transfer case.}
-    \label{tab:hohmann_results}
 \end{table}
 
-\begin{figure}[htbp]
-    \centering
-    \begin{subfigure}{0.49\textwidth}
-        \includegraphics[width=\textwidth]{img/hohmann_solved.png}
-        \caption{3D view.}
-    \end{subfigure}
-    \begin{subfigure}{0.49\textwidth}
-        \includegraphics[width=\textwidth]{img/hohmann_solved_in_plane.png}
-        \caption{Orbital plane view.}
-    \end{subfigure}
-    \caption{Discretized transfer trajectory found by the numerical solver for the Hohmann transfer case.}
-    \label{fig:hohmann_traj}
-\end{figure}
 
-Finally, primer vector theory is applied to verify is the found solution satisfies the optimality conditions. As a reminder, the number of impulses is not subjected to optimization and must be interactively changed based on primer vector trajectory results. The trajectory of the primer vector norm and its derivative are shown in Figure~\ref{fig:hohmann_primer_vec}. The trajectory of the norm is continuous, and always less than 1, except for the impulse instants, when it has norm exactly one. Thus, the necessary conditions are satisfied and no modifications to the optimized trajectory can be extracted from the primer vector history.
+\subsection{Noncoplanar rendez-vous}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.6\textwidth]{img/hohmann_primer_vector_history.png}
-    \caption{Primer vector norm and norm time-derivative trajectories for Hohmann transfer case.}
-    \label{fig:hohmann_primer_vec}
-\end{figure}
+\section{J2 Perturbed}
+
+\subsection{Circle to Circle}
+
+\subsection{Noncoplanar rendez-vous}
+
+\section{J2 and Drag}
+
+\subsection{Circle to Circle}
+
+\subsection{Noncoplanar rendez-vous}

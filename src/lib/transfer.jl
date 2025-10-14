@@ -243,3 +243,32 @@ function recompute_sat_toolbox(t::Transfer)
 
     Transfer(t.X1, t.X2, t.model, t.transfer_time, t.nimp, t.init_coast, t.final_coast, new_seq)
 end
+
+function recompute_model(t::Transfer, integrator)
+    new_seq = []
+
+    x = t.X1
+
+
+    for el in t.sequence
+        if el isa Impulse
+            push!(new_seq, el)
+            x += [zeros(3); el.deltaVmag * el.deltaVdir]
+        else
+            dt = el.dt
+            # start_x = x
+            # r, v, _ = Propagators.propagate(sat_toolbox_model(t.model), dt, rv_to_kepler(x[1:3], x[4:6]))
+
+            # x = [r; v]
+            N = size(el.rcoast)[2]
+            
+            xcoast = trajectory(X -> dynamics(X, t.model), x, dt, N, integrator)
+
+            x = xcoast[:, end]
+            
+            push!(new_seq, Coast(xcoast[1:3, :], xcoast[4:6, :], dt))
+        end
+    end
+
+    Transfer(t.X1, t.X2, t.model, t.transfer_time, t.nimp, t.init_coast, t.final_coast, new_seq)
+end

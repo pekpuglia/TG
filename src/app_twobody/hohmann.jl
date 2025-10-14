@@ -24,9 +24,10 @@ N = 100
 ##
 planner, transfer = n_impulse_transfer(orb_model, X1, X2, tfprime, N, 2, false, false);
 
+tolepsilon = 1e-5
 solver = casadi.nlpsol("S", "ipopt", planner.prob, Dict("ipopt" => Dict(
     "max_iter" => 3000,
-    "constr_viol_tol" => 1e-5)));
+    "constr_viol_tol" => tolepsilon)));
 ## initial guess
 
 seq0 = [scale(s, L, T) 
@@ -51,16 +52,17 @@ tspan_ppdot_glandorf = primer_vector(solved_transfer, PVTMGlandorf(), 100)
 tspan_ppdot_stm = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer, PVTMFromODE(100, RK8), 100)
 ##
-f, axs = plot_primer_vector(solved_transfer, tspan_ppdot_glandorf, name=NAME, label="Glandorf")
-
+f, axs = plot_primer_vector(solved_transfer, tspan_ppdot_glandorf, name=NAME, label="Glandorf", style=:dash)
+plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_stm, label="STM", style=:dashdot)
+plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
 Legend(f[1, 2], axs[1], "Methods")
 f
+##
+save("./results/two_body/hohmann/primer_vector_ICI.png", f)
 ## data summary
-total_dV(solved_transfer)
+#L T constr_viol_tol deltax_tol  final error
+#maxnormp diag
+#i = 1 t dV theta_v theta_p, 
+export_transfer(solved_transfer, tspan_ppdot_glandorf, L, T, tolepsilon)
 ##
-impulse_times(solved_transfer)
-##impulse magnitudes
-impulses(solved_transfer) .|> x -> x.deltaVmag
-##
-recomp_transf = recompute_sat_toolbox(solved_transfer)
-[r2 - recomp_transf.sequence[2].rcoast[:, end]]
+export_setup(HOHMANN_START, HOHMANN_END, TRANSFER_TIME)

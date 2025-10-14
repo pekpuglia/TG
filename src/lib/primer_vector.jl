@@ -162,25 +162,30 @@ end
 #doesn't account for continuity yet
 export PRIMER_DIAGNOSTIC, IC_FC, IC_LA, ED_FC, ED_LA, MID, OPT
 @enum PRIMER_DIAGNOSTIC IC_FC IC_LA ED_FC ED_LA MID OPT
-function diagnose_ppdot(normp, normp_dot, rtol = 1e-4)
-    normp_dot0 = normp_dot[1]
-    normp_dotf = normp_dot[end]
+function diagnose_ppdot(tspan_ppdot, rtol = 1e-4)
+
+    tspan, ppdot = tspan_ppdot
+    normp = norm.(eachcol(ppdot[1:3, :]))
+    normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
+
+    normp_dot0 = normpdot[1]
+    normp_dotf = normpdot[end]
     
-    max_normp_dot = maximum(abs.(normp_dot))
+    max_normp_dot = maximum(abs.(normpdot))
     tol = rtol*max_normp_dot
 
     if normp_dot0 > tol && normp_dotf < -tol
-        IC_FC
+        "Initial + Final coast"
     elseif normp_dot0 > tol && normp_dotf > tol
-        IC_LA
+        "Initial coast"
     elseif normp_dot0 < -tol && normp_dotf < -tol
-        ED_FC
+        "Final coast"
     elseif normp_dot0 < -tol && normp_dotf > tol
-        ED_LA
+        "More time"
     elseif any(normp .> 1 + rtol)
-        MID
+        "Add impulse"
     else
-        OPT
+        "Local optimum"
     end
 end
 
