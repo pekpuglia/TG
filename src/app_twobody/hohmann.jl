@@ -43,10 +43,10 @@ solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
 f, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
 coast_ps, ia = add_transfer!(ax3d, solved_transfer, 1e4)
-axislegend(ax3d, [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
+Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/two_body/hohmann/2ref")
+save_with_views!(ax3d, f, "results/two_body/hohmann/ICI")
 ##
 tspan_ppdot_glandorf = primer_vector(solved_transfer, PVTMGlandorf(), 100)
 tspan_ppdot_stm = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
@@ -58,7 +58,7 @@ plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_ode, label="
 Legend(f[1, 2], axs[1], "Methods")
 f
 ##
-save("./results/two_body/hohmann/primer_vector_ICI.png", f)
+save("./results/two_body/hohmann/ICI_primer_vector.png", f)
 ## data summary
 #L T constr_viol_tol deltax_tol  final error
 #maxnormp diag
