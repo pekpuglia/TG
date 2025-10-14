@@ -75,24 +75,27 @@ function save_with_views!(ax3d, f, prefix)
     end
 end
 
-function plot_primer_vector(transfer::Transfer, tspan_ppdot::Tuple; name, label)
+function plot_primer_vector(transfer::Transfer, tspan_ppdot::Tuple; name, label, style)
+    
+    f = Figure()
+    ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Maneuver: $name, $(transfer_type(transfer))")
+    ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
+    
+    
+    plot_primer_vector!(f, ax1, ax2, transfer, tspan_ppdot; label, style)
+end
+
+function plot_primer_vector!(f, ax1, ax2, transfer::Transfer, tspan_ppdot::Tuple; label, style)
     tspan, ppdot = tspan_ppdot
     normp = norm.(eachcol(ppdot[1:3, :]))
     normpdot = [dot(ppdoti[1:3], ppdoti[4:6]) / norm(ppdoti[1:3]) for ppdoti in eachcol(ppdot)]
     
     imp_ts = impulse_times(transfer)
-
-    f = Figure()
-    ax1 = Axis(f[1, 1], xlabel = "t (s)", ylabel = "|p|", title="Maneuver: $name, $(transfer_type(transfer))")
     
-
-    #decide wich elements of cumtime to keep for plotting
-
-    lines!(ax1, tspan, normp, label = label)
+    lines!(ax1, tspan, normp, label = label, linestyle=style)
     vlines!(ax1, imp_ts, linestyle=:dash, color=:gray)
     
-    ax2 = Axis(f[2, 1], xlabel = "t (s)", ylabel = L"d |p| / dt")
-    lines!(ax2, tspan, normpdot, label = label)
+    lines!(ax2, tspan, normpdot, label = label, linestyle=style)
     vlines!(ax2, imp_ts, linestyle=:dash, color=:gray)
 
     f, (ax1, ax2)
