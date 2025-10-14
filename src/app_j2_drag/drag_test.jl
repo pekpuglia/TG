@@ -33,15 +33,23 @@ orb = KeplerianElements(
 
 x0 = vcat(kepler_to_rv(orb)...)
 
-days = 108.99
-xs = trajectory(X -> dynamics(X, model, rho_model_curtis), x0, days*24*3600, round(Int, days*1000), RK8)
+days = 109
+N_per_day = 2000
+xs = trajectory(X -> dynamics(X, model, rho_model_curtis), x0, days*24*3600, round(Int, days*N_per_day), RK8)
 orbs = [rv_to_kepler(x[1:3], x[4:6]) for x = eachcol(xs)]
 has = [o.a * (1 + o.e) for o = orbs] .- EARTH_EQUATORIAL_RADIUS
 hps = [o.a * (1 - o.e) for o = orbs] .- EARTH_EQUATORIAL_RADIUS
-# f = lines(1:(days*1000), has)
-# lines!(f.axis, 1:(days*1000), hps)
-# f
 hps[end]
+##
+f = lines(1:(days*N_per_day), has)
+lines!(f.axis, 1:(days*N_per_day), hps)
+f
+##
+f, ax3d, _ = plot_orbit(orb)
+add_discretized_trajectory!(ax3d, xs)
+f
+##
+lines(norm.(eachcol(xs[1:3, :])) .- EARTH_EQUATORIAL_RADIUS)
 ## scaling doesn't work!!!!!!!!
 L = orb.a
 T = orbital_period(orb, GM_EARTH)
