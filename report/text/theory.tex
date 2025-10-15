@@ -10,7 +10,7 @@ The mathematical nature of an optimal control problem varies greatly depending o
 \begin{equation} \label{eq:generic_dyn}
     \dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t))
 \end{equation}
-where \(\mathbf{x}(t): \mathbb{R} \rightarrow \mathcal{\mathbf{x}} \subset \mathbb{R}^n\) is the state vector trajectory describing the system state, \(\mathbf{u}(t): \mathbb{R} \rightarrow \mathcal{U} \subset \mathbb{R}^m\) is the control vector trajectory and \(f: \mathbb{R}^n \times \mathbb{R}^m \rightarrow \mathbb{R}^n\) is the function describing its temporal dynamics. 
+where \(\mathbf{x}(t): \mathbb{R} \rightarrow \mathcal{\mathbf{x}} \subset \mathbb{R}^n\) is the state vector trajectory describing the system state, \(\mathbf{u}(t): \mathbb{R} \rightarrow \mathbb{R}^m\) is the control vector trajectory and \(f: \mathbb{R}^n \times \mathbb{R}^m \rightarrow \mathbb{R}^n\) is the function describing its temporal dynamics. 
 
 In addition, the control vector might be subject to some some inequality constraints, representing for instance saturation of actuators. Therefore, an admissible control set \(\mathcal{U}\) is defined by a vector of constraint functions \(\mathbf{g}(\mathbf{u})\) as
 \begin{equation}
@@ -119,6 +119,45 @@ where \(t_p\) is the time of the last perigee passage. By computing the mean ano
 \end{equation}
 where \(\mathbf{x}_f\) is the satellite's final state after a time \(t\), with initial state \(\mathbf{x}_i\).
 
+\subsection{Orbital Perturbations}
+
+The two body model is an idealized model amenable to analytical solutions, which neglects many real world phenomena. In LEO, the most important perturbations are oblateness effects (J2) and atmospheric drag~\cite{curtis2015orbital}, which are introduced ahead.
+
+\subsubsection{Oblateness effects}
+
+The Earth being an oblate spheroid, its gravity field is not perfectly central, neither does it behave like the inverse square law predicted by the two body model. Instead, the Earth's geopotential is modeled as a point mass potential plus spherical harmonics terms with coefficients subject to empirical fitting. The biggest non-sphericity of Earth is its oblateness, the increased width at the Equator. This effect is described by the coefficient \(J_2\), which causes a perturbing acceleration \(\mathbf{a}_{J2}\) given by
+\begin{equation}\label{eq:j2_acc}
+    \mathbf{a}_{J2} = \frac{3 J_2 \mu R^2}{2 r^4} \begin{bmatrix}
+        \frac{x}{r} \left(5 \frac{z^2}{r^2} - 1\right) \\
+        \frac{y}{r} \left(5 \frac{z^2}{r^2} - 1\right) \\
+        \frac{z}{r} \left(5 \frac{z^2}{r^2} - 3\right)
+    \end{bmatrix},
+\end{equation}
+where \(R\) is Earth's Equatorial radius.
+
+Thus, this model's dynamics can be expressed solely as a function of the position, since it is a conservative model:
+\begin{equation}
+    \ddot{\mathbf{r}} = g_{J2}(\mathbf{r}) = -\frac{\mu}{r^3} \mathbf{r} + \mathbf{a}_{J2}.
+\end{equation}
+
+\subsubsection{Atmospheric Drag}
+
+Atmospheric drag affects satellites in LEO by generating a force opposed to the relative velocity of the satellite w.r.t.\ the Earth's atmosphere, which rotates with it. The drag force is proportional to atmospheric density \(\rho(r)\), as a function of the satellite's distance to Earth. Modelling this dependence is not a trivial task, with accurate models taking solar activity and Earth's temperature into account. A simple model is given by the US Standard Atmosphere 1976, which gives empirical coefficients \(\rho_i\) and \(H_i\), valid for height intervals \([h_i, h_i+1]\), for \(i = 1,\dots, 28\). Then, atmospheric density is given piecewise by
+\begin{equation}
+    \rho(r) = \rho_i \exp{-\frac{\left(r - (h_i + R)\right)}{H_i}},
+\end{equation}
+where \(i\) is such that \(h_i \leq r - R \leq h_{i+1}\). The satellite is parameterized by a reference surface \(S\), drag coefficient \(C_D\) and mass \(m\). Considering that the Earth rotates with angular velocity \(\omega_E\), the relative velocity of the satellite w.r.t.\ the atmosphere is given by
+\begin{equation}
+    \vel_{r} = \vel - (\omega_E \hat{\mathbf{z}}) \times \pos.
+\end{equation}
+
+Finally, the acceleration due to drag \(\acc_D\) is given by
+\begin{equation}\label{eq:acc_drag}
+    \acc_D = - \frac{1}{2} \rho(r) \frac{S C_D}{m} \lVert \vel_r \rVert \vel_r,
+\end{equation}
+
+which can be added as a perturbing non-conservative acceleration to the model.
+
 \subsection{Lambert's Problem}
 
 An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(\mathbf{r}_1\) and \(\mathbf{r}_2\) with a time interval \(\Delta t\) in between, as illustrated in Figure~\ref{fig:lambert_diagram}. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP. 
@@ -226,6 +265,7 @@ and to dynamical Equation~\eqref{eq:kepler_dyn} in the intermediate times. Using
 \end{align}
 to the previous list. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta \mathbf{v}_j\). Accounting for \(\mathbf{x}(0)\), all of the intermediate \(\mathbf{r}(t_j^-)\), \(\mathbf{r}(t_j^+)\), \(\mathbf{v}(t_j^-)\) and \(\mathbf{v}(t_j^+)\), and also the final state \(\mathbf{x}(t_f)\), plus the impulse parameters, there are \(6 + 12n + 6 + 4n = 16n + 12\) unknowns. At the same time, there are \(6 + (3 + 3)n + 6 + 6 + 6(n-1) + 6 = 12n + 18\) constraints. Therefore, for general initial and final conditions, the \textit{minimal number of impulses} is 2. 
 
+%TODO: REMOVE?
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.6\textwidth]{img/impulsive_traj_from_how_many_impulses.png}
@@ -243,7 +283,7 @@ Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref
     \min \sum_{i=1}^{n} \Delta v_i.
 \end{equation}
 
-Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the introduction of a discrete parameter, the number of burns \(n\), is worth discussing. The optimization of non linear problems with mixed continuous and discrete variables is called Mixed Integer Non-Linear Programming (MINLP), and is much more complicated than regular non-linear programming. Although the implementation of such a solver might be of interest, some simple reasoning and the theory of primer vectors (exposed in the next section) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
+Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the control trajectory \(\mathbf{\Gamma}(t)\) in the impulsive case is not a function, but a \textit{measure}. It therefore needs to be implemented not as a function of time, as usual in optimal control, but as magnitudes of discontinuities in the state trajectory. This introduces the number of allowed impulses as an optimization hyperparameter~\cite{optimal_impulsive_control}. To choose an optimal number of impulses, the theory of primer vectors (see ahead) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
 
 \subsubsection{Hohmann transfer}
 
@@ -265,8 +305,9 @@ The transfer time is half of the transfer orbit's period. With \(t_H\) being the
 \end{equation}
 
 \subsection{Primer vector theory}
-
-The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\cite{Conway_2010}.
+%redo for impulsive maneuvers: Hamiltonionan must be constant
+%do for multiple models
+The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\cite{Conway_2010}. Here, the impulsive thrust case will be treated as a limiting case of finite thrust when \(\Gamma_{\max} \rightarrow \infty\). 
 
 The acceleration due to the thrust \(\mathbf{\Gamma} \) can be split into its magnitude and direction as \(\mathbf{\Gamma} = \Gamma \hat{\mathbf{u}}\), \(\Gamma = \lVert \mathbf{\Gamma} \rVert\), \(\lVert \hat{\mathbf{u}} \rVert = 1\) so that the objective from Equation~\eqref{eq:obj_continuous_thrust} can be rewritten as
 \begin{equation}
