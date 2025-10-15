@@ -158,3 +158,41 @@ function sol_to_transfer(sol::Dict, casadi_transfer::Transfer)
         casadi_transfer.final_coast,
         solved_sequence)
 end
+
+function generate_sum_1(n)
+    sample = rand(n - 1)
+    while !(sum(sample) <= 1)
+        sample = rand(n - 1)
+    end
+    [sample...; 1 - sum(sample)]
+end
+
+#add goal: value to terminate early
+#improve rand generation
+function random_starts(solver, planner::CasADiPlanner, sc_t::Transfer, orb1, tf_real, L, T, n_starts)
+    _, ncoasts = create_sequence(sc_t.nimp, sc_t.init_coast, sc_t.final_coast)
+
+    N = size(coasts(sc_t)[1].rcoast)[2]
+
+    min_dV = Inf
+
+    best_partition = nothing
+    best_transfer = nothing
+
+    for i = 1:n_starts
+        partition = generate_sum_1(ncoasts)
+        seq0 = [scale(s, L, T) 
+            for s = initial_orb_sequence(orb1, tf_real, N, sc_t.nimp, sc_t.init_coast, sc_t.final_coast, partition)
+        ]
+        sol = solve_planner(solver, planner, vcat(varlist.(seq0)...))
+        solved_transfer = unscale(sol_to_transfer(sol, sc_t), L, T)
+        dv = total_dV(solved_transfer)
+
+        if dv <= min_dV && solver.stats()["success"]
+            min_dV = dv
+            best_partition = partition
+            best_transfer = summarize_transf(solved_transfer)
+        end
+    end
+    best_transfer, best_partition
+end

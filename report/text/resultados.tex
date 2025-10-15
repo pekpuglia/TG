@@ -47,12 +47,72 @@
     \end{tabular}
 \end{table}
 
-
-
-
-
-
 \subsection{Noncoplanar rendez-vous}
+
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-06                & 0.0                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 0.0          & 11740.94035             & -0.0                    \\
+    2                 & 11107.1576          & 11708.69678             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 23449.63713             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICIC} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-06                & 0.0                        \\ \midrule
+    \(\max \lVert p \rVert\) & 3.327     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 6644.30733          & 37.29252             & -0.0                    \\
+    2                 & 10689.86179          & 16.20984             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 53.50237             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICICIC} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 0.0                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.9638     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 3370.1071          & 11.76294             & -0.0                    \\
+    2                 & 6774.61652          & 10.56494             & 0.0                    \\
+    3                 & 9176.42663          & 20.74554             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 43.07342             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICICICIC} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 0.04983                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0046     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 0.00394          & 3.58823             & 0.0                    \\
+    2                 & 6724.60052          & 9.34687             & -0.0                    \\
+    3                 & 9217.50949          & 15.01486             & -0.0                    \\
+    4                 & 11107.15747          & 8.19599             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 36.14596             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+
+
 \newpage
 \FloatBarrier
 \section{J2 Perturbed}

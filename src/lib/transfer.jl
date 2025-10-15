@@ -272,3 +272,20 @@ function recompute_model(t::Transfer, integrator)
 
     Transfer(t.X1, t.X2, t.model, t.transfer_time, t.nimp, t.init_coast, t.final_coast, new_seq)
 end
+
+function summarize_transf(t::Transfer)
+    newseq = []
+
+    for el in t.sequence
+        if el isa Coast
+            push!(newseq, Coast(
+                [el.rcoast[:, 1] el.rcoast[:, end]],
+                [el.vcoast[:, 1] el.vcoast[:, end]],
+                el.dt
+            )) 
+        else
+            push!(newseq, el)
+        end
+    end
+    Transfer(t.X1, t.X2, t.model, t.transfer_time, t.nimp, t.init_coast, t.final_coast, newseq)
+end
