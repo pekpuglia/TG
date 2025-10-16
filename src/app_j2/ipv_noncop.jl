@@ -110,12 +110,12 @@ solver_2f = casadi.nlpsol("s", "ipopt", planner_2f.prob, Dict("ipopt" => Dict(
     "max_wall_time" => 60,
     "max_resto_iter" => 100)))
 ##
-best_random_transfer, best_part3 = random_starts(solver_2f, planner_2f, transfer_2f, orb1, tf_real, L, T, 20)
+# best_random_transfer, best_part2 = random_starts(solver_2f, planner_2f, transfer_2f, orb1, tf_real, L, T, 20)
 
-total_dV(best_random_transfer)
+# total_dV(best_random_transfer)
 ##
 seq0 = [scale(s, L, T) 
-    for s = initial_orb_sequence(orb1, tf_real, N_2, 2, true, true, [])
+    for s = initial_orb_sequence(orb1, tf_real, N_2, 2, true, true, [0.704694960261116, 0.06634642157888493, 0.22895861815999907])
 ]
 
 tab0 = vcat(varlist.(seq0)...)
@@ -124,7 +124,7 @@ sol = solve_planner(solver_2f, planner_2f, tab0)
 transfer2_manual = unscale(sol_to_transfer(sol, transfer_2f), L, T)
 total_dV(transfer2_manual)
 ##
-solved_transfer_2f = unscale(sol_to_transfer(sol, transfer_2f), L, T)
+solved_transfer_2f = transfer2_manual
 ##
 f, ax3d, orb_lines = plot_orbit(orb1, orb2)
 imp_sc = 1e5
@@ -161,46 +161,25 @@ solver_3 = casadi.nlpsol("s", "ipopt", planner_3.prob, Dict("ipopt" => Dict(
     "constr_viol_tol" => tolepsilon,
     "max_wall_time" => 30,
     "max_resto_iter" => 100)))
-## add null impulse
-
-## init cond from sol 2
-# transfer_2f_redisc = rediscretize_transfer(solved_transfer_2f, N_3)
-
-# null_imp_transf_2 = scale(
-#     add_null_impulse(
-#         transfer_2f_redisc, 
-#         tspan_ppdot_glandorf_2f), L, T)
-
-# seq0 = null_imp_transf_2.sequence
-# seq0 = [scale(s, L, T) 
-#     for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [0.1, 0.4, 0.3, 0.2])
-# ]
-
-# tab0 = vcat(varlist.(seq0)...)
-
-# sol = solve_planner(solver_3, planner_3, tab0)
-# solved_transfer_3 = unscale(sol_to_transfer(sol, transfer_3), L, T)
-best_random_transfer, best_part3 = random_starts(solver_3, planner_3, transfer_3, orb1, tf_real, L, T, 20)
+##
+best_random_transfer, best_part3 = random_starts(solver_3, planner_3, transfer_3, orb1, tf_real, L, T, 50)
 
 total_dV(best_random_transfer)
 ##
-# seq0 = [scale(s, L, T) 
-#     for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [ 0.22790549731708265
-#         0.3636515390073254
-#         0.2337753328534541
-#         0.17466763082213788])
-# ]
+seq0 = [scale(s, L, T) 
+    for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [0.33710330961106616, 0.1039045392003628, 0.25980122348546, 0.29919092770311106])
+]
 
-# tab0 = vcat(varlist.(seq0)...)
+tab0 = vcat(varlist.(seq0)...)
 
-# sol = solve_planner(solver_3, planner_3, tab0)
-# transfer3_manual = unscale(sol_to_transfer(sol, transfer_3), L, T)
-# total_dV(transfer3_manual)
+sol = solve_planner(solver_3, planner_3, tab0)
+transfer3_manual = unscale(sol_to_transfer(sol, transfer_3), L, T)
+total_dV(transfer3_manual)
 ##
-solved_transfer_3 = best_random_transfer
+solved_transfer_3 = transfer3_manual
 ##
 f, ax3d, orb_lines = plot_orbit(orb1, orb2)
-imp_sc = 5e5
+imp_sc = 1e5
 coast_ps, ia = add_transfer!(ax3d, solved_transfer_3, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" imp_sc) * " s"], position = (0.8, 0.9))
 f
@@ -222,7 +201,7 @@ export_transfer(solved_transfer_3, tspan_ppdot_stm, L, T, tolepsilon)
 ###########################################################################################################################################
 ###########################################################################################################################################
 ###########################################################################################################################################
-## 4 impulses
+## 4 impulses - same result as three impulses
 ###########################################################################################################################################
 ###########################################################################################################################################
 ###########################################################################################################################################
@@ -236,20 +215,20 @@ solver_4 = casadi.nlpsol("s", "ipopt", planner_4.prob, Dict("ipopt" => Dict(
     "max_resto_iter" => 100))
 )
 ##
-best_random_transfer, best_part4 = random_starts(solver_4, planner_4, transfer_4, orb1, tf_real, L, T, 20)
+best_random_transfer, best_part4 = random_starts(solver_4, planner_4, transfer_4, orb1, tf_real, L, T, 50)
 total_dV(best_random_transfer)
 ##
-# seq0 = [scale(s, L, T) 
-#     for s = initial_orb_sequence(orb1, tf_real, N_4, 4, true, true, [0.07205383292143142, 0.8437961343872056, 0.03566546650471125, 0.04621096008052483, 0.002273606106126924])
-# ]
+seq0 = [scale(s, L, T) 
+    for s = initial_orb_sequence(orb1, tf_real, N_4, 4, true, true, [0.149599001689944, 0.1385583527595048, 0.23274029631658077, 0.4739090637877065, 0.005193285446263962])
+]
 
-# tab0 = vcat(varlist.(seq0)...)
+tab0 = vcat(varlist.(seq0)...)
 
-# sol = solve_planner(solver_4, planner_4, tab0)
-# transfer4_manual = unscale(sol_to_transfer(sol, transfer_4), L, T)
-# total_dV(transfer4_manual)
+sol = solve_planner(solver_4, planner_4, tab0)
+transfer4_manual = unscale(sol_to_transfer(sol, transfer_4), L, T)
+total_dV(transfer4_manual)
 ##
-solved_transfer_4 = best_random_transfer
+solved_transfer_4 = transfer4_manual
 ##
 f, ax3d, orb_lines = plot_orbit(orb1, orb2)
 imp_sc = 5e5
