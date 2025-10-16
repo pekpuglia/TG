@@ -428,13 +428,13 @@ However, since \(g = \nabla \Phi = \left(\frac{\partial \Phi}{\partial \pos}\rig
 \end{equation}
 and, by analogy with the variational state transition matrix, 
 \begin{equation}
-    \mathbf{\Phi}_p(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
+    \mathbf{\Phi}_p(t - t_0) = \mathbf{\Phi}_\delta(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
 \end{equation}
 
 This way of computing \(\mathbf{\Phi}_p(t - t_0)\) will be termed the STM method for primer vector calculation, and is valid for all conservative force models. For the two body model in particular, a closed form for \(\mathbf{\Phi}_p(t-t_0)\) exists~\cite{glandorf_transition_matrix}. 
 
 Computing the primer vector trajectory is done piecewise on coasting arcs between two consecutive impulses, since the primer vector is known at impulse times. Since \(\mathbf{p}\) is known at both ends, but not \(\dot{\mathbf{p}}\), this configures a linear TPBVP\@. For two consecutive impulses, \(\Delta v_1\) at time \(t_1\) and \(\Delta v_2\) at time \(t_2\), the primer vector values are given by:
-\begin{align}
+\begin{align}\label{eq:pv_deltav}
     \mathbf{p}(t_1) &= \frac{\Delta \mathbf{v}_1}{\lVert \Delta \mathbf{v}_1 \rVert} \\
     \mathbf{p}(t_2) &= \frac{\Delta \mathbf{v}_1}{\lVert \Delta \mathbf{v}_2 \rVert}
 \end{align}
@@ -459,7 +459,7 @@ where \(\mathbf{M}\), \(\mathbf{N}\), \(\mathbf{S}\) and \(\mathbf{T}\) are squa
 \(\mathbf{N}_{21}\) is invertible except for isolated values of \(t\)~\cite{Conway_2010}; in these cases, the primer vector trajectory is assumed to lie in the orbital plane, spanned by \(\begin{bmatrix}
     \mathbf{r}_1 & \mathbf{v}_1
 \end{bmatrix}\). Thus, for singular \(N\),
-\begin{equation}
+\begin{equation}\label{eq:pdot1_singular}
     \dot{\mathbf{p}}_1 = \begin{bmatrix}
         \mathbf{r}_1 & \mathbf{v}_1
     \end{bmatrix} (\mathbf{N}_{21} \begin{bmatrix}
@@ -479,3 +479,66 @@ where \(A^\dagger\) denotes the pseudo-inverse of a rectangular matrix.
 %     \label{fig:primer_trajectory_example}
 % \end{figure}
 
+\subsection{Non-conservative Orbital model}
+
+Here, the model considered has a conservative part \(g(\pos)\) and a non-conservative part \(d(\pos, \vel)\), representing drag, or other non-conservative forces, such that \(\ddot{\pos} = g(\pos) + d(\pos, \vel)\).
+
+The Hamiltonian of the system is the given by
+\begin{equation}
+    H = \Gamma + \begin{bmatrix}
+        \mathbf{\lambda}_r^T & \mathbf{\lambda}_v^T
+    \end{bmatrix} \begin{bmatrix}
+        \mathbf{v} \\ g(\mathbf{r}) + d(\pos, \vel) + \Gamma \hat{\mathbf{u}}
+    \end{bmatrix}
+\end{equation}
+
+The costate is subject to the adjoint equations given in block matrix form as
+\begin{equation}\label{eq:lambda_dot_ncon}
+    \begin{bmatrix}
+        \dot{\mathbf{\lambda}}_r \\ \dot{\mathbf{\lambda}}_v
+    \end{bmatrix} = \begin{bmatrix}
+        0_{3\times3} & -\left[\frac{\partial }{\partial \mathbf{r}}\big(g(\mathbf{r}) + d(\pos, \vel)\big)\right]^T \\
+        -I_{3\times3} & -\left(\frac{\partial d(\pos, \vel)}{\partial \vel}\right)^T 
+    \end{bmatrix} \begin{bmatrix}
+        \mathbf{\lambda}_r \\ \mathbf{\lambda}_v
+    \end{bmatrix}.
+\end{equation}
+
+Rearranging the Hamiltonian to factor \(\Gamma \), 
+\begin{equation}
+    H = (1 + \mathbf{\lambda}_v^T \hat{\mathbf{u}}) \Gamma + \mathbf{\lambda}_r^T \mathbf{v} + \mathbf{\lambda}_v^T (g(\mathbf{r}) + d(\pos, \vel)).
+\end{equation}
+
+By similar reasoning to the conservative case, \(\mathbf{p} = - \lambda_v\), with the same necessary conditions. 
+
+\subsubsection{Primer Vector calculation}
+
+The primer vector differential equation is the main difference of the non-conservative case w.r.t. the conservative case. It can be found from Equation~\eqref{eq:lambda_dot_ncon}:
+
+\begin{equation}\label{eq:pdot_ncon}
+    \begin{bmatrix}
+        \dot{\mathbf{p}} \\ \ddot{\mathbf{p}}
+    \end{bmatrix} = \begin{bmatrix}
+        \mathbf{0}_3 & \mathbf{I}_3 \\
+        \left[\frac{\partial }{\partial \mathbf{r}}\big(g(\mathbf{r}) + d(\pos, \vel)\big)\right]^T & -\left(\frac{\partial d(\pos, \vel)}{\partial \vel}\right)^T
+    \end{bmatrix} \begin{bmatrix}
+        \mathbf{p} \\ \dot{\mathbf{p}}
+    \end{bmatrix} = \mathbf{A}_p \begin{bmatrix}
+        \mathbf{p} \\ \dot{\mathbf{p}}
+    \end{bmatrix}.
+\end{equation}
+
+Save some very particular non-conservative force models, the non-conservative primer vector dynamics in Equation~\eqref{eq:pdot_ncon} is \textbf{not} equal to the non-conservative variational perturbation differential equation, which disallows the STM method from being used. However, it remains a linear differential equation with transition matrix \(\mathbf{\Phi}_p(t - t_0)\) subject to 
+\begin{equation}
+    \begin{cases}
+        \dot{\mathbf{\Phi}_p} = \mathbf{A}_p(\pos, \vel) \mathbf{\Phi}_p \\
+        \mathbf{\Phi}_p(0) = \mathbf{0}_6
+    \end{cases},
+\end{equation}
+which allows for the solution of a linear TPBVP as described in Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular}.
+
+\subsection{Primer vector theory summary}
+
+method of calculation x model
+
+necessary conditions
