@@ -1,5 +1,5 @@
 using SatelliteToolboxBase
-include("../orb_mech.jl")
+include("../lib/orb_mech.jl")
 
 PHASING_START = KeplerianElements(
     date_to_jd(2023, 1, 1, 0, 0, 0),
@@ -23,4 +23,4 @@ PHASING_END = KeplerianElements(
 
 NAME = "Phasing"
 
-TRANSFER_TIME = 2orbital_period(PHASING_START)
+TRANSFER_TIME = 2orbital_period(PHASING_START, GM_EARTH)
