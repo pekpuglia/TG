@@ -17,6 +17,15 @@ Let \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be
 \end{equation}
 This leaves \(\dim \mathbf{x} = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
 
+%talk about random start, stopping early
+%talk about primer vector algorithm
+%talk about repropagation
+
+\section{Optimization algorithm with fixed number of impulses}
+
+%flowchart
+\section{Primer vector algorithm}
+
 \section{Nonlinear solver}
 
 Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Many algorithms, and many different algorithms exist. Optimizer algorithms may be classed as local or global, depending on whether they find a local (best in a region) or global (best in the domain) solution; stochastic, according to the presence or absence of random seeding; and the usage of function evaluations only, gradient evaluations, or even Hessian evaluations~\cite{numerical_recipes}. All local methods require an initial guess as input.
