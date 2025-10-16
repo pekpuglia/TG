@@ -17,6 +17,30 @@ Let \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be
 \end{equation}
 This leaves \(\dim \mathbf{x} = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
 
+\subsection{Maneuver Propagation}
+
+ICI, CICIC, ...
+
+\begin{tikzpicture}
+    \node (init) [startstop] {Initial condition};
+    \node (dots1) [process, right = of init] {\ldots};
+    \node (imp) [process, below = of dots1] {\textbf{Impulse}
+    
+    Velocity discontinuity};
+    \node (coast) [process, right = of imp] {\textbf{Coast}
+    
+    Orbit propagation};
+    \node (dots2) [process, below = of coast] {\ldots};
+    \node (final) [process, right = of dots2] {Final condition};
+
+    \draw [arrow] (init) -- (dots1);
+    \draw [arrow] (dots1) -- (imp);
+    \draw [arrow] (imp) -- (coast);
+    \draw [arrow] (coast) -- (dots2);
+    \draw [arrow] (dots2) -- (final);
+
+\end{tikzpicture}
+
 %talk about random start, stopping early
 %talk about primer vector algorithm
 %talk about repropagation
@@ -25,6 +49,26 @@ This leaves \(\dim \mathbf{x} = 6\) degrees of freedom, which are to be specifie
 
 %flowchart
 \section{Primer vector algorithm}
+
+\begin{tikzpicture}
+    \node (linearTPBVP) [process] {Solve linear TPBVP between pair of impulses};
+    \node (firstcoast) [process, right = of linearTPBVP] {Backpropagate PV if \texttt{C...}};
+    \node (lastcoast) [process, below = of firstcoast] {Propagate PV if \texttt{...C}};
+    \node (diag) [decision, right = of firstcoast, text width=2cm] {Necessary conditions};
+    \node (opt) [startstop, right = of diag] {Local optimum};
+    \node (cont) [startstop, below = of diag] {More impulses};
+
+    \draw [arrow] (linearTPBVP) to [out=45, in=90, looseness=3] (linearTPBVP);
+    \draw [arrow] (linearTPBVP) -- (firstcoast);
+    \draw [arrow] (firstcoast) -- (diag);
+    \draw [arrow] (linearTPBVP) -- (lastcoast);
+    \draw [arrow] (lastcoast) -- (diag);
+    \draw [arrow] (diag) -- (opt);
+    \draw [arrow] (diag) -- (cont);
+\end{tikzpicture}
+
+
+TODO more impulses
 
 \section{Nonlinear solver}
 
