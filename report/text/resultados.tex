@@ -169,6 +169,37 @@
 
 \subsection{Noncoplanar rendez-vous}
 
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 3.63678                        \\ \midrule
+    \(\max \lVert p \rVert\) & 65.441     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 0.0          & 743.66668             & -0.0                    \\
+    2                 & 11107.1576          & 727.80415             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 1471.47082             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICIC} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 0.0                        \\ \midrule
+    \(\max \lVert p \rVert\) & 3.8353     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 7080.30484          & 24.12503             & -0.0                    \\
+    2                 & 10011.10872          & 34.14936             & 0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 58.27439             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+
+
 \newpage
 \FloatBarrier
 \section{J2 and Drag}
