@@ -33,7 +33,7 @@ orb = KeplerianElements(
 
 x0 = vcat(kepler_to_rv(orb)...)
 
-days = 109
+days = 108.9
 N_per_day = 2000
 xs = trajectory(X -> dynamics(X, model, rho_model_curtis), x0, days*24*3600, round(Int, days*N_per_day), RK8)
 orbs = [rv_to_kepler(x[1:3], x[4:6]) for x = eachcol(xs)]
