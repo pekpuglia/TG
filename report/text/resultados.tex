@@ -222,4 +222,45 @@
 
 \subsection{Circle to Circle}
 
-\subsection{Noncoplanar rendez-vous}
+STM = 
+\begin{equation}
+    \left[
+    \begin{array}{cccccc}
+    0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
+    0.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
+    0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 1.0 \\
+    2.330467902138264e-6 & 0.0 & 0.0 & -5.56731285604946e-12 & 0.0 & 0.0 \\
+    3.461582630528354e-13 & -1.1636671818027878e-6 & 0.0 & 0.0 & -7.772214569467844e-12 & -2.7228268563396247e-12 \\
+    4.2746985475505877e-13 & 0.0 & -1.1668007203354768e-6 & 0.0 & -2.722826856339625e-12 & -8.929723998680535e-12 \\
+    \end{array}
+    \right]
+\end{equation}
+
+PVDOT MATRIX = 
+\begin{equation}
+    \left[
+    \begin{array}{cccccc}
+    0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
+    0.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
+    0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 1.0 \\
+    2.330467902138264e-6 & 3.461582630528354e-13 & 4.2746985475505877e-13 & 5.56731285604946e-12 & 0.0 & 0.0 \\
+    0.0 & -1.1636671818027878e-6 & 0.0 & 0.0 & 7.772214569467844e-12 & 2.722826856339625e-12 \\
+    0.0 & 0.0 & -1.1668007203354768e-6 & 0.0 & 2.7228268563396247e-12 & 8.929723998680535e-12 \\
+    \end{array}
+    \right]
+\end{equation}
+
+    
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
+    8.0e6          & 1.0          & 1.00e-05                & 0.49712                        \\ \midrule
+    \(\max \lVert p \rVert\) & 563.46     & \textbf{Diagnostic}   & Initial + Final coast        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 0.0          & 5209.4779             & -0.0                    \\
+    2                 & 3560.54079          & 4318.71793             & -0.0                    \\\midrule
+    \textbf{Total}   & 3560.54079          & 9528.19583             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}

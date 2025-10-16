@@ -12,7 +12,7 @@ orb_model = scale(J2DragModel(
     GM_EARTH, 
     EGM_2008_J2*GM_EARTH*EARTH_EQUATORIAL_RADIUS^2, 
     2.2*pi*0.25/100, 
-    10*EARTH_ANGULAR_SPEED,
+    0,
     R_TABLE_ATM,
     RHO_TABLE_ATM,
     H_TABLE_ATM), L, T)
@@ -58,6 +58,10 @@ Legend(f[1, 2], axs[1], "Methods")
 f
 ##
 save("./results/j2/hohmann/$(transfer_type(solved_transfer))_primer_vector.png", f, px_per_unit = 300/96)
+## STM ≈ ̇pdot
+ForwardDiff.jacobian(X -> dynamics(X, solved_transfer.model), solved_transfer.X1)
+##
+pvdot_matrix(solved_transfer.X1, solved_transfer.model)
 ## data summary
 export_transfer(solved_transfer, tspan_ppdot_stm, L, T, tolepsilon)
 ###########################################################################################################################################
