@@ -62,9 +62,14 @@ and boundary conditions~\cite{bryson_applied_optimal_control}
     \mathbf{\lambda}^k(t_f) = \frac{\partial h(\mathbf{x}(t_f))}{\partial \mathbf{x}^k}, k \notin \mathcal{K}.
 \end{equation}
 
+An important property of the Hamiltonian for fixed-time problems is that its value is constant with respect to time along the optimal trajectory~\cite{bertsekas}. For an optimal trajectory \(\x^\star(t)\), \(\uc^\star(t)\), \(\lambda^\star(t)\), and some value \(C \in \R\),
+\begin{equation}\label{eq:constant_hamilt}
+    H(\x^\star(t), \uc^\star(t), \lambda^\star(t)) = C, \forall t \in [0, t_f]
+\end{equation}
+
 To complete the Hamiltonian approach, Pontryagin's Minimum Principle~\cite{bertsekas} is introduced. It states that a necessary condition for attaining the minimum in Equation~\eqref{eq:argmin_cost} is that, at all times \(t\), and along the optimal trajectory,
 \begin{equation} \label{eq:Pontryagin}
-    \mathbf{u}(t) = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}(t), \mathbf{u}, \mathbf{\lambda}(t)].
+    \mathbf{u}^\star(t) = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}(t), \mathbf{u}, \mathbf{\lambda}(t)].
 \end{equation}
 
 With the control trajectory obtained as a function of \(\mathbf{x}(t)\) and \(\mathbf{\lambda}(t)\) from Equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial states, some final states and some final costates according to Equations \eqref{eq:generic_final_constraint} and \eqref{eq:final_costate}. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
@@ -144,7 +149,7 @@ Thus, this model's dynamics can be expressed solely as a function of the positio
 
 Atmospheric drag affects satellites in LEO by generating a force opposed to the relative velocity of the satellite w.r.t.\ the Earth's atmosphere, which rotates with it. The drag force is proportional to atmospheric density \(\rho(r)\), as a function of the satellite's distance to Earth. Modelling this dependence is not a trivial task, with accurate models taking solar activity and Earth's temperature into account. A simple model is given by the US Standard Atmosphere 1976, which gives empirical coefficients \(\rho_i\) and \(H_i\), valid for height intervals \([h_i, h_i+1]\), for \(i = 1,\dots, 28\). Then, atmospheric density is given piecewise by
 \begin{equation}
-    \rho(r) = \rho_i \exp{-\frac{\left(r - (h_i + R)\right)}{H_i}},
+    \rho(r) = \rho_i \exp{\big(-\frac{\left(r - (h_i + R)\right)}{H_i}\big)},
 \end{equation}
 where \(i\) is such that \(h_i \leq r - R \leq h_{i+1}\). The satellite is parameterized by a reference surface \(S\), drag coefficient \(C_D\) and mass \(m\). Considering that the Earth rotates with angular velocity \(\omega_E\), the relative velocity of the satellite w.r.t.\ the atmosphere is given by
 \begin{equation}
@@ -173,6 +178,9 @@ This problem suffers from a physical indetermination in the case of collinear \(
 
 In general, this problem can have multiple solutions, corresponding to prograde and retrograde trajectories, with less than one or multiple revolutions. The resulting orbit can, in general, be elliptic, parabolic or hyperbolic. Handling this variety of solution types is not simple. A simple formulation which does not handle multiple revolutions nor the indetermination mentioned can be built with universal variables~\cite{curtis2015orbital}. Multiple revolutions and finding the radial and tangent components of the velocity in the indeterminate case can be handled with more complex algorithms~\cite{sukhanov}. A generic, Cartesian coordinates-based algorithm is also possible, as will be discussed in Chapter~\ref{chap:method}.
 
+\subsection{Variational State Transition Matrix}
+
+TODO
 
 \section{Orbital Maneuvers}
 
@@ -305,10 +313,14 @@ The transfer time is half of the transfer orbit's period. With \(t_H\) being the
 \end{equation}
 
 % talk about stm
-\subsection{Primer vector theory}
+\section{Primer vector theory}
 %redo for impulsive maneuvers: Hamiltonionan must be constant
 %do for multiple models
-The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\cite{Conway_2010}. Here, the impulsive thrust case will be treated as a limiting case of finite thrust when \(\Gamma_{\max} \rightarrow \infty\). 
+The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\citeonline{Conway_2010}. Here, the impulsive thrust case will be treated as a limiting case of finite thrust when \(\Gamma_{\max} \rightarrow \infty\). 
+
+\subsection{Conservative Orbital model}
+
+Firstly, a model where \(\ddot{\pos} = g(\pos) = \nabla \Phi(\pos)\), where \(\Phi(\pos)\) is a gravitational potential field, is considered. This type of model contains the two body approach as well as the J2 model. 
 
 The acceleration due to the thrust \(\mathbf{\Gamma} \) can be split into its magnitude and direction as \(\mathbf{\Gamma} = \Gamma \hat{\mathbf{u}}\), \(\Gamma = \lVert \mathbf{\Gamma} \rVert\), \(\lVert \hat{\mathbf{u}} \rVert = 1\) so that the objective from Equation~\eqref{eq:obj_continuous_thrust} can be rewritten as
 \begin{equation}
@@ -324,7 +336,7 @@ and the Hamiltonian of the system is the given by
 \end{equation}
 
 The costate is subject to the adjoint equations given in block matrix form as
-\begin{equation}
+\begin{equation}\label{eq:lambda_dot_cons}
     \begin{bmatrix}
         \dot{\mathbf{\lambda}}_r \\ \dot{\mathbf{\lambda}}_v
     \end{bmatrix} = \begin{bmatrix}
@@ -334,7 +346,7 @@ The costate is subject to the adjoint equations given in block matrix form as
         \mathbf{\lambda}_r \\ \mathbf{\lambda}_v
     \end{bmatrix}
 \end{equation}
-which is linear in the costate variables. 
+which is linear in the costate variables. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations.
 
 Rearranging the Hamiltonian to factor \(\Gamma \), 
 \begin{equation}
@@ -343,7 +355,7 @@ Rearranging the Hamiltonian to factor \(\Gamma \),
 
 By applying Pontryagin's Minimum Principle, the thrust magnitude \(\Gamma\) is given piecewise by analyzing the sign of its coefficient:
 \begin{equation}
-    \begin{cases}
+    \Gamma = \begin{cases}
         \Gamma_{\max}&, 1+\mathbf{\lambda}_v^T \hat{\mathbf{u}} < 0 \\
         0&, 1 + \mathbf{\lambda}_v^T \hat{\mathbf{u}} > 0 \\
         \text{intermediate}&, \text{otherwise}
@@ -356,27 +368,72 @@ The case where \(1 + \mathbf{\lambda}_v^T \hat{\mathbf{u}} = 0\) on a finite int
     \hat{\mathbf{u}} = - \frac{\mathbf{\lambda}_v}{\lVert \mathbf{\lambda}_v \rVert}.
 \end{equation}
 
-This direction, the \textit{optimal thrust direction} given by \(-\mathbf{\lambda}_v\) is what constitutes the primer vector \(\mathbf{p}\), which is defined as \(\mathbf{p} = -\mathbf{\lambda}_v\). The engine firing conditions can be stated solely as a function of the primer vector as~\cite{Conway_2010}
+This direction, the \textit{optimal thrust direction} given by \(-\mathbf{\lambda}_v\) is what constitutes the primer vector \(\mathbf{p}\), which is defined as 
+\begin{equation}\label{eq:p_lambda_v_cons}
+    \mathbf{p} = -\mathbf{\lambda}_v.
+\end{equation}
+
+The engine firing conditions can be stated solely as a function of the primer vector as~\cite{Conway_2010}
 \begin{equation}
-    \begin{cases}
+    \Gamma = \begin{cases}
         \Gamma_{\max}&, \lVert \mathbf{p} \rVert > 1 \\
         0&, \lVert \mathbf{p} \rVert < 1 \\
         \text{intermediate}&, \text{otherwise}
     \end{cases}
 \end{equation}
 
-The primer vector differential equations can be deducted from the adjoint equations and, due to linearity, admit a solution through the form of a state transition matrix \(\mathbf{\Phi}(t - t_0)\) such that
+The impulsive thrust case is then found by letting \(\Gamma_{\max} \rightarrow \infty\), in which case the segments where \(\lVert \mathbf{p} \rVert > 1\) approach points, and the thrust cases become
+
+\begin{equation}
+    \Gamma = \begin{cases}
+        0&, \lVert \mathbf{p} \rVert < 1 \\
+        \Delta \vel \delta&, \lVert \mathbf{p} \rVert = 1 \\
+    \end{cases},
+\end{equation}
+for some (possibly null) velocity increment \(\Delta \vel\)
+
+Alternatively, one could reason about the constant value of the Hamiltonian which, from Equation~\eqref{eq:constant_hamilt}, is finite. Therefore, at the impulse instants, where \(\Gamma\) is unbounded, its coefficient \(1 + \lambda_v^T \hat{\uc}\) must be \(0\), leading to \(\hat{\uc} = -\lambda_v = \mathbf{p}\), and the condition \(\lVert \mathbf{p} \rVert = 1\).
+
+The necessary conditions offered by primer vector theory for an impulsive maneuver scenario are~\cite{Conway_2010}:
+\begin{enumerate}
+    \item \(\mathbf{p}(t)\) and \(\dot{\mathbf{p}}(t)\) are continuous;
+    \item \(\lVert \mathbf{p} \rVert \leq 1\);
+    \item \(\mathbf{p} = \hat{\mathbf{u}}\) at the impulse instants, with the corollary that when an impulse happens, \(\lVert \mathbf{p} \rVert = 1\);
+    \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
+\end{enumerate}
+
+\subsubsection{Primer vector trajectory calculation}
+
+From Equations~\eqref{eq:lambda_dot_cons} and \eqref{eq:p_lambda_v_cons}, the primer vector differential equations are
+\begin{equation}\label{eq:pdot_const}
+    \begin{bmatrix}
+        \dot{\mathbf{p}} \\ \ddot{\mathbf{p}}
+    \end{bmatrix} = \begin{bmatrix}
+        \mathbf{0}_3 & \mathbf{I}_3 \\
+        \left[\frac{\partial g}{\partial \pos}\right]^T & \mathbf{0}_3
+    \end{bmatrix} \begin{bmatrix}
+        \mathbf{p} \\ \dot{\mathbf{p}}
+    \end{bmatrix} = \mathbf{A}_p \begin{bmatrix}
+        \mathbf{p} \\ \dot{\mathbf{p}}
+    \end{bmatrix}
+\end{equation}
+
+However, since \(g = \nabla \Phi = \left(\frac{\partial \Phi}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same equation as the variational perturbations in Equation TODO\@. Since Equation~\eqref{eq:pdot_const} is linear on the variables, it admits a solution through the form of a state transition matrix \(\mathbf{\Phi}_p(t - t_0)\) such that
 \begin{equation}
     \begin{bmatrix}
         \mathbf{p}(t) \\ \dot{\mathbf{p}}(t)
-    \end{bmatrix} = \mathbf{\Phi}(t - t_0) \begin{bmatrix}
+    \end{bmatrix} = \mathbf{\Phi}_p(t - t_0) \begin{bmatrix}
         \mathbf{p}(t_0) \\ \dot{\mathbf{p}}(t_0)
     \end{bmatrix}.
 \end{equation}
+and, by analogy with the variational state transition matrix, 
+\begin{equation}
+    \mathbf{\Phi}_p(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
+\end{equation}
 
-For an inverse square gravitational field, a closed form for \(\mathbf{\Phi}(t-t_0)\) exists~\cite{glandorf_transition_matrix}. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations.
+This way of computing \(\mathbf{\Phi}_p(t - t_0)\) will be termed the STM method for primer vector calculation, and is valid for all conservative force models. For the two body model in particular, a closed form for \(\mathbf{\Phi}_p(t-t_0)\) exists~\cite{glandorf_transition_matrix}. 
 
-This theory can be extended to impulsive maneuvers by considering that since impulses are instantaneous, and the primer vector trajectory is continuous, \(\lVert \mathbf{p} \rVert \leq 1\), and impulses happen at the instants when equality is attained. At impulse times, the primer vector has magnitude one and the direction of the velocity impulse. For an orbital transfer with two impulses, \(\Delta v_1\) at time \(t_1\) and \(\Delta v_2\) at time \(t_2\), two primer vector values are known:
+Computing the primer vector trajectory is done piecewise on coasting arcs between two consecutive impulses, since the primer vector is known at impulse times. Since \(\mathbf{p}\) is known at both ends, but not \(\dot{\mathbf{p}}\), this configures a linear TPBVP\@. For two consecutive impulses, \(\Delta v_1\) at time \(t_1\) and \(\Delta v_2\) at time \(t_2\), the primer vector values are given by:
 \begin{align}
     \mathbf{p}(t_1) &= \frac{\Delta \mathbf{v}_1}{\lVert \Delta \mathbf{v}_1 \rVert} \\
     \mathbf{p}(t_2) &= \frac{\Delta \mathbf{v}_1}{\lVert \Delta \mathbf{v}_2 \rVert}
@@ -386,7 +443,7 @@ The state transition between these two instants can be stated as
 \begin{equation}
     \begin{bmatrix}
         \mathbf{p}(t_2) \\ \dot{\mathbf{p}}(t_2)
-    \end{bmatrix} = \mathbf{\Phi}(t_2 - t_1) \begin{bmatrix}
+    \end{bmatrix} = \mathbf{\Phi}_p(t_2 - t_1) \begin{bmatrix}
         \mathbf{p}(t_1) \\ \dot{\mathbf{p}}(t_1)
     \end{bmatrix} = \begin{bmatrix}
         \mathbf{M}(t_2-t_1) & \mathbf{N}(t_2-t_1) \\ \mathbf{S}(t_2-t_1) & \mathbf{T}(t_2-t_1)
@@ -411,19 +468,14 @@ where \(\mathbf{M}\), \(\mathbf{N}\), \(\mathbf{S}\) and \(\mathbf{T}\) are squa
 \end{equation}
 where \(A^\dagger\) denotes the pseudo-inverse of a rectangular matrix.
 
-Some typical primer vector magnitude trajectories are given in Figure~\ref{fig:primer_trajectory_example}. The necessary conditions offered by primer vector theory for an impulsive maneuver scenario are~\cite{Conway_2010}:
-\begin{enumerate}
-    \item \(\mathbf{p}(t)\) and \(\dot{\mathbf{p}}(t)\) are continuous;
-    \item \(\lVert \mathbf{p} \rVert \leq 1\), and impulses happen when \(\lVert \mathbf{p} \rVert = 1\);
-    \item \(\mathbf{p}\) has the direction of \(\hat{\mathbf{u}}\) at the impulse instants;
-    \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
-\end{enumerate}
+% Some typical primer vector magnitude trajectories are given in Figure~\ref{fig:primer_trajectory_example}. 
 
-Notice how in Figure~\ref{fig:primer_trajectory_example}, the first trajectory satisfies all necessary conditions, the second one violates condition 2, and the third one violates condition one. How to exploit necessary condition violation for improving trajectories shall be discussed in future work.
+% Notice how in Figure~\ref{fig:primer_trajectory_example}, the first trajectory satisfies all necessary conditions, the second one violates condition 2, and the third one violates condition one. How to exploit necessary condition violation for improving trajectories shall be discussed in future work.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.3\textwidth]{img/primer_vector_history_from_jezewsky.png}
-    \caption{Typical primer vector trajectories. Source: \cite{efficient_n_impulse}.}
-    \label{fig:primer_trajectory_example}
-\end{figure}
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.3\textwidth]{img/primer_vector_history_from_jezewsky.png}
+%     \caption{Typical primer vector trajectories. Source: \cite{efficient_n_impulse}.}
+%     \label{fig:primer_trajectory_example}
+% \end{figure}
+
