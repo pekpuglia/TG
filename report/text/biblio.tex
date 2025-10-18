@@ -1,11 +1,13 @@
 
 In this chapter, previous results relating to the field of orbital maneuvering are presented. Relevant research spans the 1960's all the way to recent years. In particular, results about the solution and application of the Lambert problem, usage of primer vector theory and direct optimization approaches are presented.
 
-\section{Lambert Problem}
+TODO add Multiple shooting
 
-Efficient solutions to the Lambert problem have been of interest for many centuries now, and many algorithms exist, with varying convergence guarantees and indetermination handling. An algorithm based on continued fractions~\cite{battin_vaughan_elegant_lambert} has been proposed, and it shows promising results in terms of number of iterations until convergence. It also relies on an orbital transformation to bypass the indeterminate case, choosing one of many possible solutions. However, it requires previous knowledge of the type of orbit (elliptic, parabolic, hyperbolic) and good initial guesses for parameters with difficult physical interpretation, making it not suitable for trajectory optimization.
+% \section{Lambert Problem}
 
-\citeauthor{embedded_lambert} (2020) present a way of applying many embedded Lambert Problems to trajectory optimization. In their approach, time is also an optimization variable. Many orbital segments of equal duration are concatenated and impulses are allowed to happen at each boundary. Then, a Cartesian variables-based Lambert problem is solved for each segment. Impulses at segment boundaries are found to be significant only at a handful of boundaries. With a big number of segments, this approximates the number, instant and magnitudes well. The Cartesian variables-based Lambert problem solution is indeed applicable to trajectory optimization, and this result also offers good insights into how to find appropriate transfer times between orbits.
+% Efficient solutions to the Lambert problem have been of interest for many centuries now, and many algorithms exist, with varying convergence guarantees and indetermination handling. An algorithm based on continued fractions~\cite{battin_vaughan_elegant_lambert} has been proposed, and it shows promising results in terms of number of iterations until convergence. It also relies on an orbital transformation to bypass the indeterminate case, choosing one of many possible solutions. However, it requires previous knowledge of the type of orbit (elliptic, parabolic, hyperbolic) and good initial guesses for parameters with difficult physical interpretation, making it not suitable for trajectory optimization.
+
+% \citeauthor{embedded_lambert} (2020) present a way of applying many embedded Lambert Problems to trajectory optimization. In their approach, time is also an optimization variable. Many orbital segments of equal duration are concatenated and impulses are allowed to happen at each boundary. Then, a Cartesian variables-based Lambert problem is solved for each segment. Impulses at segment boundaries are found to be significant only at a handful of boundaries. With a big number of segments, this approximates the number, instant and magnitudes well. The Cartesian variables-based Lambert problem solution is indeed applicable to trajectory optimization, and this result also offers good insights into how to find appropriate transfer times between orbits.
 
 \section{Primer Vector theory}
 
@@ -14,6 +16,8 @@ The evolution of the primer vector along coasting arcs is of interest for the so
 \citeauthor{fixed_time_primer_vector} (1968) also give a closed-form expression for the state transition matrix and a review of the application of primer vector theory. In particular, several common cases of primer vector trajectories are explored, and the relationship between suboptimal primer vector trajectories and the necessary changes is explored. Overall, Lion and Handelsman provide useful examples for understanding this theory. 
 
 Finally, an interactive algorithm for computing the optimal number of impulses based on analyzing the primer vector trajectories is given in \citeauthor{interactive_primer_vector} (2010). The discrete nature of the variable ``number of impulses'' requires tools more powerful than continuous variable nonlinear solvers, such as evolutionary algorithms. The proposed algorithm iterates through proposing an \(n\) impulse maneuver, analyzing its primer vector history and optimizing impulse times, if needed, and then adding maneuvers if the necessary conditions are not yet satisfied. This remains one of the most direct ways of optimizing the number of impulses; however, the usage of primer vector theory provides only \textit{necessary} conditions, which can lead to many false (or local) optima. Similar approaches are found in \citeauthor{efficient_n_impulse} (1968), which applies it to an Apollo rendezvous, with a large plane change maneuver.
+
+TODO ADD RYAN RUSSELL, BRUNO
 
 \section{Direct Optimization}
 

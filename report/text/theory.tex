@@ -10,7 +10,7 @@ The mathematical nature of an optimal control problem varies greatly depending o
 \begin{equation} \label{eq:generic_dyn}
     \dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t))
 \end{equation}
-where \(\mathbf{x}(t): \mathbb{R} \rightarrow \mathcal{\mathbf{x}} \subset \mathbb{R}^n\) is the state vector trajectory describing the system state, \(\mathbf{u}(t): \mathbb{R} \rightarrow \mathbb{R}^m\) is the control vector trajectory and \(f: \mathbb{R}^n \times \mathbb{R}^m \rightarrow \mathbb{R}^n\) is the function describing its temporal dynamics. 
+where \(\mathbf{x}(t): \mathbb{R} \rightarrow \mathcal{\mathbf{x}} \subset \mathbb{R}^n\) is the state vector trajectory describing the system state, \(\mathbf{u}(t): \mathbb{R} \rightarrow \mathbb{R}^m\) is the control vector trajectory and \(f: \mathbb{R}^n \times \mathbb{R}^m \rightarrow \mathbb{R}^n\) is the function describing its temporal dynamics. TODO FUNCTION SPACES
 
 In addition, the control vector might be subject to some some inequality constraints, representing for instance saturation of actuators. Therefore, an admissible control set \(\mathcal{U}\) is defined by a vector of constraint functions \(\mathbf{g}(\mathbf{u})\) as
 \begin{equation}
@@ -73,6 +73,10 @@ To complete the Hamiltonian approach, Pontryagin's Minimum Principle~\cite{berts
 \end{equation}
 
 With the control trajectory obtained as a function of \(\mathbf{x}(t)\) and \(\mathbf{\lambda}(t)\) from Equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial states, some final states and some final costates according to Equations \eqref{eq:generic_final_constraint} and \eqref{eq:final_costate}. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
+
+TODO: NUMERICAL APPROACH: MULTIPLE SHOOTING
+
+TODO: SOLUTION HIERARCHY (ROSS)
 
 \section{Orbital Mechanics}
 

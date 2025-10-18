@@ -1,7 +1,11 @@
 
-All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, along with its full formulation.
+All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, and the following section assembles all components into the full optimization algorithm.
 
-\section{Orbit Propagation}\label{sec:orbit_propagation}
+\section{Components}
+
+The 
+
+\subsection{Orbit Propagation}\label{sec:orbit_propagation}
 
 The implementation of an orbit propagator concerns itself with the implementation of the function \(p_o(\mathbf{x}, t)\) introduced in Equation~\eqref{eq:orbit_propagator}. Two different cases are to be considered: ``explicit'' propagation, where numerical inputs are available and a numerical output is desired; and ``implicit'' propagation, where the propagation step is a part of a larger solver.
 
@@ -45,68 +49,7 @@ ICI, CICIC, ...
 %talk about primer vector algorithm
 %talk about repropagation
 
-\section{Optimization algorithm with fixed number of impulses}
-
-%flowchart
-\section{Primer vector algorithm}
-
-\begin{tikzpicture}
-    \node (linearTPBVP) [process] {Solve linear TPBVP between pair of impulses};
-    \node (firstcoast) [process, right = of linearTPBVP] {Backpropagate PV if \texttt{C...}};
-    \node (lastcoast) [process, below = of firstcoast] {Propagate PV if \texttt{...C}};
-    \node (diag) [decision, right = of firstcoast, text width=2cm] {Necessary conditions};
-    \node (opt) [startstop, right = of diag] {Local optimum};
-    \node (cont) [startstop, below = of diag] {More impulses};
-
-    \draw [arrow] (linearTPBVP) to [out=45, in=90, looseness=3] (linearTPBVP);
-    \draw [arrow] (linearTPBVP) -- (firstcoast);
-    \draw [arrow] (firstcoast) -- (diag);
-    \draw [arrow] (linearTPBVP) -- (lastcoast);
-    \draw [arrow] (lastcoast) -- (diag);
-    \draw [arrow] (diag) -- (opt);
-    \draw [arrow] (diag) -- (cont);
-\end{tikzpicture}
-
-
-TODO more impulses
-
-\section{Nonlinear solver}
-
-Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Many algorithms, and many different algorithms exist. Optimizer algorithms may be classed as local or global, depending on whether they find a local (best in a region) or global (best in the domain) solution; stochastic, according to the presence or absence of random seeding; and the usage of function evaluations only, gradient evaluations, or even Hessian evaluations~\cite{numerical_recipes}. All local methods require an initial guess as input.
-
-Of interest to this work are deterministic local gradient-based algorithms. They are well suited to nonlinear (but continuous and differentiable) problems with continuous variables subject to nonlinear constraints. By exploiting the gradient, faster algorithms are available. The choice for a local, deterministic solver comes from the fact that these algorithms have much faster convergence than global stochastic algorithms such as simulated annealing. To make up for the loss of global optimality, good initial guesses must be supplied.
-
-Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{JuMP}~\cite{jump}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation. The package's \textit{tech stack} can be seen in Figure~\ref{fig:tech_stack}. Internally, \texttt{JuMP} relies on an intermediary package, \texttt{MathOptInterface}, which standardizes solver interfaces. This in turn allows for the usage of \texttt{Ipopt\_jll}, an unofficial wrapper for the Ipopt solver. Ipopt is an open-source nonlinear solver widely recognized for its speed and precision, outperforming many competitors and being quite flexible. It is especially well suited to problems with many variables (up to thousands) with sparse constraints (that is, constraints that depend only on small subsets of variables). It is capable of handling equality and inequality constraints.
-
-This solver allows for the specification of lower and upper bounds of variables separately to the specification of inequality constraints. Variable bounds are guaranteed to be respected at all iterations; inequality constraints are only guaranteed to be satisfied at the converged solution, if the problem is feasible. This distinction is important because some constraints define the domain of problem and should never be violated; other constraints are problem-based and therefore can be violated during the iteration process.
-
-Finally, Ipopt is built with sparsity in mind. Complex calculations should be broken into simpler constraints, each depending on less variables. This may even increase the number of variables but Ipopt's performance profits from this structure.
-
-\begin{figure}[htbp]
-    \centering
-        \includegraphics[width=\textwidth]{img/techstack.png}
-    \caption{Relationship of code components.}
-    \label{fig:tech_stack}
-\end{figure}
-
-\section{Lambert problem implementation}
-
-The formulations stated in the previous chapter make for one-dimensional nonlinear programs, which leads to high performance. However, they do not handle the singularity case of \(r_1 \parallel r_2\), which is of particular importance to orbital maneuvers as they often happen at periapsis and apoapsis. Sukhanov's formulation actually gives expressions for the initial radial and normal velocity when the input positions are collinear; the plane of the orbit should then be adequately chosen afterwards~\cite{sukhanov}. However, this was found to be very numerically sensitive and another algorithm was used in the rest of this work. An implicit orbit propagation algorithm, as described in Section~\ref{sec:orbit_propagation} is setup with boundary conditions
-
-\begin{align}
-    \mathbf{r}_{(j=1)}   &= \mathbf{r}_1 \\
-    \mathbf{r}_{(j=N+1)} &= \mathbf{r}_2
-\end{align}
-which account for the 6 boundary conditions needed. In order to help convergence in the collinear case (and neighboring cases), two inequality constraints may be added:
-\begin{align}
-    \mathbf{r}_j^T \mathbf{r}_j &\geq R_{\text{Earth}}^2 \\
-    \mathbf{r}_j \times \mathbf{v}_j &\geq 0
-\end{align}
-where the second constraint must be inverted if the desired orbit is retrograde. 
-
-The propagation variables are initialized with the initial position and velocity.
-
-\section{Optimal impulsive maneuver problem statement}\label{sec:impulsive_statement}
+\subsection{Multiple shooting}
 
 The full optimization problem, as it is implemented in code, shall be stated in this section. Due to \texttt{JuMP}'s intuitive modelling language, the problem is coded almost as it is stated here. The input parameters are:
 \begin{enumerate}
@@ -149,3 +92,80 @@ Finally, the objective is given by
 \end{equation}
 
 The solver should be initialized with a feasible, but not necessarily optimal solution, for better convergence (since Ipopt is a local solver, the choice of initial guesses is important). Values for \(\Delta t_1\) and \(\Delta t_2\) should be proposed based on physical reasoning. Then, the variables of the first and last coasting arcs are initialized with direct orbital propagation results (computed with the \texttt{SatelliteToolbox} package). The second coasting arc, between the impulses, is initialized with the solution to the Lambert problem between the final position of the first coasting arc and the initial position of the last coasting arc. Finally, the variables concerning the impulses' magnitudes and directions are initialized with the difference in velocity between consecutive arcs.
+
+\subsubsection{Nonlinear solver}
+
+Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Many algorithms, and many different algorithms exist. Optimizer algorithms may be classed as local or global, depending on whether they find a local (best in a region) or global (best in the domain) solution; stochastic, according to the presence or absence of random seeding; and the usage of function evaluations only, gradient evaluations, or even Hessian evaluations~\cite{numerical_recipes}. All local methods require an initial guess as input.
+
+Of interest to this work are deterministic local gradient-based algorithms. They are well suited to nonlinear (but continuous and differentiable) problems with continuous variables subject to nonlinear constraints. By exploiting the gradient, faster algorithms are available. The choice for a local, deterministic solver comes from the fact that these algorithms have much faster convergence than global stochastic algorithms such as simulated annealing. To make up for the loss of global optimality, good initial guesses must be supplied.
+
+Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{JuMP}~\cite{jump}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation. The package's \textit{tech stack} can be seen in Figure~\ref{fig:tech_stack}. Internally, \texttt{JuMP} relies on an intermediary package, \texttt{MathOptInterface}, which standardizes solver interfaces. This in turn allows for the usage of \texttt{Ipopt\_jll}, an unofficial wrapper for the Ipopt solver. Ipopt is an open-source nonlinear solver widely recognized for its speed and precision, outperforming many competitors and being quite flexible. It is especially well suited to problems with many variables (up to thousands) with sparse constraints (that is, constraints that depend only on small subsets of variables). It is capable of handling equality and inequality constraints.
+
+This solver allows for the specification of lower and upper bounds of variables separately to the specification of inequality constraints. Variable bounds are guaranteed to be respected at all iterations; inequality constraints are only guaranteed to be satisfied at the converged solution, if the problem is feasible. This distinction is important because some constraints define the domain of problem and should never be violated; other constraints are problem-based and therefore can be violated during the iteration process.
+
+Finally, Ipopt is built with sparsity in mind. Complex calculations should be broken into simpler constraints, each depending on less variables. This may even increase the number of variables but Ipopt's performance profits from this structure.
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=\textwidth]{img/techstack.png}
+    \caption{Relationship of code components.}
+    \label{fig:tech_stack}
+\end{figure}
+%flowchart
+
+\subsubsection{Variable normalization}
+
+\subsection{Primer vector algorithm}
+
+\begin{tikzpicture}
+    \node (linearTPBVP) [process] {Solve linear TPBVP between pair of impulses};
+    \node (firstcoast) [process, right = of linearTPBVP] {Backpropagate PV if \texttt{C...}};
+    \node (lastcoast) [process, below = of firstcoast] {Propagate PV if \texttt{...C}};
+    \node (diag) [decision, right = of firstcoast, text width=2cm] {Necessary conditions};
+    \node (opt) [startstop, below = of diag] {Local optimum};
+    \node (cont) [startstop, right = of diag] {More impulses};
+
+    \draw [arrow] (linearTPBVP) to [out=45, in=90, looseness=3] (linearTPBVP);
+    \draw [arrow] (linearTPBVP) -- (firstcoast);
+    \draw [arrow] (firstcoast) -- (diag);
+    \draw [arrow] (linearTPBVP) -- (lastcoast);
+    \draw [arrow] (lastcoast) -- (diag);
+    \draw [arrow] (diag) -- (opt);
+    \draw [arrow] (diag) -- (cont);
+\end{tikzpicture}
+
+% \section{Lambert problem implementation}
+
+% The formulations stated in the previous chapter make for one-dimensional nonlinear programs, which leads to high performance. However, they do not handle the singularity case of \(r_1 \parallel r_2\), which is of particular importance to orbital maneuvers as they often happen at periapsis and apoapsis. Sukhanov's formulation actually gives expressions for the initial radial and normal velocity when the input positions are collinear; the plane of the orbit should then be adequately chosen afterwards~\cite{sukhanov}. However, this was found to be very numerically sensitive and another algorithm was used in the rest of this work. An implicit orbit propagation algorithm, as described in Section~\ref{sec:orbit_propagation} is setup with boundary conditions
+
+% \begin{align}
+%     \mathbf{r}_{(j=1)}   &= \mathbf{r}_1 \\
+%     \mathbf{r}_{(j=N+1)} &= \mathbf{r}_2
+% \end{align}
+% which account for the 6 boundary conditions needed. In order to help convergence in the collinear case (and neighboring cases), two inequality constraints may be added:
+% \begin{align}
+%     \mathbf{r}_j^T \mathbf{r}_j &\geq R_{\text{Earth}}^2 \\
+%     \mathbf{r}_j \times \mathbf{v}_j &\geq 0
+% \end{align}
+% where the second constraint must be inverted if the desired orbit is retrograde. 
+
+% The propagation variables are initialized with the initial position and velocity.
+
+
+\section{Primer vector meta-algorithm}\label{sec:impulsive_statement}
+
+
+
+\begin{tikzpicture}
+    \node (2r) [startstop] {\texttt{ICI} Case};
+    \node (2f) [process, right=of 2r] {\texttt{CICIC} Case};
+    \node (pv) [decision, right=of 2f] {PV trajectory};
+    \node (more_imp) [process, right=of pv] {Add one impulse \texttt{C} \(\rightarrow\) \texttt{CIC}};
+    \node (end) [startstop, below=of pv] {Local Optimum};
+
+    \draw [arrow] (2r) -- (2f);
+    \draw [arrow] (2f) -- (pv);
+    \draw [arrow] (pv) -- (more_imp);
+    \draw [arrow] (pv) -- (end);
+    \draw [arrow] (more_imp.north) |- (pv.north);
+\end{tikzpicture}
