@@ -149,10 +149,10 @@ Thus, this model's dynamics can be expressed solely as a function of the positio
     \ddot{\mathbf{r}} = g_{J2}(\mathbf{r}) = -\frac{\mu}{r^3} \mathbf{r} + \mathbf{a}_{J2}.
 \end{equation}
 
-\subsubsection{Atmospheric Drag}
+\subsubsection{Atmospheric Drag}\label{sssec:drag}
 
 Atmospheric drag affects satellites in LEO by generating a force opposed to the relative velocity of the satellite w.r.t.\ the Earth's atmosphere, which rotates with it. The drag force is proportional to atmospheric density \(\rho(r)\), as a function of the satellite's distance to Earth. Modelling this dependence is not a trivial task, with accurate models taking solar activity and Earth's temperature into account. A simple model is given by the US Standard Atmosphere 1976, which gives empirical coefficients \(\rho_i\) and \(H_i\), valid for height intervals \([h_i, h_i+1]\), for \(i = 1,\dots, 28\). Then, atmospheric density is given piecewise by
-\begin{equation}
+\begin{equation}\label{eq:rho}
     \rho(r) = \rho_i \exp{\big(-\frac{\left(r - (h_i + R)\right)}{H_i}\big)},
 \end{equation}
 where \(i\) is such that \(h_i \leq r - R \leq h_{i+1}\). The satellite is parameterized by a reference surface \(S\), drag coefficient \(C_D\) and mass \(m\). Considering that the Earth rotates with angular velocity \(\omega_E\), the relative velocity of the satellite w.r.t.\ the atmosphere is given by
@@ -406,7 +406,7 @@ The necessary conditions offered by primer vector theory for an impulsive maneuv
     \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
 \end{enumerate}
 
-\subsubsection{Primer vector trajectory calculation}
+\subsubsection{Primer vector calculation}\label{sssec:pv_calc_cons}
 
 From Equations~\eqref{eq:lambda_dot_cons} and \eqref{eq:p_lambda_v_cons}, the primer vector differential equations are
 \begin{equation}\label{eq:pdot_const}
@@ -515,7 +515,7 @@ Rearranging the Hamiltonian to factor \(\Gamma \),
 
 By similar reasoning to the conservative case, \(\mathbf{p} = - \lambda_v\), with the same necessary conditions. 
 
-\subsubsection{Primer Vector calculation}
+\subsubsection{Primer Vector calculation}\label{sssec:pv_calc_ncon}
 
 The primer vector differential equation is the main difference of the non-conservative case w.r.t. the conservative case. It can be found from Equation~\eqref{eq:lambda_dot_ncon}:
 

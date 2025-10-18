@@ -1,11 +1,23 @@
 
 All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, and the following section assembles all components into the full optimization algorithm.
 
-TODO multiple shooting is dynamics agnostic
-
 \section{Components}
 
-The optimization of impulsive maneuvers relies on the representation and manipulation of several concepts in a programmatic fashion. In particular there is a need for a numerical way of propagating orbits, a representation for sequences of impulses and coasting arcs, an implicit formulation for maneuvers amenable to optimization, and a way of calculating primer vector trajectories on multi-impulse maneuvers. Each of those components will be explored in the following sections.
+The optimization of impulsive maneuvers relies on the representation and manipulation of several concepts in a programmatic fashion. In particular there is a need for a nonlinear numerical solver, a numerical way of propagating orbits, a representation for sequences of impulses and coasting arcs, an implicit formulation for maneuvers amenable to optimization, and a way of calculating primer vector trajectories on multi-impulse maneuvers. Each of those components will be explored in the following sections.
+
+\subsubsection{Nonlinear solver}\label{sssec:solver}
+
+Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Their choice is problem dependent and problems must be stated in a format compatible with the desired solver. Many algorithms exist, with different smoothness requirements, convergence properties, or optimality guarantees. 
+
+Of interest to this work are local gradient-based algorithms. They are well suited to nonlinear (but twice differentiable) problems with continuous variables subject to nonlinear constraints. By exploiting the gradient, and sometimes the Hessian of the cost as well, faster algorithms are available. The downside of this type of algorithm is that they return a \textit{local} solution, that is, a solution where no small change can improve it. Those are, in general, not \textit{global} solutions. Orbital maneuver problems have many local solutions of varying qualities, meaning that this distinction must be accounted for. The algorithm takes an initial guess as a parameter and improves it, simultaneously satisfying constraints and minimizing the objective function.
+
+Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{CasADi}~\cite{casadi}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation, and is the industry standard for optimal control. Internally, CasADi converts the problem to a format accepted by Ipopt~\cite{ipopt}, the default nonlinear solver in CasaDi. Ipopt is an open-source nonlinear solver widely recognized for its speed and precision, outperforming many competitors and being quite flexible. It is especially well suited to problems with many variables (up to thousands) with sparse constraints (that is, constraints that depend only on small subsets of variables). It is a Newton-like algorithm with many optimizations to iteration acceptance criteria, filtering of bad iterates, and many configurable parameters. Internally, this means that Ipopt must solve very large linear systems (Jacobian inversion) as a part of the solve process, which introduces normalization concerns (discussed later).
+
+This solver allows for the specification of lower and upper bounds of variables separately to the specification of inequality constraints. Variable bounds are guaranteed to be respected at all iterations; inequality constraints are only guaranteed to be satisfied at the converged solution, if the problem is feasible. This distinction is important because some constraints define the domain of problem and should never be violated, such as positivity of time durations; other constraints are problem-based and therefore can be violated during the iteration process.
+
+Ipopt uses a barrier function method to handle constraints. This means that the initial guess is not \textit{required} to satisfy all constraints and, in all iterations except the final, converged iterate, constraint violation is allowed. The user-input cost function is replaced by a mixed objective containing the cost function a cost on constraint violation. During iteration, constraint violation is increasingly penalized until a solution in the feasible set is found, where optimization can continue. A corollary of this scheme is that even if the initial guess is very close to satisfying some constraints, but not others, intermediate iterates may worsen constraint violation and objective function in favor of this mixed objective.
+
+Ipopt also comes with a host of configuration options. Parameters worth mentioning are the tolerance for constraint violation, maximum iteration count, maximum solve time, and maximum \textit{restoration iterations}. Restoration iterations are iterations in which no attempt to improve the objective function is made, and the solver focuses only on satisfying constraints. This usually happens when constraints are "hard", the feasible region of the problem is small, or iterates diverge. Limiting this reduces time wasted on trying to optimize a bad initial guess.
 
 \subsection{Orbit Propagation}\label{sec:orbit_propagation}
 
@@ -28,7 +40,7 @@ Therefore, this is an auxiliary package used for verification, initial guess gen
     \label{tab:kep_ecc_true}
 \end{table}
 
-Therefore, the dynamics in Cartesian coordinates were chosen for implicit propagation, due to the differentiability of this model in the usual range of orbital variables. Many methods for integrating dynamical systems for optimal control exist, such as collocation, pseudospectral methods, direct shooting, and multiple shooting~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a numerically stable problem and is standard in optimal control. An eighth-order Runge-Kutta (RK8) method~\cite{rk8} was used for discretizing the dynamical equations. Let  \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the RK8 integration function from Cartesian state \(\x_{\text{prev}}\) to Cartesian state \(\mathbf{x}_{\text{next}}\) over a time step \(\Delta t\).
+Therefore, the dynamics in Cartesian coordinates were chosen for implicit propagation, due to the differentiability of this model in the usual range of orbital variables. Many methods for integrating dynamical systems for optimal control exist, such as collocation, pseudospectral methods, direct shooting, and multiple shooting~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a numerically stable problem and is standard in optimal control. An eighth-order Runge-Kutta (RK8) method~\cite{rk8} was used for discretizing the dynamical equations. Let  \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the RK8 integration function from Cartesian state \(\x_{\text{prev}}\) to Cartesian state \(\mathbf{x}_{\text{next}}\) over a time step \(\Delta t\). This discretization scheme is agnostic to the dynamics of the system, that is, one can "drop-in" the two body model, the J2 model, or the J2-Drag model and the scheme remains the same, which is quite convenient.
 
 The multiple shooting implicit orbit propagation uses \(N\) discretization points for a coasting arc of duration \(d_c\), which are parameterized with Cartesian state vector variables \(\x^j \in \R^6, j=1,\dots,N\) subject to 
 \begin{equation}
@@ -142,48 +154,79 @@ Some care needs to be taken about the first sequence element, an impulse or coas
 
 % The solver should be initialized with a feasible, but not necessarily optimal solution, for better convergence (since Ipopt is a local solver, the choice of initial guesses is important). Values for \(\Delta t_1\) and \(\Delta t_2\) should be proposed based on physical reasoning. Then, the variables of the first and last coasting arcs are initialized with direct orbital propagation results (computed with the \texttt{SatelliteToolbox} package). The second coasting arc, between the impulses, is initialized with the solution to the Lambert problem between the final position of the first coasting arc and the initial position of the last coasting arc. Finally, the variables concerning the impulses' magnitudes and directions are initialized with the difference in velocity between consecutive arcs.
 
-As discussed in Section~\ref{sssec:solver}, the solver should be initialized with an initial guess that is not far from being feasible. For multiple shooting schemes, this means satisfying the dynamical constraints, but possibly not the final condition constraint. Therefore, initial guesses can be generated by guessing impulse magnitudes and directions, coast durations and applying the maneuver propagation algorithm from Section~\ref{sec:maneuver_propagation}. dc, random start
+As discussed in Section~\ref{sssec:solver}, the solver should be initialized with an initial guess that is not far from being feasible. For multiple shooting schemes, this means satisfying the dynamical constraints, but possibly not the final condition constraint. Therefore, initial guesses can be generated by guessing impulse magnitudes and directions, coast durations and applying the maneuver propagation algorithm from Section~\ref{sec:maneuver_propagation}. Early experimentation shows that coast durations have the biggest impact on the optimization result, so impulse magnitudes can be set to 0. Therefore, to best explore the available solutions and somewhat counteract the local nature of Ipopt, a random sampling scheme was setup, which samples coast durations adding up to the total time and creates a "zero" maneuver composed of coasting arcs along the initial orbit and zero magnitude impulses at specified times. This, combined with early stopping in divergent cases (\texttt{max\_resto\_iter} mentioned in~\ref{sssec:solver}), allowed for speedy optimization of short and mid duration maneuvers.
 
-\subsubsection{Nonlinear solver}\label{sssec:solver}
-
-Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Many algorithms, and many different algorithms exist. Optimizer algorithms may be classed as local or global, depending on whether they find a local (best in a region) or global (best in the domain) solution; stochastic, according to the presence or absence of random seeding; and the usage of function evaluations only, gradient evaluations, or even Hessian evaluations~\cite{numerical_recipes}. All local methods require an initial guess as input.
-
-Of interest to this work are deterministic local gradient-based algorithms. They are well suited to nonlinear (but continuous and differentiable) problems with continuous variables subject to nonlinear constraints. By exploiting the gradient, faster algorithms are available. The choice for a local, deterministic solver comes from the fact that these algorithms have much faster convergence than global stochastic algorithms such as simulated annealing. To make up for the loss of global optimality, good initial guesses must be supplied.
-
-Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{JuMP}~\cite{jump}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation. The package's \textit{tech stack} can be seen in Figure~\ref{fig:tech_stack}. Internally, \texttt{JuMP} relies on an intermediary package, \texttt{MathOptInterface}, which standardizes solver interfaces. This in turn allows for the usage of \texttt{Ipopt\_jll}, an unofficial wrapper for the Ipopt solver. Ipopt is an open-source nonlinear solver widely recognized for its speed and precision, outperforming many competitors and being quite flexible. It is especially well suited to problems with many variables (up to thousands) with sparse constraints (that is, constraints that depend only on small subsets of variables). It is capable of handling equality and inequality constraints.
-
-This solver allows for the specification of lower and upper bounds of variables separately to the specification of inequality constraints. Variable bounds are guaranteed to be respected at all iterations; inequality constraints are only guaranteed to be satisfied at the converged solution, if the problem is feasible. This distinction is important because some constraints define the domain of problem and should never be violated; other constraints are problem-based and therefore can be violated during the iteration process.
-
-Finally, Ipopt is built with sparsity in mind. Complex calculations should be broken into simpler constraints, each depending on less variables. This may even increase the number of variables but Ipopt's performance profits from this structure.
-
-\begin{figure}[htbp]
-    \centering
-        \includegraphics[width=\textwidth]{img/techstack.png}
-    \caption{Relationship of code components.}
-    \label{fig:tech_stack}
-\end{figure}
-%flowchart
+Finally, some practical considerations about the multiple shooting scheme are presented.
 
 \subsubsection{Variable normalization}
 
+Cartesian orbital variables regularly take on values on the order of \(10^6\). At this range of values, floating-point number are more spaced out than on the order of \(1\), meaning that the optimal values for a problem may lie between two consecutive floating point number representations. In addition, Jacobians evaluated at big variable values tend to be ill-conditioned, leading to worse iterates due to lost precision. All of this leads to the need of normalizing variables.
+
+Variable normalization was done by rescaling physical units for length and time before assembling the multiple shooting problem. Let \(L\) be a normalizing length, and \(T\) be a normalizing time. Then, a change of units is performed and new, rescaled physical parameters are found. Let \(\tilde{\bullet}\) represent the rescaled version of any variable \(\bullet\). This procedure is exemplified with the two-body model, but is analogous for the other models explored in the work:
+\begin{equation}
+    \ddot{\pos} = -\frac{\mu}{r^3} \pos \iff \frac{L}{T^2}\frac{d^2 \tilde{\pos}}{d \tilde{t}} = -\frac{\mu}{L^2 \tilde{r}^3} \tilde{\pos} \iff \frac{d^2 \tilde{\pos}}{d \tilde{t}} = -\frac{\tilde{\mu}}{\tilde{r}^3} \tilde{\pos}
+\end{equation}
+with \(\tilde{\mu} = \mu \frac{T^2}{L^3}\). Length scaling was usually taken to be the average of semimajor axes of the initial and final orbits, and time scaling was set either to \(1\) (no scaling) or one orbital period of an orbit with semimajor axis equal to the length scaling factor.
+
+\subsubsection{Drag smoothing}
+
+The US Standard Atmosphere model introduced in Section~\ref{sssec:drag} is defined piecewise, wich is not compatible with Ipopt. A smooth reformulation is therefore needed. This will be achieved in two steps.
+
+Firstly, define the unit interval indicator function \(\mathbb{I} (x)\) as
+\begin{equation}
+    \mathbb{I} (x) = \begin{cases}
+        1, 0 \leq x < 1 \\
+        0, \text{ otherwise}
+    \end{cases}
+\end{equation}
+and rewrite the piecewise definition for \(\rho(r)\) in Equation~\eqref{eq:rho} as
+\begin{equation}
+    \rho(r) = \sum_{i = 1}^{28} \rho_i \exp{\big(-\frac{\left(r - (h_i + R)\right)}{H_i}\big)} \mathbb{I}(\frac{r - R - h_i}{h_{i+1} - h_i}).
+\end{equation}
+
+Secondly, define a smooth indicator function \(\sigma_k(x)\) as
+\begin{equation}
+    \sigma_k(x) = \frac{1}{2} \left(\tanh{k x} + \tanh{k (1 - x)}\right)
+\end{equation}
+for some (large) value of \(k > 0\). Then, the smooth density model \(\rho_s(r)\) can be written
+\begin{equation}
+    \rho(r) = \sum_{i = 1}^{28} \rho_i \exp{\big(-\frac{\left(r - (h_i + R)\right)}{H_i}\big)} \sigma_k(\frac{r - R - h_i}{h_{i+1} - h_i}),
+\end{equation}
+thus giving an approximate, twice differentiable model as desired. With \(k = 200\), 
+\begin{equation}
+    \max_r \frac{\lvert \rho(r) - \rho_s(r) \rvert}{\rho(r)} \leq 2\%,
+\end{equation}
+which was deemed an acceptable approximation error.
+
 \subsection{Primer vector algorithm}
 
-\begin{tikzpicture}
-    \node (linearTPBVP) [process] {Solve linear TPBVP between pair of impulses};
-    \node (firstcoast) [process, right = of linearTPBVP] {Backpropagate PV if \texttt{C...}};
-    \node (lastcoast) [process, below = of firstcoast] {Propagate PV if \texttt{...C}};
-    \node (diag) [decision, right = of firstcoast, text width=2cm] {Necessary conditions};
-    \node (opt) [startstop, below = of diag] {Local optimum};
-    \node (cont) [startstop, right = of diag] {More impulses};
+The primer vector calculation methods from Sections~\ref{sssec:pv_calc_cons} and~\ref{sssec:pv_calc_ncon} apply only between two consecutive impulses. Figure~\ref{fig:pv_calc} shows a diagram with the algorithm for a general maneuver. First, the primer vector trajectory between all pairs of consecutive impulses is calculated. Then, if the maneuver starts with a coasting arc, the primer vector is propagated backwards with its transition matrix. Similarly, for the last impulse, the primer vector is propagated forwards. 
 
-    \draw [arrow] (linearTPBVP) to [out=45, in=90, looseness=3] (linearTPBVP);
-    \draw [arrow] (linearTPBVP) -- (firstcoast);
-    \draw [arrow] (firstcoast) -- (diag);
-    \draw [arrow] (linearTPBVP) -- (lastcoast);
-    \draw [arrow] (lastcoast) -- (diag);
-    \draw [arrow] (diag) -- (opt);
-    \draw [arrow] (diag) -- (cont);
-\end{tikzpicture}
+Thereafter, the primer vector trajectory is analyzed. By construction, \(\mathbf{p}\) should be continuous, and \(\mathbf{p} = \hat{\uc}\). What is left to verify is whether \(\dot{\mathbf{p}}\) is continuous and \(\lVert \mathbf{p} \rVert \leq 1\) during the maneuver.
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \node (linearTPBVP) [process] {Solve linear TPBVP between pair of impulses};
+        \node (firstcoast) [process, right = of linearTPBVP] {Backpropagate PV if \texttt{C...}};
+        \node (lastcoast) [process, below = of firstcoast] {Propagate PV if \texttt{...C}};
+        \node (diag) [decision, right = of firstcoast, text width=2cm] {Necessary conditions};
+        \node (opt) [startstop, below = of diag] {Local optimum};
+        \node (cont) [startstop, right = of diag] {More impulses};
+    
+        \draw [arrow] (linearTPBVP) to [out=45, in=90, looseness=3] (linearTPBVP);
+        \draw [arrow] (linearTPBVP) -- (firstcoast);
+        \draw [arrow] (firstcoast) -- (diag);
+        \draw [arrow] (linearTPBVP) -- (lastcoast);
+        \draw [arrow] (lastcoast) -- (diag);
+        \draw [arrow] (diag) -- (opt);
+        \draw [arrow] (diag) -- (cont);
+    \end{tikzpicture}    
+    \caption{Primer vector trajectory calculation algorithm, and conclusions that may be drawn from their analysis.}
+    \label{fig:pv_calc}
+\end{figure}
+
 
 % \section{Lambert problem implementation}
 
@@ -205,18 +248,23 @@ Finally, Ipopt is built with sparsity in mind. Complex calculations should be br
 
 \section{Primer vector meta-algorithm}\label{sec:impulsive_statement}
 
+Finally, with all of those components in place, an algorithm based on~\citeonline{interactive_primer_vector} was implemented, and is represented in Figure~\ref{fig:meta_alg}. First, a case with fixed time impulses, \texttt{ICI}, analogous to a Lambert problem (TODO keep or not?) is solved. Usually, this gives a local optimum with very high cost. Then, initial and final coasts are added, and the primer vector trajectory is analyzed. If the primer vector norm exceeds 1, an impulse is added and the algorithm is repeated. If the continuity of the primer vector's derivative is violated, more random guesses are executed until a continuous primer vector derivative trajectory is found. And finally, when all necessary conditions are met, the algorithm ends and returns a multiple-impulse local optimum.
 
-
-\begin{tikzpicture}
-    \node (2r) [startstop] {\texttt{ICI} Case};
-    \node (2f) [process, right=of 2r] {\texttt{CICIC} Case};
-    \node (pv) [decision, right=of 2f] {PV trajectory};
-    \node (more_imp) [process, right=of pv] {Add one impulse \texttt{C} \(\rightarrow\) \texttt{CIC}};
-    \node (end) [startstop, below=of pv] {Local Optimum};
-
-    \draw [arrow] (2r) -- (2f);
-    \draw [arrow] (2f) -- (pv);
-    \draw [arrow] (pv) -- (more_imp);
-    \draw [arrow] (pv) -- (end);
-    \draw [arrow] (more_imp.north) |- (pv.north);
-\end{tikzpicture}
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \node (2r) [startstop] {\texttt{ICI} Case};
+        \node (2f) [process, right=of 2r] {\texttt{CICIC} Case};
+        \node (pv) [decision, right=of 2f] {PV trajectory};
+        \node (more_imp) [process, right=of pv] {Add one impulse \texttt{C} \(\rightarrow\) \texttt{CIC}};
+        \node (end) [startstop, below=of pv] {Local Optimum};
+    
+        \draw [arrow] (2r) -- (2f);
+        \draw [arrow] (2f) -- (pv);
+        \draw [arrow] (pv) -- (more_imp);
+        \draw [arrow] (pv) -- (end);
+        \draw [arrow] (more_imp.north) |- (pv.north);
+    \end{tikzpicture}    
+    \caption{Meta-algorithm with optimization and primer vector analysis.}
+    \label{fig:meta_alg}
+\end{figure}

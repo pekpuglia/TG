@@ -3,13 +3,9 @@ include("../lib.jl")
 #check density vs height
 #reproduce 10.1
 ##
-rs = EARTH_EQUATORIAL_RADIUS .+ (0:10:1000)*1e3
+rs = EARTH_EQUATORIAL_RADIUS .+ (1:1:1000)*1e3
 rho_if = rho_model_curtis.(rs, [R_TABLE_ATM], [RHO_TABLE_ATM], [H_TABLE_ATM])
-rho_smooth = rho_model_smooth.(rs, [R_TABLE_ATM], [RHO_TABLE_ATM], [H_TABLE_ATM], 10)
-f = lines(rs, log.(rho_if))
-lines!(f.axis, rs, log.(rho_smooth))
-f
-##
+rho_smooth = rho_model_smooth.(rs, [R_TABLE_ATM], [RHO_TABLE_ATM], [H_TABLE_ATM], 200)
 lines(rs, log.(abs.(rho_if .- rho_smooth) ./ rho_if))
 ## curtis
 model = J2DragModel(
