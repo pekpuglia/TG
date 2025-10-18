@@ -1,9 +1,11 @@
 
 All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, and the following section assembles all components into the full optimization algorithm.
 
+TODO multiple shooting is dynamics agnostic
+
 \section{Components}
 
-The 
+The optimization of impulsive maneuvers relies on the representation and manipulation of several concepts in a programmatic fashion. In particular there is a need for a numerical way of propagating orbits, a representation for sequences of impulses and coasting arcs, an implicit formulation for maneuvers amenable to optimization, and a way of calculating primer vector trajectories on multi-impulse maneuvers. Each of those components will be explored in the following sections.
 
 \subsection{Orbit Propagation}\label{sec:orbit_propagation}
 
@@ -11,89 +13,138 @@ The implementation of an orbit propagator concerns itself with the implementatio
 
 Brazil's National Institute of Space Research (INPE) developed a package for orbit propagation and analysis with several models (Kepler, J2 semi-analytical secular and short term, among others) called \texttt{SatelliteToolbox}~\cite{satellitetoolbox}. It provides quite convient functions for converting between the Cartesian state vector \(\begin{bmatrix}
     \mathbf{r}^T & \mathbf{v}^T
-\end{bmatrix}^T\) and the Keplerian elements, as well as functions for the propagation of orbits by some specified amount of time \(t_p\). Its algorithms were chosen with precision around edge cases in mind~\cite{rv_to_kepler}, making it numerically precise but unsuitable for nonlinear solvers, which expect differentiable functions everywhere. The functions in this package are also limited to elliptic orbits.
+\end{bmatrix}^T\) and the Keplerian elements, as well as functions for the propagation of orbits by some specified amount of time \(t_p\). Its algorithms were chosen with precision around edge cases in mind~\cite{rv_to_kepler}, making it numerically precise but unsuitable for nonlinear solvers, which expect differentiable functions everywhere. The functions in this package are also limited to elliptic orbits, which are not guaranteed to be found during iteration inside a numerical solver like Ipopt.
 
-Therefore, this is an auxiliary package used for verification, initial guess generation, and direct numerical propagation whenever required. When propagation is required in the statement of a nonlinear optimization problem, another method for orbit propagation is required. Discretized numerical integration in Cartesian coordinates was chosen for this. Discretized integration inside a numerical solver can be done via collocation, direct shooting or multiple shooting (also known as relaxation)~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a sparse problem, which benefits the performance of the chosen solver (see next section).
+Therefore, this is an auxiliary package used for verification, initial guess generation, and direct numerical propagation whenever required. When propagation is required in the statement of a nonlinear optimization problem, another method for orbit propagation is required. Despite being useful for explicit propagation, Keplerian elements are unsuited for optimization (at least with the chosen solver, see Section~\ref{sssec:solver}). This can be seen from the equation relating the true anomaly \(\theta\) and the eccentric anomaly \(E\), Equation~\eqref{eq:true_exc_anom}, discussed in Table~\ref{tab:kep_ecc_true}. In summary, the anomaly equations require special treatment close to the apogee to avoid infinities or discontinuities.
 
-Let \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the (two-body) dynamics function discretized through a fourth order Runge Kutta method. Then a number \(N\) of integration steps is chosen and \(N+1\) state vector variables \(\mathbf{x}^j, j=1,\dots,N+1\) are created beloning to an array \(\chi \in \mathbb{R}^{6 \times (N+1)}\). They are subject to the constraints
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{cccc} \toprule
+        Form & LHS value at apogee & RHS value at apogee & Comment  \\ \midrule
+        \(\tan{\frac{\theta}{2}} = \sqrt{\frac{1+e}{1-e}} \tan{\frac{E}{2}}\) & \(+\infty\) & \(+\infty\) & \parbox{2.5cm}{Value unsuitable for computation} \\
+        \(\theta = 2\arctan{\sqrt{\frac{1+e}{1-e}} \tan{\frac{E}{2}}}\) & \(\pi\) & \(\pm\pi\) & \parbox{2.5cm}{Not continuous \(\therefore\) not differentiable} \\ \bottomrule
+    \end{tabular}
+    \caption{Problems with the Keplerian elements formulation exemplified with the relationship between eccentric and true anomalies}
+    \label{tab:kep_ecc_true}
+\end{table}
+
+Therefore, the dynamics in Cartesian coordinates were chosen for implicit propagation, due to the differentiability of this model in the usual range of orbital variables. Many methods for integrating dynamical systems for optimal control exist, such as collocation, pseudospectral methods, direct shooting, and multiple shooting~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a numerically stable problem and is standard in optimal control. An eighth-order Runge-Kutta (RK8) method~\cite{rk8} was used for discretizing the dynamical equations. Let  \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the RK8 integration function from Cartesian state \(\x_{\text{prev}}\) to Cartesian state \(\mathbf{x}_{\text{next}}\) over a time step \(\Delta t\).
+
+The multiple shooting implicit orbit propagation uses \(N\) discretization points for a coasting arc of duration \(d_c\), which are parameterized with Cartesian state vector variables \(\x^j \in \R^6, j=1,\dots,N\) subject to 
 \begin{equation}
-    \mathbf{x}^{j+1} = f_{RK}(\mathbf{x}^j, \frac{t_p}{N}), j = 1, \dots, N.
+    \mathbf{x}^{j+1} = f_{RK}(\frac{d_c}{N - 1}, \mathbf{x}^j), j = 1, \dots, N.
 \end{equation}
-This leaves \(\dim \mathbf{x} = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
 
-\subsection{Maneuver Propagation}
+To complete the implicit description, \(\dim \mathbf{x} = 6\) boundary conditions are needed. These may be an initial condition, a final condition, or an impulsive boundary condition between two arcs.
 
-ICI, CICIC, ...
+%this part is messy
+% Let \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the dynamics function discretized through the eighth order Runge Kutta method. Then a number \(N\) of discretization points is chosen and \(N\) state vector variables \(\mathbf{x}^j, j=1,\dots,N\) are created belonging to an array \(\chi \in \mathbb{R}^{6 \times (N)}\). They are subject to the constraints
+% \begin{equation}
+%     \mathbf{x}^{j+1} = f_{RK}(\mathbf{x}^j, \frac{t_p}{N}), j = 1, \dots, N.
+% \end{equation}
+% This leaves \(\dim \mathbf{x} = 6\) degrees of freedom, which are to be specified with a boundary condition. This boundary condition can be an initial condition, a final condition or relation to another coasting segment through an impulse, as will be discussed in Section~\ref{sec:impulsive_statement}. Thus, this parameterization of orbital propagation is \textit{isoconstrained}.
 
-\begin{tikzpicture}
-    \node (init) [startstop] {Initial condition};
-    \node (dots1) [process, right = of init] {\ldots};
-    \node (imp) [process, below = of dots1] {\textbf{Impulse}
-    
-    Velocity discontinuity};
-    \node (coast) [process, right = of imp] {\textbf{Coast}
-    
-    Orbit propagation};
-    \node (dots2) [process, below = of coast] {\ldots};
-    \node (final) [process, right = of dots2] {Final condition};
+\subsection{Maneuver Propagation}\label{sec:maneuver_propagation}
 
-    \draw [arrow] (init) -- (dots1);
-    \draw [arrow] (dots1) -- (imp);
-    \draw [arrow] (imp) -- (coast);
-    \draw [arrow] (coast) -- (dots2);
-    \draw [arrow] (dots2) -- (final);
+Impulsive maneuvers are characterized by a sequence of impulses and coasting arcs. A notation for maneuvers is introduced, where \texttt{C} represents a coasting arc, and \texttt{I} represents an impulse. Any alternating sequence \(\mathcal{S} \in \{\texttt{C}, \texttt{I}\}^{n_c + n_i}\), where \(n_c\) is the number of coasting arcs and \(n_i\) is the number of impulses, with 2 or more impulses makes a valid maneuver: \texttt{ICI}, \texttt{ICIC}, \texttt{CICICICIC}, etc. Maneuvers need at least 2 impulses to be able to take any initial state to any final state (see Section~\ref{sec:imp_prop_model}). Also, let \(\mathcal{I} = \{i \in 1,\dots,n_i+n_c | \mathcal{S}_i = \texttt{I}\}\) and \(\mathcal{C} = \{c \in 1,\dots,n_i+n_c | \mathcal{S}_c = \texttt{C}\}\) be the sets of impulse and coast indices respectively. Figure~\ref{fig:maneuver_propagation} illustrates the algorithm for propagating a maneuver: at impulses, a velocity discontinuity is applied; at coasting arcs, the orbit is propagated. This algorithm follows the specified sequence of maneuvers for given values of impulse magnitudes and directions, and coast durations. 
 
-\end{tikzpicture}
+Implicit maneuver propagation is required for optimization. For this, coasts are parameterized according to the multiple shooting scheme of last section, and impulsive boundary conditions between arcs are added as constraints.  
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \node (init) [startstop] {Initial state};
+        \node (dots1) [process, right = of init] {\ldots};
+        \node (imp) [process, below = of dots1] {\textbf{Impulse}
+        
+        Velocity discontinuity};
+        \node (coast) [process, right = of imp] {\textbf{Coast}
+        
+        Orbit 
+        
+        propagation};
+        \node (dots2) [process, below = of coast] {\ldots};
+        \node (final) [startstop, right = of dots2] {Final state};
+
+        \draw [arrow] (init) -- (dots1);
+        \draw [arrow] (dots1) -- (imp);
+        \draw [arrow] (imp) -- (coast);
+        \draw [arrow] (coast) -- (dots2);
+        \draw [arrow] (dots2) -- (final);
+
+    \end{tikzpicture}
+    \caption{Maneuver propagation scheme.}
+    \label{fig:maneuver_propagation}
+\end{figure}
 
 %talk about random start, stopping early
 %talk about primer vector algorithm
 %talk about repropagation
 
-\subsection{Multiple shooting}
+\subsection{Maneuver multiple shooting problem statement}
 
-The full optimization problem, as it is implemented in code, shall be stated in this section. Due to \texttt{JuMP}'s intuitive modelling language, the problem is coded almost as it is stated here. The input parameters are:
+The full maneuver optimization problem, in its multiple shooting formulation, shall be stated in this section. The input parameters are:
 \begin{enumerate}
     \item \(\mathbf{r}_1\), \(\mathbf{v}_1\): initial orbital position and velocity;
     \item \(\mathbf{r}_2\), \(\mathbf{v}_2\): final orbital position and velocity;
     \item \(t_f\): transfer time;
     \item \(N\): number of integration steps per coasting arc.
+    \item \(\mathcal{S} \in \{\texttt{C}, \texttt{I}\}^{n_c + n_i}\): the desired sequence of coasts and impulses.
 \end{enumerate}
 
-The problem comprises the following variables, where inequalities represent variable bounds:
+The problem's definition and variable set dynamically depends on the input sequence. The \(i\)-th impulse is described by the variables\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec{\mathbf{v}}\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec{\mathbf{v}}^T \Delta \vec{\mathbf{v}}}\), which is not differentiable at \(\Delta \vec {\mathbf{v}} = 0\), which is inconvenient.}
 \begin{enumerate}
-    \item \(\Delta t_1 \geq 0\), \(\Delta t_2 \geq 0\): intervals between 0 and the first maneuver and between the first and second maneuver;
-    \item \(\Delta v_1 \geq 0\), \(\Delta v_2 \geq 0\)\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec{\mathbf{v}}\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec{\mathbf{v}}^T \Delta \vec{\mathbf{v}}}\), which is not differentiable at \(\Delta \vec {\mathbf{v}} = 0\), which is inconvenient.}: magnitudes of the first and second impulses;
-    \item \(\hat{\mathbf{u}} 1\), \(\hat{\mathbf{u}}_2 \in \mathbb{R}^3\): directions of the first and second impulses;
-    \item \(\chi_1\), \(\chi_2\), \(\chi_3 \in \mathbb{R}^{6 \times (N+1)}\): arrays of state variables for each coasting arc. They shall be indexed as \(\chi_c^{kj}\), \(c=1, 2, 3\) is the coasting arc index, \(k=1,\dots,6\) is the component index, \(j = 1,\dots,N+1\) is the state vector index. \(\mathbf{x}^j_c, \mathbf{r}^j_c, \mathbf{v}^j_c\) denote the j-th state , position and velocity vectors of the c-th coasting arc: \((\mathbf{x}^j_c)_k = \chi_c^{kj}\).
+    \item \(\Delta v_i \geq 0\): magnitude of the impulse;
+    \item \(\hat{\uc}_i \in \R^3\): direction of the impulse.
 \end{enumerate}
 
-These variables are then subjected to constraints:
-\begin{align}
-    \text{Total time less than transfer time} &\qquad\Delta t_1 + \Delta t_2 \leq t_f \\
-    \text{Unit directions} &\qquad\Delta \hat{\mathbf{u}}_m^T \Delta \hat{\mathbf{u}}_m = 1, m = 1, 2 \\
-    \text{Initial state} &\qquad \mathbf{x}_1^{1} = \begin{bmatrix}
-        \mathbf{r}_1 \\ \mathbf{v}_1
-    \end{bmatrix} \\
-    \text{Final state} &\qquad \mathbf{x}_3^{N+1} = \begin{bmatrix}
-        \mathbf{r}_2 \\ \mathbf{v}_2
-    \end{bmatrix} \\
-    \text{Maneuver boundary conditions} &\qquad \mathbf{x}_{i+1}^{1} = \mathbf{x}_i^{N+1} + \begin{bmatrix}
+The \(c\)-th coasting arc is described by:
+\begin{enumerate}
+    \item \(d_c \geq 0\): total duration of the arc;
+    \item \(\x^j_c \in \R^6, j=1,\dots,N\): tate vector variables for each coasting arc. 
+\end{enumerate}
+
+Some care needs to be taken about the first sequence element, an impulse or coast, since this changes the necessary constraints for the initial and final conditions. The full multiple shooting problem for the optimization of the impulsive maneuver is:
+
+\begin{align}\label{eq:ms_problem}
+    \begin{tabular}{cl}
+     \(\min\)                              & \(\sum_{i \in \mathcal{I}} \Delta v_i\)\\
+    \(\Delta v_i  \in \R_+, i \in \mathcal{I}\), &  \\
+    \(\hat{\uc}_i \in \R^3, i \in \mathcal{I}\),     & \\
+    \(d_c         \in \R_+, c \in \mathcal{C}\),     & \\
+    \(\x^j_c      \in \R^6, j=1,\dots,N, c \in \mathcal{C}\) & \\
+    \textbf{subject to:}        & \\
+    Total time                  & \(\sum_{c \in \mathcal{C}} d_c = t_f\) \\
+    Unit directions             & \(\hat{\uc}_i^T \hat{\uc}_i = 1, i \in \mathcal{I}\) \\
+    Propagation of coasts       & \(\x^{j+1}_c = f_{RK}(\frac{d_c}{N-1}, \x^j_c)\), \\
+                                & \(j=1,\dots,N-1, c \in \mathcal{C}\) \\
+    Impulse boundary conditions & \(\x^1_{i+1} = \x^{N}_{i-1} + \begin{bmatrix}
         0_{3\times1} \\ \Delta v_i \hat{\mathbf{u}}_i
-    \end{bmatrix}, i=1, 2 \\
-    \text{Propagation of coasting arcs} &\qquad \mathbf{x}_c^{j+1} = f_{RK}(\mathbf{x}_c^j, \Delta t_c / N), c=1, 2, 3, j=1,\dots,N \\
-    \text{where} & \qquad \Delta t_3 = t_f - \Delta t_1 - \Delta t_2 \\
-    % \text{Prograde orbit} &\qquad \mathbf{r}^j_c \times \mathbf{v}^j_c \geq 0, \forall j, c \\
-    % \text{Non-intersection with Earth} &\qquad (\mathbf{r}^j_c)^T \mathbf{r}^j_c \geq R_{\text{Earth}}^2
-\end{align}
+    \end{bmatrix}\), \\
+                                & \(i \in \mathcal{I}, i \neq 1, n_i+n_c\) \\
+    Initial condition           & \(\x_1^1 = \begin{bmatrix}
+        \mathbf{r}_1 \\ \mathbf{v}_1
+    \end{bmatrix}, 1 \in \mathcal{C}\) \\
+                                & \(\x_2^1 = \begin{bmatrix}
+                                    \mathbf{r}_1 \\ \mathbf{v}_1 + \Delta v_1 \hat{\mathbf{u}}_1
+                                \end{bmatrix}, 1 \in \mathcal{I}\) \\
+    Final condition             & \(x_c^N = \begin{bmatrix}
+        \mathbf{r}_2 \\ \mathbf{v}_2
+    \end{bmatrix}, c = n_i+n_c \in \mathcal{C}\) \\
+                                & \(x_{i-1}^N + \begin{bmatrix}
+                                    0_{3\times1} \\ \Delta v_i \hat{\mathbf{u}}_i
+                                \end{bmatrix} = \begin{bmatrix}
+                                    \mathbf{r}_2 \\ \mathbf{v}_2
+                                \end{bmatrix}, i = n_i+n_c \in \mathcal{I}\)
+    \end{tabular}
+ \end{align}
 
-Finally, the objective is given by
-\begin{equation}
-    \min \Delta v_1 + \Delta v_2
-\end{equation}
+% The solver should be initialized with a feasible, but not necessarily optimal solution, for better convergence (since Ipopt is a local solver, the choice of initial guesses is important). Values for \(\Delta t_1\) and \(\Delta t_2\) should be proposed based on physical reasoning. Then, the variables of the first and last coasting arcs are initialized with direct orbital propagation results (computed with the \texttt{SatelliteToolbox} package). The second coasting arc, between the impulses, is initialized with the solution to the Lambert problem between the final position of the first coasting arc and the initial position of the last coasting arc. Finally, the variables concerning the impulses' magnitudes and directions are initialized with the difference in velocity between consecutive arcs.
 
-The solver should be initialized with a feasible, but not necessarily optimal solution, for better convergence (since Ipopt is a local solver, the choice of initial guesses is important). Values for \(\Delta t_1\) and \(\Delta t_2\) should be proposed based on physical reasoning. Then, the variables of the first and last coasting arcs are initialized with direct orbital propagation results (computed with the \texttt{SatelliteToolbox} package). The second coasting arc, between the impulses, is initialized with the solution to the Lambert problem between the final position of the first coasting arc and the initial position of the last coasting arc. Finally, the variables concerning the impulses' magnitudes and directions are initialized with the difference in velocity between consecutive arcs.
+As discussed in Section~\ref{sssec:solver}, the solver should be initialized with an initial guess that is not far from being feasible. For multiple shooting schemes, this means satisfying the dynamical constraints, but possibly not the final condition constraint. Therefore, initial guesses can be generated by guessing impulse magnitudes and directions, coast durations and applying the maneuver propagation algorithm from Section~\ref{sec:maneuver_propagation}. dc, random start
 
-\subsubsection{Nonlinear solver}
+\subsubsection{Nonlinear solver}\label{sssec:solver}
 
 Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Many algorithms, and many different algorithms exist. Optimizer algorithms may be classed as local or global, depending on whether they find a local (best in a region) or global (best in the domain) solution; stochastic, according to the presence or absence of random seeding; and the usage of function evaluations only, gradient evaluations, or even Hessian evaluations~\cite{numerical_recipes}. All local methods require an initial guess as input.
 
