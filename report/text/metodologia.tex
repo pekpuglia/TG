@@ -1,6 +1,8 @@
 
 All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, and the following section assembles all components into the full optimization algorithm.
 
+TODO orbital models used
+
 \section{Components}
 
 The optimization of impulsive maneuvers relies on the representation and manipulation of several concepts in a programmatic fashion. In particular there is a need for a nonlinear numerical solver, a numerical way of propagating orbits, a representation for sequences of impulses and coasting arcs, an implicit formulation for maneuvers amenable to optimization, and a way of calculating primer vector trajectories on multi-impulse maneuvers. Each of those components will be explored in the following sections.
