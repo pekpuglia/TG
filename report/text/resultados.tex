@@ -285,9 +285,17 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
 
 \newpage
 \FloatBarrier
-\section{J2 Perturbed}
+\section{J2 Model}
+
+Optimized maneuvers are presented for the aforementioned scenarios under the J2 model introduced previously. Under this model, only the STM and ODE methods correctly calculate primer vector trajectories, and both will be presented for all cases.
 
 \subsection{Circle to Circle}
+
+TODO put texttt in tables
+
+The simple circle to circle rendez-vous case was first optimized with a \texttt{ICI} maneuver, with results that can be seen in Table~\ref{tab:j2_c2c_ICI_tab}, Figure~\ref{fig:j2_c2c_ICI_pv} and Figure~\ref{fig:j2_c2c_ICI_figs}. To analyze the polar trajectory that was found, first it is worth mentioning that orbital trajectories under the J2 model are, in general, not planar, which means that the two-body Hohmann transfer is impossible with this model. The only planar orbits are perfectly equatorial and perfectly polar orbits and, due to the inclination of the orbits' being greater than \(45^\circ\), the polar orbit is the best solution. It is vastly different to the two-body \texttt{ICI} solution, which shows the J2 perturbations are very relevant to LEO orbits, even in small time frames. However, the primer vector trajectory shows that the necessary conditions are not satisfied and, in particular, endpoint derivatives are positive and negative, respectively, which shows that the \texttt{ICI} solution is not even a local optimum in the space of \texttt{CICIC} solutions. Therefore, adding initial and final coasts should reduce the very large cost of this solution.
+
+TODO check add init, final coast is explained
 
 \begin{table}[htpb]
     \centering
@@ -301,8 +309,40 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
     2                 & 3560.54079          & 4318.71793             & -0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 9528.19582             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2 circle to circle \texttt{ICI} rendez-vous.}
+    \label{tab:j2_c2c_ICI_tab}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/ICI_3d.png}
+        \caption{3D view.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/ICI_x+.png}
+        \caption{View from x+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/ICI_y+.png}
+        \caption{View from y+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/ICI_z+.png}
+        \caption{View from z+ axis.}
+    \end{subfigure}
+    \caption{Circle to circle \texttt{ICI} maneuver 3D view and projections}
+    \label{fig:j2_c2c_ICI_figs}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{../results/j2/hohmann/ICI_primer_vector.png}
+    \caption{Primer vector trajectory for J2 circle to circle \texttt{ICI} rendez-vous.}
+    \label{fig:j2_c2c_ICI_pv}
+\end{figure}
+
+The solution of the \texttt{CICIC} maneuver is shown in Table~\ref{tab:j2_c2c_CICIC_tab}, Figure~\ref{fig:j2_c2c_CICIC_pv} and Figure~\ref{fig:j2_c2c_CICIC_figs}. The trajectory now closely resembles a Hohmann transfer, with the big difference that the impulses are not aligned with the velocities and that there are short initial and final coasts. Again, these differences can be explained mainly by the non-planarity of J2 coasting arcs. The primer vector trajectory indicates that this trajectory is not a local optimum in the \texttt{CICICIC} maneuver space, so adding another impulse should decrease the cost.
 
 \begin{table}[htpb]
     \centering
@@ -316,8 +356,40 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
     2                 & 3448.63865          & 438.46605             & -0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 911.93302             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2 circle to circle \texttt{CICIC} rendez-vous.}
+    \label{tab:j2_c2c_CICIC_tab}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICIC_3d.png}
+        \caption{3D view.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICIC_x+.png}
+        \caption{View from x+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICIC_y+.png}
+        \caption{View from y+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICIC_z+.png}
+        \caption{View from z+ axis.}
+    \end{subfigure}
+    \caption{Circle to circle \texttt{CICIC} maneuver 3D view and projections}
+    \label{fig:j2_c2c_CICIC_figs}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{../results/j2/hohmann/CICIC_primer_vector.png}
+    \caption{Primer vector trajectory for two body circle to circle \texttt{CICIC} rendez-vous.}
+    \label{fig:j2_c2c_CICIC_pv}
+\end{figure}
+
+Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab:j2_c2c_CICICIC_tab}, primer vector trajectory shown in Figure~\ref{fig:j2_c2c_CICICIC_pv}, and spatial views in Figure~\ref{fig:j2_c2c_CICICIC_figs}. Now, two large impulses are made close to the endpoints, and a very small intermediate impulse is made about halfway throught the maneuver. The necessary conditions for optimality are satisfied with 3 impulses, and the final cost of the J2 model is about \(6 m/s\) higher than under the two body model.
 
 
 \begin{table}[htpb]
@@ -333,9 +405,38 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
     3                 & 3559.91404          & 416.62074             & -0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 893.05336             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2 circle to circle \texttt{CICICIC} rendez-vous.}
+    \label{tab:j2_c2c_CICICIC_tab}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICICIC_3d.png}
+        \caption{3D view.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICICIC_x+.png}
+        \caption{View from x+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICICIC_y+.png}
+        \caption{View from y+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/hohmann/CICICIC_z+.png}
+        \caption{View from z+ axis.}
+    \end{subfigure}
+    \caption{Circle to circle \texttt{CICICIC} maneuver 3D view and projections}
+    \label{fig:j2_c2c_CICICIC_figs}
+\end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{../results/j2/hohmann/CICICIC_primer_vector.png}
+    \caption{Primer vector trajectory for two body circle to circle \texttt{CICICIC} rendez-vous.}
+    \label{fig:j2_c2c_CICICIC_pv}
+\end{figure}
 
 \subsection{Noncoplanar rendez-vous}
 
