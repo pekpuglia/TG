@@ -5,6 +5,8 @@ TODO present orbital models?
 
 TODO redo tables with 0 eps, introduce eps, include N?
 
+TODO define delta x f
+
 \section{Scenarios}
 
 \subsection{Circle to Circle rendez-vous}
@@ -38,21 +40,23 @@ A maneuver scenario corresponding to a Hohmann transfer (under a two body model)
 
 A second, more challenging scenario is taken from \citeonline{interactive_primer_vector}, where a noncoplanar rendez-vous scenario is proposed and solved under the two body model. Again, the goal is validating the code against a published result under the two body model, and exploring how the optimal trajectory may be different under other more realistic models. The orbital parameters are given in Table~\ref{tab:noncop_rdv_orb_elems}, and multiple views of the scenario are shown in Figure~\ref{fig:noncop_rdv_scenario}. The transfer time is equal to two orbital periods of the target orbit.
 
+
 \begin{table}[htbp]
     \centering
     \begin{tabular}{ccc} \toprule
         Element & Initial & Final \\ \midrule
-        \(a\)      & \(6748.0\) km         & \(6778.0\) km   \\
+        \(a\)      & \(6748.1\) km         & \(6778.1\) km   \\
         \(e\)      & \(0.0\)            & \(0.0\)        \\
-        \(i\)      & \(5.0^\circ\)      & \(5.0^\circ\) \\
-        \(\Omega\) & \(35.0^\circ\)   & \(35.0^\circ\)  \\
+        \(i\)      & \(42.1^\circ\)      & \(42.0^\circ\) \\
+        \(\Omega\) & \(120.2^\circ\)   & \(120.0^\circ\)  \\
         \(\omega\) & \(0.0^\circ\)  & \(0.0^\circ\)  \\
-        \(\theta\) & \(0.0^\circ\)  & \(293.71^\circ\)  \\ 
-        Transfer time & \multicolumn{2}{c}{\(4500.0\)} \\\bottomrule
+        \(\theta\) & \(175.0^\circ\)  & \(180.0^\circ\)  \\ 
+        Transfer time & \multicolumn{2}{c}{\(11107.158\)} \\\bottomrule
     \end{tabular}
-    \caption{Orbital elements used for the Hohmann transfer case analysis}
+    \caption{Orbital elements used for the noncoplanar rendez-vous case analysis}
     \label{tab:noncop_rdv_orb_elems}
 \end{table}
+
 
 \begin{figure}[htbp]
     \centering
@@ -440,6 +444,7 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
 
 \subsection{Noncoplanar rendez-vous}
 
+Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usual, the first maneuver to be solved was a \texttt{ICI} case. The maneuver summary is given in Table~\ref{tab:j2_ncop_ICI_tab}, the primer vector trajectory in Figure~\ref{fig:j2_ncop_ICI_pv}, and spatial views in Figure~\ref{fig:j2_ncop_ICI_figs}. Under this model, the non-planarity of the J2 orbits allow for a feasible \texttt{ICI} maneuver with multiple revolutions, much cheaper than the equivalent two-body maneuver. The maneuver does not satisfy primer vector necessary conditions, including the continuity of the primer vector derivative. Primer vector analysis recommends adding initial and final coasts.
 
 \begin{table}[htpb]
     \centering
@@ -447,14 +452,46 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
     \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
     \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
     6.7631e6          & 11107.158          & 1.00e-05                & 3.63678                        \\ \midrule
-    \(\max \lVert p \rVert\) & 65.441     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \(\max \lVert p \rVert\) & 65.441     & \textbf{Diagnostic}   & Initial + final coast        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 0.0          & 743.66668             & -0.0                    \\
     2                 & 11107.1576          & 727.80415             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 1471.47082             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2 noncoplanar \texttt{ICI} rendez-vous.}
+    \label{tab:j2_ncop_ICI_tab}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/ICI_3d.png}
+        \caption{3D view.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/ICI_x+.png}
+        \caption{View from x+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/ICI_y+.png}
+        \caption{View from y+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/ICI_z+.png}
+        \caption{View from z+ axis.}
+    \end{subfigure}
+    \caption{Circle to circle \texttt{ICI} maneuver 3D view and projections}
+    \label{fig:j2_ncop_ICI_figs}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/ICI_primer_vector.png}
+    \caption{Primer vector trajectory for J2 circle to circle \texttt{ICI} rendez-vous.}
+    \label{fig:j2_ncop_ICI_pv}
+\end{figure}
+
+The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:j2_ncop_CICIC_tab}, its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}, and its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. Now, this maneuver is only \(5 m/s\) more expensive than its two body counterpart (compare with Table~\ref{tab:tb_ncop_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of low \(\Delta v\) usage. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
 
 \begin{table}[htpb]
     \centering
@@ -468,8 +505,40 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
     2                 & 10011.10872          & 34.14936             & 0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 58.27439             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2 noncoplanar \texttt{CICIC} rendez-vous.}
+    \label{tab:j2_ncop_CICIC_tab}
 \end{table}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/CICIC_3d.png}
+        \caption{3D view.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/CICIC_x+.png}
+        \caption{View from x+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/CICIC_y+.png}
+        \caption{View from y+ axis.}
+    \end{subfigure}
+    \begin{subfigure}{0.49\linewidth}
+        \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/CICIC_z+.png}
+        \caption{View from z+ axis.}
+    \end{subfigure}
+    \caption{Circle to circle \texttt{CICIC} maneuver 3D view and projections}
+    \label{fig:j2_ncop_CICIC_figs}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/CICIC_primer_vector.png}
+    \caption{Primer vector trajectory for J2 circle to circle \texttt{CICIC} rendez-vous.}
+    \label{fig:j2_ncop_CICIC_pv}
+\end{figure}
+
+A \texttt{CICICIC} maneuver was solved next, with summary in Table~\ref{tab:j2_ncop_CICICIC_tab}, primer vector trajectory in Figure~\ref{fig:j2_ncop_CICICIC_pv} and the spatial views are omitted due to the trajectory being visually indistinct to initial and final orbits. The cost is marginally lower than the previous case, but now the primer vector necessary conditions are satisfied. It is worth clarifying that they require that \(\lVert \mathbf{p} \rVert = 1\) at every impulse time, but this does not mean that unity norm cannot occur outside impulse times, which exactly what happens at around \(4000 s\) in this case. 
 
 \begin{table}[htpb]
     \centering
@@ -477,50 +546,34 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
     \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICICIC} \\ \midrule
     \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
     6.7631e6          & 11107.158          & 1.00e-05                & 0.0                        \\ \midrule
-    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Final coast        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local Optimum        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 1676.61473          & 5.84342             & -0.0                    \\
     2                 & 7185.69293          & 20.83452             & -0.0                    \\
     3                 & 9942.01138          & 29.32859             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 56.00653             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2 noncoplanar \texttt{CICICIC} rendez-vous.}
+    \label{tab:j2_ncop_CICICIC_tab}
 \end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{../results/j2/ipv_noncop/CICICIC_primer_vector.png}
+    \caption{Primer vector trajectory for J2 circle to circle \texttt{CICICIC} rendez-vous.}
+    \label{fig:j2_ncop_CICICIC_pv}
+\end{figure}
 
 
 \newpage
 \FloatBarrier
 \section{J2 and Drag}
 
+Finally, the non-conservative model of J2 and drag disturbances is tackled. This model's results will be presented in a summarized fashion, since they were found to be almost identical to J2 results. In addition, although the theory predicts that only the ODE method of primer vector calculation should work for this system, it was found that the STM method gave almost identical trajectories. Both of those findings will be discussed based on the \texttt{ICI} maneuver of the circle-to-circle scenario.
+
 \subsection{Circle to Circle}
 
-STM = 
-\begin{equation}
-    \left[
-    \begin{array}{cccccc}
-    0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
-    0.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
-    0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 1.0 \\
-    2.330467902138264e-6 & 0.0 & 0.0 & -5.56731285604946e-12 & 0.0 & 0.0 \\
-    3.461582630528354e-13 & -1.1636671818027878e-6 & 0.0 & 0.0 & -7.772214569467844e-12 & -2.7228268563396247e-12 \\
-    4.2746985475505877e-13 & 0.0 & -1.1668007203354768e-6 & 0.0 & -2.722826856339625e-12 & -8.929723998680535e-12 \\
-    \end{array}
-    \right]
-\end{equation}
-
-PVDOT MATRIX = 
-\begin{equation}
-    \left[
-    \begin{array}{cccccc}
-    0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
-    0.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
-    0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 1.0 \\
-    2.330467902138264e-6 & 3.461582630528354e-13 & 4.2746985475505877e-13 & 5.56731285604946e-12 & 0.0 & 0.0 \\
-    0.0 & -1.1636671818027878e-6 & 0.0 & 0.0 & 7.772214569467844e-12 & 2.722826856339625e-12 \\
-    0.0 & 0.0 & -1.1668007203354768e-6 & 0.0 & 2.7228268563396247e-12 & 8.929723998680535e-12 \\
-    \end{array}
-    \right]
-\end{equation}
-
+The circle to circle case was solved in a \texttt{ICI} maneuver case, summarized in Table~\ref{tab:jd_c2c_ICI_tab}. Straightaway, it is clear that these results are numerically identical to the ones found in the J2 model, given in Table~\ref{tab:j2_c2c_ICI_tab}. This can be easily explained by the fact that the effects of drag are some orders of magnitude weaker than J2 effects and, above all, they do not change the trajectories categorically like J2 does. That is, J2 makes trajectories noncoplanar, but drag does not introduce any particular behavior that is noticeable in short time spans like this.
     
 \begin{table}[htpb]
     \centering
@@ -534,6 +587,31 @@ PVDOT MATRIX =
     2                 & 3560.54079          & 4318.71793             & -0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 9528.19583             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for J2+Drag circle-to-circle \texttt{ICI} rendez-vous.}
+    \label{tab:jd_c2c_ICI_tab}
 \end{table}
 
-\section{Discussion}
+The primer vector trajectory in Figure~\ref{fig:jd_c2c_ICI_pv} compares the STM and ODE methods for this maneuver. As a reminder, the theory from Section~\ref{sssec:pv_calc_ncon} disallows, in general, the use of the STM method with non-conservative models. However, as can be seen, both methods give almost identical primer vector trajectories.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{../results/j2drag/hohmann/ICI_primer_vector.png}
+    \caption{Primer vector trajectory for J2+Drag circle to circle \texttt{ICI} rendez-vous.}
+    \label{fig:jd_c2c_ICI_pv}
+\end{figure}
+
+This can be explained by comparing the matrices \(A_\delta\) and \(A_p\), the coefficients of the ODEs of the STM and ODE transition matrices respectively. They are only expected to differ in the lower right quadrant:
+\begin{align}
+    (A_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
+        -5.56731-12 & 0.0 & 0.0 \\
+        0.0 & -7.77221e-12    & -2.72282e-12 \\
+        0.0 & -2.72282e-12    & -8.92972e-12 \\
+    \end{bmatrix} \\
+    (A_p)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
+        5.56731e-12 & 0.0 & 0.0 \\
+        0.0 & 7.77221e-12 & 2.72282e-12 \\
+        0.0 & 2.72282e-12 & 8.92972e-12 \\
+    \end{bmatrix}
+\end{align}
+
+Indeed, the matrices satisfy \(A_\delta = - A_p^T\), as predicted, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(A_{p, J2}\), the primer vector ODE coefficient matrix in the J2 model. This shows that maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected. An open question is whether or not there exists a realistic maneuver scenario where drag effects cause sufficient differences w.r.t.\ to the J2 case.

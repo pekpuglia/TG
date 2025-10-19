@@ -57,7 +57,7 @@ plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_ode, label="
 Legend(f[1, 2], axs[1], "Methods")
 f
 ##
-save("./results/j2/hohmann/$(transfer_type(solved_transfer))_primer_vector.png", f, px_per_unit = 300/96)
+save("./results/j2drag/hohmann/$(transfer_type(solved_transfer))_primer_vector.png", f, px_per_unit = 300/96)
 ## STM ≈ ̇pdot
 ForwardDiff.jacobian(X -> dynamics(X, solved_transfer.model), solved_transfer.X1)
 ##
