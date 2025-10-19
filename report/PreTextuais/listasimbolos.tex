@@ -1,22 +1,48 @@
 \begin{longtable}{ll}
-\(\mathbf{F}\) & Empuxo propulsivo \\
-\(\dot{m}\) & Vazão mássica \\
-\(v_e\) & Velocidade de exaustão média \\
-\(p_c\) & Pressão de câmara \\
-\(p_e\) & Pressão de saída média \\
-\(p_{amb}\) & Pressão ambiente \\
-\(A_c\) & Área da seção transversal da câmara \\
-\(A_e\) & Área da seção transversal da saída da tubeira \\
-\(A_t\) & Área da seção transversal da garganta \\
-\(\varepsilon \) & Razão de expansão \\
-\(I_{\mathrm{sp}}\) & Impulso específico \\
-\(C_F\) & Coeficiente de empuxo \\
-\(C^*\) & Velocidade característica \\
-\(F_x\) & Força horizontal, transversal ao motor foguete \\
-\(F_y\) & Força vertical, na direção do empuxo propulsivo \\
-\(M\) & Torque resultante \\
-\(\delta \) & Deflexão da lâmina (\textit{jet vane}) \\
-\(F_{x\delta}\) & Derivada da força lateral em relação à deflexão da lâmina \\
-\(M_\delta \) & Derivada de momento em relação à deflexão da lâmina
+\(\x\) & state vector \\
+\(\uc\) & control vector \\
+\(\pos\) & \(\R^3\) position vector \\
+\(\vel\) & \(\R^3\) velocity vector \\
+\(f(\x, \uc)\) & system dynamics \\
+\(J\) & cost function \\
+\(H\) & system Hamiltonian \\
+\(\lambda\) & costates or adjoint variables \\
+\(\mu\) & Earth's gravitational parameter \\
+\(a\) & Semi-major axis \\
+\(e\) & Eccentricity \\
+\(i\) & Inclination \\
+\(\Omega \) & Right ascension of the ascending node (RAAN) \\
+\(\omega \) & Argument of perigee \\
+\(\theta \) & True anomaly \\
+\(E\) & Eccentric anomaly \\
+\(J_2\) & Earth's first non-spherical harmonic geopotential coefficient \\
+\(\rho\) & Earth's atmospheric density \\
+\(\mathbf{F}\) & Satellite's thrust vector \\
+\(m\) & Satellite's mass \\
+\(t_f\) & Total maneuver time, final time for optimal control scenario \\
+\(\Delta v\) & Impulsive velocity discontinuity \\
+\(\Gamma\) & Acceleration magnitude \\
+\(\hat{\uc}\) & Impulse direction \\
+\(\mathbf{0}_3\) & Null vector in \(\R^3\) \\
+\(\mathbf{0}_{3 \times 3}\) & Null matrix in \(\R^{3 \times 3}\) \\
+\(\mathbf{p}\) & Primer vector \\
+\(g(\pos)\) & Conservative gravitational acceleration field \\
+\(\mathbf{\Phi}_p\) & Primer vector transition matrix (PVTM) \\
+\(\mathbf{\Phi}_\delta\) & State transition matrix (STM) \\
+\(\epsilon\) & Nonlinear solver constraint violation tolerance \\
+\(d(\pos, \vel)\) & Non-conservative force, usually meant drag \\
+\(f_{RK}\) & System dynamics discretized with RK8 \\
+\(d_c\) & Coast duration \\
+\(N\) & Number of integration steps \\
+\texttt{C} & Coasting arc in maneuver sequence \\
+\texttt{I} & Impulse in maneuver sequence \\
+\(\mathcal{S}\) & Sequence of impulses and coasts in maneuver \\
+\(\mathcal{I}\) & Set of indices of impulses in maneuver \\
+\(\mathcal{C}\) & Set of indices of coasts in maneuver \\
+\(\Delta x_f\) & Error between solved final state and final state of propagating optimized maneuver \\
+\(L\) & Length scaling parameter \\
+\(T\) & Time scaling parameter \\
+\(\mathbb{I}\) & Unit interval indicator function \\
+\(\sigma_k\) & Smoothened unit interval indicator function with parameter \(k\) \\
 \end{longtable}
 
