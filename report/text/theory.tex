@@ -3,8 +3,6 @@ This work relies on optimal control theory and orbital mechanics. Certain tools 
 
 \section{Optimal Control}
 
-TODO mention types of solution with LB (cite ross, bruno)
-
 Optimal control is the area of control theory which tries to find the best control action to satisfy some requirements, such as altering a system's state in some desired way. Here, ``best''  is defined as maximizing or minimizing some performance metric. In practice, and in particular in the scope of this work, this can be interpreted as attaining a target orbit in a certain amount of time, while minimizing fuel consumption.
 
 The mathematical nature of an optimal control problem varies greatly depending on the nature of the system, the requirements, and the objective. Here, a selected subset of this vast theory shall be presented. Suppose a continuous time dynamical system operating on times \(t \in [0, t_f]\), where \(t_f \in \mathbb{R}\), given by
@@ -202,9 +200,47 @@ This problem suffers from a physical indetermination in the case of collinear \(
 
 In general, this problem can have multiple solutions, corresponding to prograde and retrograde trajectories, with less than one or multiple revolutions. The resulting orbit can, in general, be elliptic, parabolic or hyperbolic. Handling this variety of solution types is not simple. A simple formulation which does not handle multiple revolutions nor the indetermination mentioned can be built with universal variables~\cite{curtis2015orbital}. Multiple revolutions and finding the radial and tangent components of the velocity in the indeterminate case can be handled with more complex algorithms~\cite{sukhanov}. A generic, Cartesian coordinates-based algorithm is also possible, as will be discussed in Chapter~\ref{chap:method}.
 
-\subsection{Variational State Transition Matrix}
+\subsection{State Transition Matrix}
 
-TODO
+It is sometimes useful to characterize how the solution of an ODE depends on its initial condition. For the solution \(\x(t) \in \R^n\) of the dynamical system \(\dot{\x} = f(\x)\) with initial condition \(\x_0\), this is mathematically described by the state transition matrix (STM) \(\Phi_\delta(t) \in \R^{n \times n}\):
+\begin{equation}\label{eq:stm_def}
+    \Phi_\delta(t) = \frac{\partial \x(t)}{\x_0}.
+\end{equation}
+
+In general, this matrix is subject to the initial value problem~\cite{montenbruck2000satellite}
+\begin{equation}
+    \begin{cases}
+        \dot{\Phi}_\delta(t) = \frac{\partial f(\x(t))}{\partial x(t)} \Phi_\delta(t) \\
+        \Phi_\delta(0) = \mathbf{I}_n
+    \end{cases}
+\end{equation}
+with \(n^2\) variables and initial conditions.
+
+In particular, for a double-integrator system with position \(\pos\) and velocity \(\vel\) in the state vector described by
+\begin{equation}
+    \dot{\x} = \begin{bmatrix}
+        \dot{\pos} \\ \dot{\vel}
+    \end{bmatrix} = \begin{bmatrix}
+        \vel \\ \acc(\pos, \vel)
+    \end{bmatrix},
+\end{equation}
+the STM equation can be expanded to
+\begin{equation}\label{eq:STM_r_v}
+    \dot{\Phi}_\delta(t) = \begin{bmatrix}
+        \mathbf{0}_{3\times 3} & \mathbf{I}_3 \\
+        \frac{\partial \acc(\pos(t), \vel(t))}{\partial \pos} & \frac{\partial \acc(\pos(t), \vel(t))}{\partial \vel}
+    \end{bmatrix} \Phi_\delta(t) = A_\delta(\pos(t), \vel(t)) \Phi_\delta(t),
+\end{equation}
+where \(A_\delta(\pos(t), \vel(t))\) is defined to be matrix coefficient of the STM in its differential equation. Note also that any vector ODE with state \(\mathbf{z}(t) \in \R^n\) subject to
+\begin{equation}
+    \dot{\mathbf{z}}(t) = A_\delta(\pos(t), \vel(t)) \mathbf{z}(t),
+\end{equation}
+its solution is given in terms of the initial condition \(\mathbf{z}_0\) and the STM:
+\begin{equation}\label{eq:remark_STM}
+    \mathbf{z}(t) = \Phi_\delta(t) \mathbf{z}_0.
+\end{equation}
+
+For a two-body model, an analytical expression for the STM exists, given for instance in \citeonline{montenbruck2000satellite} and \citeonline{glandorf_transition_matrix}. 
 
 \section{Orbital Maneuvers}
 
@@ -297,7 +333,6 @@ and to dynamical Equation~\eqref{eq:kepler_dyn} in the intermediate times. Using
 \end{align}
 to the previous list. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta \mathbf{v}_j\). Accounting for \(\mathbf{x}(0)\), all of the intermediate \(\mathbf{r}(t_j^-)\), \(\mathbf{r}(t_j^+)\), \(\mathbf{v}(t_j^-)\) and \(\mathbf{v}(t_j^+)\), and also the final state \(\mathbf{x}(t_f)\), plus the impulse parameters, there are \(6 + 12n + 6 + 4n = 16n + 12\) unknowns. At the same time, there are \(6 + (3 + 3)n + 6 + 6 + 6(n-1) + 6 = 12n + 18\) constraints. Therefore, for general initial and final conditions, the \textit{minimal number of impulses} is 2. 
 
-%TODO: REMOVE?
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.6\textwidth]{img/impulsive_traj_from_how_many_impulses.png}
@@ -426,7 +461,12 @@ The necessary conditions offered by primer vector theory for an impulsive maneuv
     \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
 \end{enumerate}
 
-TODO violation of these conditions
+In addition to these conditions for the optimal solution, variational calculus results can give some insight into how to change a suboptimal trajectory based on how those conditions are violated~\cite{Conway_2010}. For a maneuver with start time between times \(0\) and \(t_f\), these results can be enumerated:
+\begin{enumerate}
+    \item If the maneuver starts with an impulse (\(\lVert \mathbf{p}(0) \rVert = 1\)) and \(\partial_t \lVert \mathbf{p} \rVert \mid_{t=0} > 0\), adding an initial coast will lower the cost;
+    \item If the maneuver ends with an impulse (\(\lVert \mathbf{p}(t_f) \rVert = 1\)) and \(\partial_t \lVert \mathbf{p} \rVert \mid_{t=0} < 0\), adding a final coast will lower the cost;
+    \item If \(\lVert \mathbf{p}(t) \rVert > 1\) for some \(t \in [0, t_f]\), adding an impulse will lower the cost.
+\end{enumerate}
 
 \subsubsection{Primer vector calculation}\label{sssec:pv_calc_cons}
 
@@ -444,7 +484,7 @@ From Equations~\eqref{eq:lambda_dot_cons} and \eqref{eq:p_lambda_v_cons}, the pr
     \end{bmatrix}
 \end{equation}
 
-However, since \(g = \nabla \Phi = \left(\frac{\partial \Phi}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same equation as the variational perturbations in Equation TODO\@. Since Equation~\eqref{eq:pdot_const} is linear on the variables, it admits a solution through the form of a state transition matrix \(\mathbf{\Phi}_p(t - t_0)\) such that
+Since Equation~\eqref{eq:pdot_const} is linear on the variables, it admits a solution through the form of a primer vector transition matrix (PVTM) \(\mathbf{\Phi}_p(t - t_0)\) such that
 \begin{equation}
     \begin{bmatrix}
         \mathbf{p}(t) \\ \dot{\mathbf{p}}(t)
@@ -452,7 +492,7 @@ However, since \(g = \nabla \Phi = \left(\frac{\partial \Phi}{\partial \pos}\rig
         \mathbf{p}(t_0) \\ \dot{\mathbf{p}}(t_0)
     \end{bmatrix}.
 \end{equation}
-and, by analogy with the variational state transition matrix, 
+However, since \(g = \nabla \Phi = \left(\frac{\partial \Phi}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same differential equation as the STM in Equation~\eqref{eq:STM_r_v}, and Equation~\eqref{eq:remark_STM} can be used to equate the PVTM to the STM:
 \begin{equation}
     \mathbf{\Phi}_p(t - t_0) = \mathbf{\Phi}_\delta(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
 \end{equation}
