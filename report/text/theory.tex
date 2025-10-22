@@ -594,17 +594,27 @@ The primer vector differential equation is the main difference of the non-conser
     \end{bmatrix}.
 \end{equation}
 
-Save some very particular non-conservative force models, the non-conservative primer vector dynamics in Equation~\eqref{eq:pdot_ncon} is \textbf{not} equal to the non-conservative variational perturbation differential equation, which disallows the STM method from being used. However, it remains a linear differential equation with transition matrix \(\mathbf{\Phi}_p(t - t_0)\) subject to 
-\begin{equation}
+Save some very particular non-conservative force models, the non-conservative primer vector dynamics in Equation~\eqref{eq:pdot_ncon} is \textbf{not} equal to the non-conservative variational perturbation differential equation, which disallows the STM method from being used. However, it remains a linear differential equation with PVTM \(\mathbf{\Phi}_p(t - t_0)\) subject to 
+\begin{equation}\label{eq:PVTM_ODE}
     \begin{cases}
-        \dot{\mathbf{\Phi}_p} = \mathbf{A}_p(\pos, \vel) \mathbf{\Phi}_p \\
+        \dot{\mathbf{\Phi}}_p = \mathbf{A}_p(\pos, \vel) \mathbf{\Phi}_p \\
         \mathbf{\Phi}_p(0) = \mathbf{0}_6
     \end{cases},
 \end{equation}
-which allows for the solution of a linear TPBVP as described in Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular}.
+which allows for the solution of a linear TPBVP as described in Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular}. The integration of the initial value problem in Equation~\eqref{eq:PVTM_ODE} as a method for calculating the primer vector will be referred to as the ODE method.
 
 \subsection{Primer vector theory summary}
 
-method of calculation x model
+A short summary of primer vector calculation methods per model type is in order is presented in Table
 
-necessary conditions
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{cccc} \toprule
+        Model & Glandorf & STM & ODE \\ \midrule
+        Two Body & \checkmark & \checkmark & \checkmark \\
+        Conservative & \(\times\) & \checkmark & \checkmark \\
+        Non-conservative & \(\times\) & \(\times\) & \checkmark \\ \bottomrule
+    \end{tabular}
+    \caption{Summary of primer vector calculation methods for different model types.}
+    \label{tab:pv_calc}
+\end{table}
