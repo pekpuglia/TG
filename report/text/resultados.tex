@@ -1,14 +1,11 @@
 
 The primer vector meta-algorithm was applied to some scenarios that represent generic maneuvers that may be of interest in LEO\@. These scenarios will be presented, together with an explanation of why they were chosen, and then solutions for each of them, under different orbital models, will be presented.
 
-TODO redo tables include N?
-
-
 \section{Scenarios}
 
 \subsection{Circle to Circle rendez-vous}
 
-A maneuver scenario corresponding to a Hohmann transfer (under a two body model) was chosen. Firstly, because in the two body model, there is an analytical solution for the transfer, given in Section~\ref{sssec:hohmann}. And secondly, this is a simple scenario that highlights the difference between the different orbital models used in the work. The orbital parameters are given in Table~\ref{tab:hohmann_orb_elems}, as well as a 3D rendering of the scenario in Figure~\ref{fig:hohmann_scenario}. The transfer time was calculated analytically to correspond to the Hohmann transfer time.
+A maneuver scenario corresponding to a Hohmann transfer (under a two body model) was chosen. Firstly, because in the two body model, there is an analytical solution for the transfer, given in Section~\ref{sssec:hohmann}. And secondly, this is a simple scenario that highlights the difference between the different orbital models used in the work. The orbital parameters are given in Table~\ref{tab:c2c_orb_elems}, as well as a 3D rendering of the scenario in Figure~\ref{fig:hohmann_scenario}. The transfer time was calculated analytically to correspond to the Hohmann transfer time.
 
 % C2C SETUP
 \begin{table}[htbp]
@@ -23,8 +20,8 @@ A maneuver scenario corresponding to a Hohmann transfer (under a two body model)
         \(\theta\) & \(0.0^\circ\)  & \(180.0^\circ\)  \\ 
         Transfer time & \multicolumn{2}{c}{\(3560.541\)} \\\bottomrule
     \end{tabular}
-    \caption{Orbital elements used for the TODO transfer case analysis}
-    \label{tab:TODO_orb_elems}
+    \caption{Orbital elements used for the Circle to circle transfer case analysis}
+    \label{tab:c2c_orb_elems}
 \end{table}
 % C2C SETUP
 
@@ -88,9 +85,7 @@ The results for all scenarios under the two body model are presented in the foll
 
 \subsection{Circle to Circle}
 
-The circle to circle transfer scenario was first optimized for an \texttt{ICI} maneuver sequence. The results can be seen in Table~\ref{tab:tb_c2c_ICI_tab}, the primer vector trajectory can be seen in Figure~\ref{fig:tb_c2c_ICI_pv}, and the views of the optimized trajectory, in Figure~\ref{fig:tb_c2c_ICI_figs}. It can be seen that impulses at the starting and ending condition are capable of satisfying the necessary optimality conditions, and the analytical Hohmann of \(\Delta v_H = 887.56199 m/s\), computed from Equation~\eqref{eq:hohmann_deltav}, has been attained.
-
-TODO try CICIC???
+The circle to circle transfer scenario was first optimized for an \texttt{ICI} maneuver sequence. The results can be seen in Table~\ref{tab:tb_ctcr_ICI_tab}, the primer vector trajectory can be seen in Figure~\ref{fig:tb_c2c_ICI_pv}, and the views of the optimized trajectory, in Figure~\ref{fig:tb_c2c_ICI_figs}. It can be seen that impulses at the starting and ending condition are capable of satisfying the necessary optimality conditions. In particular, the derivative of the primer vector norm is zero at the start and end positions, meaning that is this maneuver is to be considered a \texttt{CICIC} maneuver with zero duration coasts at the start and end, it is also a local optimum. Therefore, the procedure is stopped. Under the Keplerian model, this is a Hohmann transfer, with analytical cost of \(\Delta v_H = 887.56199 m/s\), computed from Equation~\eqref{eq:hohmann_deltav}, identical to the optimized cost.
 
 % TB C2C ICI
 \begin{table}[htpb]
@@ -190,7 +185,7 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
     \label{fig:tb_ncop_ICI_figs}
 \end{figure}
 
-Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's summary, primer vector trajectory, and spatial views can be seen in Table~\ref{tab:tb_ncop_CICIC_tab}, Figure~\ref{fig:tb_ncop_CICIC_pv} and Figure~\ref{fig:tb_ncop_CICIC_figs}. Now, the cost is much lower, and the trajectory is very close to the natural orbit of the satellite. However, the primer vector history violates the norm condition and shows that the addition of an extra impulse can lower the cost even further. 
+Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's summary, primer vector trajectory, and spatial views can be seen in Table~\ref{tab:tb_nr_CICIC_tab}, Figure~\ref{fig:tb_ncop_CICIC_pv} and Figure~\ref{fig:tb_ncop_CICIC_figs}. Now, the cost is much lower, and the trajectory is very close to the natural orbit of the satellite. However, the primer vector history violates the norm condition and shows that the addition of an extra impulse can lower the cost even further. 
 
 % TB NCOP 2 CICIC
 \begin{table}[htpb]
@@ -239,7 +234,7 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
     \label{fig:tb_ncop_CICIC_figs}
 \end{figure}
 
-A \texttt{CICICIC} maneuver was searched based on the previous results. The spatial view is omitted since the trajectory closely resembles the natural orbit of the satellite. The maneuver summary and primer vector history are shown in Table~\ref{tab:tb_ncop_CICICIC_tab} and Figure~\ref{fig:tb_ncop_CICICIC_pv}. The addition of yet another impulse did reduce the \(\Delta v\) cost, but not as dramatically as the addition of initial and final coasts. Again, the maximum primer vector norm exceeds unity, which suggests another addition of impulse.
+A \texttt{CICICIC} maneuver was searched based on the previous results. The spatial view is omitted since the trajectory closely resembles the natural orbit of the satellite. The maneuver summary and primer vector history are shown in Table~\ref{tab:tb_nr_CICICIC_tab} and Figure~\ref{fig:tb_ncop_CICICIC_pv}. The addition of yet another impulse did reduce the \(\Delta v\) cost, but not as dramatically as the addition of initial and final coasts. Again, the maximum primer vector norm exceeds unity, which suggests another addition of impulse.
 
 % TB NCOP 3 CICICIC
 \begin{table}[htpb]
@@ -267,7 +262,7 @@ A \texttt{CICICIC} maneuver was searched based on the previous results. The spat
     \label{fig:tb_ncop_CICICIC_pv}
 \end{figure}
 
-Finally, the addition of a fourth impulse attains the primer vector necessary conditions, as attested in its trajectory in Figure~\ref{fig:tb_ncop_CICICICIC_pv} and its summary in Table~\ref{tab:tb_ncop_CICICICIC_tab}. A small error of \(0.4\%\) has been allowed in the primer vector norm, which is small enough that only a very small fifth impulse would marginally reduce cost, for no tangible algorithmic gain. The final velocity cost is well within feasible for many spatial applications, with the caveat that the spacecraft must be correctly pointed at four points in time. 
+Finally, the addition of a fourth impulse attains the primer vector necessary conditions, as attested in its trajectory in Figure~\ref{fig:tb_ncop_CICICICIC_pv} and its summary in Table~\ref{tab:tb_nr_CICICICIC_tab}. A small error of \(0.4\%\) has been allowed in the primer vector norm, which is small enough that only a very small fifth impulse would marginally reduce cost, for no tangible algorithmic gain. The final velocity cost is well within feasible for many spatial applications, with the caveat that the spacecraft must be correctly pointed at four points in time. 
 
 % TB NCOP 4 CICICICIC
 \begin{table}[htpb]
@@ -320,7 +315,7 @@ Optimized maneuvers are presented for the aforementioned scenarios under the J2 
 \subsection{Circle to Circle}
 
 
-The simple circle to circle rendez-vous case was first optimized with a \texttt{ICI} maneuver, with results that can be seen in Table~\ref{tab:j2_c2c_ICI_tab}, Figure~\ref{fig:j2_c2c_ICI_pv} and Figure~\ref{fig:j2_c2c_ICI_figs}. To analyze the polar trajectory that was found, first it is worth mentioning that orbital trajectories under the J2 model are, in general, not planar, which means that the two-body Hohmann transfer is impossible with this model. The only planar orbits are perfectly equatorial and perfectly polar orbits and, due to the inclination of the orbits' being greater than \(45^\circ\), the polar orbit is the best solution. It is vastly different to the two-body \texttt{ICI} solution, which shows the J2 perturbations are very relevant to LEO orbits, even in small time frames. However, the primer vector trajectory shows that the necessary conditions are not satisfied and, in particular, endpoint derivatives are positive and negative, respectively, which shows that the \texttt{ICI} solution is not even a local optimum in the space of \texttt{CICIC} solutions. Therefore, adding initial and final coasts should reduce the very large cost of this solution.
+The simple circle to circle rendez-vous case was first optimized with a \texttt{ICI} maneuver, with results that can be seen in Table~\ref{tab:J2_ctcr_ICI_tab}, Figure~\ref{fig:j2_c2c_ICI_pv} and Figure~\ref{fig:j2_c2c_ICI_figs}. To analyze the polar trajectory that was found, first it is worth mentioning that orbital trajectories under the J2 model are, in general, not planar, which means that the two-body Hohmann transfer is impossible with this model. The only planar orbits are perfectly equatorial and perfectly polar orbits and, due to the inclination of the orbits' being greater than \(45^\circ\), the polar orbit is the best solution. It is vastly different to the two-body \texttt{ICI} solution, which shows the J2 perturbations are very relevant to LEO orbits, even in small time frames. However, the primer vector trajectory shows that the necessary conditions are not satisfied and, in particular, endpoint derivatives are positive and negative, respectively, which shows that the \texttt{ICI} solution is not even a local optimum in the space of \texttt{CICIC} solutions. Therefore, adding initial and final coasts should reduce the very large cost of this solution.
 
 % J2 C2C ICI
 \begin{table}[htpb]
@@ -369,7 +364,7 @@ The simple circle to circle rendez-vous case was first optimized with a \texttt{
     \label{fig:j2_c2c_ICI_pv}
 \end{figure}
 
-The solution of the \texttt{CICIC} maneuver is shown in Table~\ref{tab:j2_c2c_CICIC_tab}, Figure~\ref{fig:j2_c2c_CICIC_pv} and Figure~\ref{fig:j2_c2c_CICIC_figs}. The trajectory now closely resembles a Hohmann transfer, with the big difference that the impulses are not aligned with the velocities and that there are short initial and final coasts. Again, these differences can be explained mainly by the non-planarity of J2 coasting arcs. The primer vector trajectory indicates that this trajectory is not a local optimum in the \texttt{CICICIC} maneuver space, so adding another impulse should decrease the cost.
+The solution of the \texttt{CICIC} maneuver is shown in Table~\ref{tab:J2_ctcr_CICIC_tab}, Figure~\ref{fig:j2_c2c_CICIC_pv} and Figure~\ref{fig:j2_c2c_CICIC_figs}. The trajectory now closely resembles a Hohmann transfer, with the big difference that the impulses are not aligned with the velocities and that there are short initial and final coasts. Again, these differences can be explained mainly by the non-planarity of J2 coasting arcs. The primer vector trajectory indicates that this trajectory is not a local optimum in the \texttt{CICICIC} maneuver space, so adding another impulse should decrease the cost.
 
 % J2 C2C 2 CICIC
 \begin{table}[htpb]
@@ -418,7 +413,7 @@ The solution of the \texttt{CICIC} maneuver is shown in Table~\ref{tab:j2_c2c_CI
     \label{fig:j2_c2c_CICIC_pv}
 \end{figure}
 
-Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab:j2_c2c_CICICIC_tab}, primer vector trajectory shown in Figure~\ref{fig:j2_c2c_CICICIC_pv}, and spatial views in Figure~\ref{fig:j2_c2c_CICICIC_figs}. Now, two large impulses are made close to the endpoints, and a very small intermediate impulse is made about halfway throught the maneuver. The necessary conditions for optimality are satisfied with 3 impulses, and the final cost of the J2 model is about \(6 m/s\) higher than under the two body model.
+Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab:J2_ctcr_CICICIC_tab}, primer vector trajectory shown in Figure~\ref{fig:j2_c2c_CICICIC_pv}, and spatial views in Figure~\ref{fig:j2_c2c_CICICIC_figs}. Now, two large impulses are made close to the endpoints, and a very small intermediate impulse is made about halfway throught the maneuver. The necessary conditions for optimality are satisfied with 3 impulses, and the final cost of the J2 model is about \(6 m/s\) higher than under the two body model.
 
 % J2 C2C 3 CICICIC
 \begin{table}[htpb]
@@ -484,7 +479,7 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
 
 \subsection{Noncoplanar rendez-vous}
 
-Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usual, the first maneuver to be solved was a \texttt{ICI} case. The maneuver summary is given in Table~\ref{tab:j2_ncop_ICI_tab}, the primer vector trajectory in Figure~\ref{fig:j2_ncop_ICI_pv}, and spatial views in Figure~\ref{fig:j2_ncop_ICI_figs}. Under this model, the non-planarity of the J2 orbits allow for a feasible \texttt{ICI} maneuver with multiple revolutions, much cheaper than the equivalent two-body maneuver. The maneuver does not satisfy primer vector necessary conditions, including the continuity of the primer vector derivative. Primer vector analysis recommends adding initial and final coasts.
+Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usual, the first maneuver to be solved was a \texttt{ICI} case. The maneuver summary is given in Table~\ref{tab:J2_nr_ICI_tab}, the primer vector trajectory in Figure~\ref{fig:j2_ncop_ICI_pv}, and spatial views in Figure~\ref{fig:j2_ncop_ICI_figs}. Under this model, the non-planarity of the J2 orbits allow for a feasible \texttt{ICI} maneuver with multiple revolutions, much cheaper than the equivalent two-body maneuver. The maneuver does not satisfy primer vector necessary conditions, including the continuity of the primer vector derivative. Primer vector analysis recommends adding initial and final coasts.
 
 % J2 NCOP ICI
 \begin{table}[htpb]
@@ -533,7 +528,7 @@ Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usua
     \label{fig:j2_ncop_ICI_pv}
 \end{figure}
 
-The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:j2_ncop_CICIC_tab}, its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}, and its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. Now, this maneuver is only \(5 m/s\) more expensive than its two body counterpart (compare with Table~\ref{tab:tb_ncop_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of low \(\Delta v\) usage. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
+The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:J2_nr_CICIC_tab}, its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}, and its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. Now, this maneuver is only \(5 m/s\) more expensive than its two body counterpart (compare with Table~\ref{tab:tb_nr_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of low \(\Delta v\) usage. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
 
 % J2 NCOP 2 CICIC
 \begin{table}[htpb]
@@ -582,7 +577,7 @@ The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:j2_ncop_CICIC_tab}, 
     \label{fig:j2_ncop_CICIC_pv}
 \end{figure}
 
-A \texttt{CICICIC} maneuver was solved next, with summary in Table~\ref{tab:j2_ncop_CICICIC_tab}, primer vector trajectory in Figure~\ref{fig:j2_ncop_CICICIC_pv} and the spatial views are omitted due to the trajectory being visually indistinct to initial and final orbits. The cost is marginally lower than the previous case, but now the primer vector necessary conditions are satisfied. It is worth clarifying that they require that \(\lVert \mathbf{p} \rVert = 1\) at every impulse time, but this does not mean that unity norm cannot occur outside impulse times, which exactly what happens at around \(4000 s\) in this case. 
+A \texttt{CICICIC} maneuver was solved next, with summary in Table~\ref{tab:J2_nr_CICICIC_tab}, primer vector trajectory in Figure~\ref{fig:j2_ncop_CICICIC_pv} and the spatial views are omitted due to the trajectory being visually indistinct to initial and final orbits. The cost is marginally lower than the previous case, but now the primer vector necessary conditions are satisfied. It is worth clarifying that they require that \(\lVert \mathbf{p} \rVert = 1\) at every impulse time, but this does not mean that unity norm cannot occur outside impulse times, which exactly what happens at around \(4000 s\) in this case. 
 
 % J2 NCOP 3 CICICIC
 \begin{table}[htpb]
@@ -632,7 +627,7 @@ Finally, the non-conservative model of J2 and drag disturbances is tackled. This
 
 \subsection{Circle to Circle}
 
-The circle to circle case was solved in a \texttt{ICI} maneuver case, summarized in Table~\ref{tab:jd_c2c_ICI_tab}. Straightaway, it is clear that these results are numerically identical to the ones found in the J2 model, given in Table~\ref{tab:j2_c2c_ICI_tab}. This can be easily explained by the fact that the effects of drag are some orders of magnitude weaker than J2 effects and, above all, they do not change the trajectories categorically like J2 does. That is, J2 makes trajectories noncoplanar, but drag does not introduce any particular behavior that is noticeable in short time spans like this.
+The circle to circle case was solved in a \texttt{ICI} maneuver case, summarized in Table~\ref{tab:jd_c2c_ICI_tab}. Straightaway, it is clear that these results are numerically identical to the ones found in the J2 model, given in Table~\ref{tab:J2_nr_ICI_tab}. This can be easily explained by the fact that the effects of drag are some orders of magnitude weaker than J2 effects and, above all, they do not change the trajectories categorically like J2 does. That is, J2 makes trajectories noncoplanar, but drag does not introduce any particular behavior that is noticeable in short time spans like this.
     
 \begin{table}[htpb]
     \centering
