@@ -113,7 +113,7 @@ Implicit maneuver propagation is required for optimization. For this, coasts are
     \label{fig:maneuver_propagation}
 \end{figure}
 
-\subsection{Maneuver multiple shooting problem statement}
+\subsection{Maneuver multiple shooting problem statement}\label{sec:impulsive_statement}
 
 The full maneuver optimization problem, in its multiple shooting formulation, shall be stated in this section. The input parameters are:
 \begin{enumerate}
@@ -265,7 +265,7 @@ Thereafter, the primer vector trajectory is analyzed. By construction, \(\mathbf
 % The propagation variables are initialized with the initial position and velocity.
 
 
-\section{Primer vector meta-algorithm}\label{sec:impulsive_statement}
+\section{Primer vector meta-algorithm}
 
 Finally, with all of those components in place, an algorithm based on~\citeonline{interactive_primer_vector} was implemented, and is represented in Figure~\ref{fig:meta_alg}. First, a case with fixed time impulses, \texttt{ICI} is solved. Usually, this gives a local optimum with very high cost. Then, initial and final coasts are added, and the primer vector trajectory is analyzed. If the primer vector norm exceeds 1, an impulse is added and the algorithm is repeated. If the continuity of the primer vector's derivative is violated, more random guesses are executed until a continuous primer vector derivative trajectory is found. And finally, when all necessary conditions are met, the algorithm ends and returns a multiple-impulse local optimum.
 

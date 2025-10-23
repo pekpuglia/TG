@@ -47,9 +47,17 @@ subject to
     \left(\mathbf{x}(t_f)\right)_k &= (\mathbf{x}_f)_k, k\in \mathcal{K}.
 \end{align}
 
-In general, this is a very hard problem. The optimization variables \(\mathbf{u}\) and \(\x\) are infinite dimensional. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}~\cite{Conway_2010}, which shall be discussed later. There are however tools for extracting necessary conditions for the optimal solution of this problem at all points in time. These are known as \textit{indirect methods}.
+In general, this is a very hard problem. The optimization variables \(\mathbf{u}\) and \(\x\) are infinite dimensional. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}~\cite{Conway_2010}, which shall be discussed later. There are however tools for extracting necessary conditions for the optimal solution of this problem at all points in time. These are known as \textit{indirect methods}. Both are explored in the following sections, as well as a classification of the possible solutions of optimal control problems.
 
-One of this tools is the Hamiltonian~\cite{Conway_2010}, a quantity that describes the ensemble of objectives and constraints. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in Equation~\eqref{eq:generic_dyn}, constraints in the forms of Equations~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
+\subsection{Direct methods}
+
+Direct methods for optimal control problems describe the state and control trajectories with a finite amount of parameters suitable for numerical optimization in a process known as \textit{transcription}. Many transcription methods exist, including collocation, pseudospectral methods, and \textit{shooting} methods~\cite{Conway_2010}. Shooting methods use direct numerical integration of the system's ODE to relate states at different times. \textit{Single shooting} uses multiple integration steps to relate the initial state to the final state, which are the variables in the problem. \textit{Multiple shooting} uses multiple state variables in a discretized time grid and single integration steps to apply constraints between the states in adjacent time points, enforcing the discretized dynamics~\cite{numerical_recipes}. Although multiple shooting has many more variables than single shootings, the incremental difference between neighboring states make it a much more numerically stable algorithm~\cite{ross2015primer}.
+
+Multiple shooting is a very scalable and flexible method that allows for many different types of path and control constraints and parameterizations. Most importantly, it is agnostic to the dynamics of the system: the formulation is identical and the dynamical system can be easily replaced. However, multiple shooting schemes usually parameterize control trajectories with finite values at discrete points in time, as in \citeonline{casadi}. The case of impulsive control must be handled differently, as will be shown in Sections~\ref{sec:imp_prop_model} and~\ref{sec:impulsive_statement}.
+
+\subsection{Indirect methods}
+
+Indirect methods introduce more continuous-time variables that facilitate analytical or numerical analysis of the problem. One of this tools is the Hamiltonian~\cite{Conway_2010}, a quantity that describes the ensemble of objectives and constraints. Together with Pontryagin's Minimum Principle, it will provide a powerful tool in analyzing candidates to optimal trajectories. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in Equation~\eqref{eq:generic_dyn}, constraints in the forms of Equations~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
 \begin{equation}
     H(\mathbf{x}(t), \mathbf{u}(t), \mathbf{\lambda}(t)) = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}{(t)}^T f(\mathbf{x}, \mathbf{u})
 \end{equation}
@@ -74,6 +82,8 @@ To complete the Hamiltonian approach, Pontryagin's Minimum Principle (PMP) is in
 
 With the control trajectory obtained as a function of \(\mathbf{x}(t)\) and \(\mathbf{\lambda}(t)\) from Equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial states, some final states and some final costates according to Equations \eqref{eq:generic_final_constraint} and \eqref{eq:final_costate}. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
 
+\subsection{Solution hierarchy}
+
 It is worth highlighting that in optimal control problems, a hierarchy of solutions exist~\cite{ross2015primer}, shown in Figure~\ref{fig:opt_sol_hierarchy}. The least valuable solution is a mere feasible solution, which satisfies the constraints, but is not optimal in any sense. It is enough in some applications, but not in others. Next, local optima have generally lower costs, and are found numerically with nonlinear solvers, but no not necessarily reflect extrema of the original problem. If it can be shown that a local optimum also satisfies the PMP, it comes is inherently a more valuable solution, since it satisfies the necessary conditions to be an extremum of the problem. The most valuable solution type, and the one which is almost impossible to characterize, are global optima, which are guaranteed to have the lowest possible feasible cost for the problem. Finally, lower bound estimations give (infeasible) costs which are guaranteed to be lower than the global optimum, and can be estimated physically~\cite{impulsive_europa} or mathematically, for instance with sum-of-squares decompositions~\cite{sos_book}. This work will search for extrema satisfying the PMP.
 
 \begin{figure}[htbp]
@@ -91,10 +101,6 @@ It is worth highlighting that in optimal control problems, a hierarchy of soluti
     \caption{Hierarchy of optimal control problem solutions. Adapted from~\citeonline{ross2015primer}.}
     \label{fig:opt_sol_hierarchy}
 \end{figure}
-
-
-TODO: NUMERICAL APPROACH: MULTIPLE SHOOTING
-
 
 \section{Orbital Mechanics}
 
