@@ -486,21 +486,23 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
 
 Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usual, the first maneuver to be solved was a \texttt{ICI} case. The maneuver summary is given in Table~\ref{tab:j2_ncop_ICI_tab}, the primer vector trajectory in Figure~\ref{fig:j2_ncop_ICI_pv}, and spatial views in Figure~\ref{fig:j2_ncop_ICI_figs}. Under this model, the non-planarity of the J2 orbits allow for a feasible \texttt{ICI} maneuver with multiple revolutions, much cheaper than the equivalent two-body maneuver. The maneuver does not satisfy primer vector necessary conditions, including the continuity of the primer vector derivative. Primer vector analysis recommends adding initial and final coasts.
 
+% J2 NCOP ICI
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 3.63678                        \\ \midrule
-    \(\max \lVert p \rVert\) & 65.441     & \textbf{Diagnostic}   & Initial + final coast        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{ICI}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 1.0          & 1.00e-06                & 3.63678e+00                        \\ \midrule
+    \(\max \lVert p \rVert\) & 65.441     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 0.0          & 743.66668             & -0.0                    \\
     2                 & 11107.1576          & 727.80415             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 1471.47082             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for J2 noncoplanar \texttt{ICI} rendez-vous.}
-    \label{tab:j2_ncop_ICI_tab}
+    \caption{Summary of optimization for \texttt{ICI} J2 Non-Coplanar rendez-vous.}
+    \label{tab:J2_nr_ICI_tab}
 \end{table}
+% J2 NCOP ICI
 
 \begin{figure}[htbp]
     \centering
@@ -533,21 +535,23 @@ Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usua
 
 The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:j2_ncop_CICIC_tab}, its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}, and its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. Now, this maneuver is only \(5 m/s\) more expensive than its two body counterpart (compare with Table~\ref{tab:tb_ncop_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of low \(\Delta v\) usage. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
 
+% J2 NCOP 2 CICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICIC} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 0.0                        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-06                & 4.12894e-05                        \\ \midrule
     \(\max \lVert p \rVert\) & 3.8353     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 7080.30484          & 24.12503             & -0.0                    \\
-    2                 & 10011.10872          & 34.14936             & 0.0                    \\\midrule
+    2                 & 10011.10872          & 34.14936             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 58.27439             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for J2 noncoplanar \texttt{CICIC} rendez-vous.}
-    \label{tab:j2_ncop_CICIC_tab}
+    \caption{Summary of optimization for \texttt{CICIC} J2 Non-Coplanar rendez-vous.}
+    \label{tab:J2_nr_CICIC_tab}
 \end{table}
+% J2 NCOP 2 CICIC
 
 \begin{figure}[htbp]
     \centering
@@ -580,22 +584,24 @@ The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:j2_ncop_CICIC_tab}, 
 
 A \texttt{CICICIC} maneuver was solved next, with summary in Table~\ref{tab:j2_ncop_CICICIC_tab}, primer vector trajectory in Figure~\ref{fig:j2_ncop_CICICIC_pv} and the spatial views are omitted due to the trajectory being visually indistinct to initial and final orbits. The cost is marginally lower than the previous case, but now the primer vector necessary conditions are satisfied. It is worth clarifying that they require that \(\lVert \mathbf{p} \rVert = 1\) at every impulse time, but this does not mean that unity norm cannot occur outside impulse times, which exactly what happens at around \(4000 s\) in this case. 
 
+% J2 NCOP 3 CICICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICICIC} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 0.0                        \\ \midrule
-    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local Optimum        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 1.75767e-07                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Final coast        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 1676.61473          & 5.84342             & -0.0                    \\
     2                 & 7185.69293          & 20.83452             & -0.0                    \\
     3                 & 9942.01138          & 29.32859             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 56.00653             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for J2 noncoplanar \texttt{CICICIC} rendez-vous.}
-    \label{tab:j2_ncop_CICICIC_tab}
+    \caption{Summary of optimization for \texttt{CICICIC} J2 Non-Coplanar rendez-vous.}
+    \label{tab:J2_nr_CICICIC_tab}
 \end{table}
+% J2 NCOP 3 CICICIC
 
 \begin{figure}[htbp]
     \centering
@@ -604,6 +610,19 @@ A \texttt{CICICIC} maneuver was solved next, with summary in Table~\ref{tab:j2_n
     \label{fig:j2_ncop_CICICIC_pv}
 \end{figure}
 
+% J2 NCOP SUM
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{ccc} \toprule
+        Maneuver type & Number of impulses & Cost (m/s) \\ \midrule
+        \texttt{ICI} & 2 & 1471.47082 \\
+        \texttt{CICIC} & 2 & 58.27439 \\
+        \texttt{CICICIC} & 3 & 56.00653 \\\bottomrule
+    \end{tabular}
+    \caption{Summary of J2 Non-Coplanar rendez-vous maneuvers and costs.}
+    \label{tab:J2_nr_summary}
+\end{table}
+% J2 NCOP SUM
 
 \newpage
 \FloatBarrier
