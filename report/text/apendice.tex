@@ -1,0 +1,16 @@
+\chapter{Generating random numbers with constant sum}\label{app:random_sum}
+
+The goal is to generate a set of \(n\) numbers \((\x)_{1 \leq i \leq n} \in [0, 1]\) such that
+\begin{equation}
+    \sum_{i=1}^{n} \x_i = 1
+\end{equation}
+with uniform distribution on the set \(\Omega = \{\x \in [0, 1]^n \mid \sum_{i=1}^{n} \x_i = 1 \}\). The procedure relies on rejection sampling in \(n-1\) dimensions since the set \(\Omega\) has probability 0 in the space \([0, 1]^n\). Generate a random sample \(\mathbf{z} \in [0, 1]^{n-1}\) and reject it if
+\begin{equation}
+    \sum_{i=1}^{n-1} \mathbf{z}_i > 1.
+\end{equation}
+
+Otherwise, accept the sample and set
+\begin{align}
+    \x_i &= \mathbf{z}_i, i = 1,\dots,n-1 \\
+    \x_n &= 1 - \sum_{i=1}^{n-1} \x_i.
+\end{align}
