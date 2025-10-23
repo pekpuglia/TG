@@ -263,3 +263,6 @@ save("./results/two_body/ipv_noncop/$(transfer_type(solved_transfer_4))_primer_v
 ##
 tableCICICICIC = transfer_table(solved_transfer_4, tspan_ppdot_glandorf_4, L, T, tolepsilon, NAME)
 dump_table("./report/text/resultados.tex", "% TB NCOP 4 CICICICIC", tableCICICICIC)
+##
+sum_tab = summary_table(NAME, solved_transfer_2r, solved_transfer_2f, solved_transfer_3, solved_transfer_4)
+dump_table("./report/text/resultados.tex", "% TB NCOP SUM", sum_tab)

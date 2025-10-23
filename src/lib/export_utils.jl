@@ -13,7 +13,7 @@ function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon
     \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
     \end{tabular}
     \caption{Summary of optimization for \texttt{MANEUVER_TYPE} MODEL SCENARIO.}
-    \label{tab:tb_SCEN_MANEUVER_TYPE_tab}
+    \label{tab:MODEL_SCEN_MANEUVER_TYPE_tab}
 \end{table}
 "
 
@@ -99,8 +99,36 @@ function setup_table(start_orb::KeplerianElements, final_orb::KeplerianElements,
     )
 end
 
-function summary_table(transfers::Transfer...)
-    
+function summary_table(scenario, transfers::Transfer...)
+    format = raw"
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{ccc} \toprule
+        Maneuver type & Number of impulses & Cost (m/s) \\ \midrule
+        \texttt{MANEUVER_TYPE} & NIMP & COST \\
+    \end{tabular}
+    \caption{Summary of MODEL SCENARIO maneuvers and costs.}
+    \label{tab:MODEL_SCEN_summary}
+\end{table}
+"
+
+    partial_table = replace(format, 
+        "SCENARIO"    => scenario,
+        "SCEN"        => (scenario |> lowercase |> split) .|> first |> join,
+        "MODEL"       => model_name(transfers[1].model)
+    )
+    partial_table_lines = split(partial_table, "\n")
+    transfer_lines = repeat([partial_table_lines[6]], length(transfers))
+    for (i, t) = enumerate(transfers)
+        transfer_lines[i] = replace(transfer_lines[i], 
+            "MANEUVER_TYPE" => transfer_type(t), 
+            "NIMP" => t.nimp, 
+            "COST" => round(total_dV(t), digits=5), 
+        )
+    end
+    transfer_lines[end] = transfer_lines[end]*"\\bottomrule"
+    final_table = join([partial_table_lines[1:5]..., transfer_lines..., partial_table_lines[7:end]...], "\n")
+    final_table
 end
 
 function dump_table(filename::String, dlm::String, table::String)
