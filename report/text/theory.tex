@@ -191,20 +191,20 @@ Finally, the acceleration due to drag \(\acc_D\) is given by
 
 which can be added as a perturbing non-conservative acceleration to the model.
 
-\subsection{Lambert's Problem}
+% \subsection{Lambert's Problem}
 
-An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(\mathbf{r}_1\) and \(\mathbf{r}_2\) with a time interval \(\Delta t\) in between, as illustrated in Figure~\ref{fig:lambert_diagram}. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP. 
+% An important problem in orbital mechanics is that of the determination of the initial and final velocities of a satellite that passes through two points in space \(\mathbf{r}_1\) and \(\mathbf{r}_2\) with a time interval \(\Delta t\) in between, as illustrated in Figure~\ref{fig:lambert_diagram}. This problem first arose in the field of orbit determination but also finds application in the context of orbital maneuvers. Namely, Lambert's Problem seeks to find a feasible solution to a TPBVP, which is of interest to the optimal control TPBVP. 
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.6\textwidth]{img/lambert_from_curtis.png}
-    \caption{Lambert problem illustration showing initial and final positions \(\mathbf{r}_1\) and \(\mathbf{r}_2\) and the (computed) trajectory that connects them in time \(\Delta t\). Source: \cite{curtis2015orbital}}
-    \label{fig:lambert_diagram}
-\end{figure}
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.6\textwidth]{img/lambert_from_curtis.png}
+%     \caption{Lambert problem illustration showing initial and final positions \(\mathbf{r}_1\) and \(\mathbf{r}_2\) and the (computed) trajectory that connects them in time \(\Delta t\). Source: \cite{curtis2015orbital}}
+%     \label{fig:lambert_diagram}
+% \end{figure}
 
-This problem suffers from a physical indetermination in the case of collinear \(r_1\) and \(r_2\): the plane of the orbit is indeterminate. In this case, one can find many feasible solutions but determining exact velocities requires extra information about the plane of the orbit.\
+% This problem suffers from a physical indetermination in the case of collinear \(r_1\) and \(r_2\): the plane of the orbit is indeterminate. In this case, one can find many feasible solutions but determining exact velocities requires extra information about the plane of the orbit.\
 
-In general, this problem can have multiple solutions, corresponding to prograde and retrograde trajectories, with less than one or multiple revolutions. The resulting orbit can, in general, be elliptic, parabolic or hyperbolic. Handling this variety of solution types is not simple. A simple formulation which does not handle multiple revolutions nor the indetermination mentioned can be built with universal variables~\cite{curtis2015orbital}. Multiple revolutions and finding the radial and tangent components of the velocity in the indeterminate case can be handled with more complex algorithms~\cite{sukhanov}. A generic, Cartesian coordinates-based algorithm is also possible, as will be discussed in Chapter~\ref{chap:method}.
+% In general, this problem can have multiple solutions, corresponding to prograde and retrograde trajectories, with less than one or multiple revolutions. The resulting orbit can, in general, be elliptic, parabolic or hyperbolic. Handling this variety of solution types is not simple. A simple formulation which does not handle multiple revolutions nor the indetermination mentioned can be built with universal variables~\cite{curtis2015orbital}. Multiple revolutions and finding the radial and tangent components of the velocity in the indeterminate case can be handled with more complex algorithms~\cite{sukhanov}. A generic, Cartesian coordinates-based algorithm is also possible, as will be discussed in Chapter~\ref{chap:method}.
 
 \subsection{State Transition Matrix}
 

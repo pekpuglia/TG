@@ -602,3 +602,96 @@ eprint = {https://www.worldscientific.com/doi/pdf/10.1142/p665}
      year = {2016},
       url = {https://arxiv.org/abs/1607.07892}
 }
+
+@article{sympletic_int,
+author = {Chai, Patrick and Anzalone, Evan},
+year = {2015},
+month = {08},
+pages = {},
+title = {Numerical Integration Techniques in Orbital Mechanics Applications},
+doi = {10.13140/RG.2.1.1474.2243}
+}
+
+@inproceedings{implicit_rk,
+author = {Aristoff, Jeffrey and Poore, Aubrey},
+year = {2012},
+month = {08},
+pages = {},
+title = {Implicit Runge-Kutta Methods for Orbit Propagation},
+isbn = {978-1-62410-182-3},
+doi = {10.2514/6.2012-4880}
+}
+
+@article{sgp4_high_precision,
+title = {Closing the gap between SGP4 and high-precision propagation via differentiable programming},
+journal = {Acta Astronautica},
+volume = {226},
+pages = {694-701},
+year = {2025},
+issn = {0094-5765},
+doi = {https://doi.org/10.1016/j.actaastro.2024.10.063},
+url = {https://www.sciencedirect.com/science/article/pii/S0094576524006374},
+author = {Giacomo Acciarini and Atılım Güneş Baydin and Dario Izzo},
+keywords = {SGP4, Orbital propagation, Differentiable programming, Machine learning, Spacecraft collision avoidance, Kessler, Kessler syndrome, AI for space, Applied machine learning for space},
+abstract = {The simplified general perturbations 4 (SGP4) orbital propagation model is one of the most widely used methods for rapidly and reliably predicting the positions and velocities of objects orbiting Earth. Over time, SGP models have undergone refinement to enhance their efficiency and accuracy. Nevertheless, they still do not match the precision offered by high-precision numerical propagators, which can predict the positions and velocities of space objects in low-Earth orbit with significantly smaller errors. In this study, we introduce a novel differentiable version of SGP4, named ∂SGP4. By porting the source code of SGP4 into a differentiable program based on PyTorch, we unlock a whole new class of techniques enabled by differentiable orbit propagation, including spacecraft orbit determination, state conversion, covariance similarity transformation, state transition matrix computation, and covariance propagation. Besides differentiability, our ∂SGP4 supports parallel propagation of a batch of two-line elements (TLEs) in a single execution and it can harness modern hardware accelerators like GPUs or XLA devices (e.g. TPUs) thanks to running on the PyTorch backend. Furthermore, the design of ∂SGP4 makes it possible to use it as a differentiable component in larger machine learning (ML) pipelines, where the propagator can be an element of a larger neural network that is trained or fine-tuned with data. Consequently, we propose a novel orbital propagation paradigm, ML-∂SGP4. In this paradigm, the orbital propagator is enhanced with neural networks attached to its input and output. Through gradient-based optimization, the parameters of this combined model can be iteratively refined to achieve precision surpassing that of SGP4. Fundamentally, the neural networks function as identity operators when the propagator adheres to its default behavior as defined by SGP4. However, owing to the differentiability ingrained within ∂SGP4, the model can be fine-tuned with ephemeris data to learn corrections to both inputs and outputs of SGP4. This augmentation enhances precision while maintaining the same computational speed of ∂SGP4 at inference time. This paradigm empowers satellite operators and researchers, equipping them with the ability to train the model using their specific ephemeris or high-precision numerical propagation data.}
+}
+
+@inproceedings{spacetrack_report_3_revisit,
+author = {Vallado, David and Crawford, Paul and Hujsak, Ricahrd and Kelso, T.S.},
+year = {2006},
+month = {08},
+pages = {},
+title = {Revisiting Spacetrack Report 3},
+volume = {3},
+isbn = {978-1-62410-048-2},
+journal = {Collection of Technical Papers - AIAA/AAS Astrodynamics Specialist Conference, 2006},
+doi = {10.2514/6.2006-6753}
+}
+
+﻿@Article{num_int_orb,
+author={Montenbruck, O.},
+title={Numerical integration methods for orbital motion},
+journal={Celestial Mechanics and Dynamical Astronomy},
+year={1992},
+month={Mar},
+day={01},
+volume={53},
+number={1},
+pages={59-69},
+abstract={The present report compares Runge-Kutta, multistep and extrapolation methods for the numerical integration of ordinary differential equations and assesses their usefulness for orbit computations of solar system bodies or artificial satellites. The scope of earlier studies is extended by including various methods that have been developed only recently. Several performance tests reveal that modern single- and multistep methods can be similarly efficient over a wide range of eccentricities. Multistep methods are still preferable, however, for ephemeris predictions with a large number of dense output points.},
+issn={1572-9478},
+doi={10.1007/BF00049361},
+url={https://doi.org/10.1007/BF00049361}
+}
+
+@Article{rk8_11calss,
+author={Curtis, A. R.},
+title={An eighth order Runge-Kutta process with eleven function evaluations per step},
+journal={Numerische Mathematik},
+year={1970},
+month={Dec},
+day={01},
+volume={16},
+number={3},
+pages={268-277},
+abstract={The system of algebraic equations whose solution defines an eighth order Runge-Kutta process is examined. A solution is found involving only eleven stages, and stated explicitly. Some results of test solutions of a system of differential equations using a program incorporating the coefficients given by the above solution are presented.},
+issn={0945-3245},
+doi={10.1007/BF02219778},
+url={https://doi.org/10.1007/BF02219778}
+}
+
+@Article{non_existence_rk8_10calss,
+author={Butcher, J. C.},
+title={The non-existence of ten stage eighth order explicit Runge-Kutta methods},
+journal={BIT Numerical Mathematics},
+year={1985},
+month={Sep},
+day={01},
+volume={25},
+number={3},
+pages={521-540},
+abstract={It is shown that forn a non-negative integer, there does not exist an explicit Runge-Kutta method with 10 +n stages and order 8 +n. It follows that for order 8, the minimum number of stages is 11.},
+issn={1572-9125},
+doi={10.1007/BF01935372},
+url={https://doi.org/10.1007/BF01935372}
+}
