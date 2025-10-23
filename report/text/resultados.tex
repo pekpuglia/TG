@@ -1,7 +1,7 @@
 
 The primer vector meta-algorithm was applied to some scenarios that represent generic maneuvers that may be of interest in LEO\@. These scenarios will be presented, together with an explanation of why they were chosen, and then solutions for each of them, under different orbital models, will be presented.
 
-TODO redo tables with 0 eps, introduce eps, include N?, norm of delta r f
+TODO redo tables include N?
 
 
 \section{Scenarios}
@@ -10,6 +10,7 @@ TODO redo tables with 0 eps, introduce eps, include N?, norm of delta r f
 
 A maneuver scenario corresponding to a Hohmann transfer (under a two body model) was chosen. Firstly, because in the two body model, there is an analytical solution for the transfer, given in Section~\ref{sssec:hohmann}. And secondly, this is a simple scenario that highlights the difference between the different orbital models used in the work. The orbital parameters are given in Table~\ref{tab:hohmann_orb_elems}, as well as a 3D rendering of the scenario in Figure~\ref{fig:hohmann_scenario}. The transfer time was calculated analytically to correspond to the Hohmann transfer time.
 
+% C2C SETUP
 \begin{table}[htbp]
     \centering
     \begin{tabular}{ccc} \toprule
@@ -25,6 +26,8 @@ A maneuver scenario corresponding to a Hohmann transfer (under a two body model)
     \caption{Orbital elements used for the Hohmann transfer case analysis}
     \label{tab:hohmann_orb_elems}
 \end{table}
+% C2C SETUP
+
 
 \begin{figure}[htbp]
     \centering
@@ -82,29 +85,27 @@ A second, more challenging scenario is taken from \citeonline{interactive_primer
 
 The results for all scenarios under the two body model are presented in the following. All primer vector histories in this section were calculated with the Glandorf, STM and ODE methods, to numerically show they are equivalent. In all primer vector plots, vertical dashed lines indicate impulse times.
 
-TODO Introdu ODE method
-
 \subsection{Circle to Circle}
 
 The circle to circle transfer scenario was first optimized for an \texttt{ICI} maneuver sequence. The results can be seen in Table~\ref{tab:tb_c2c_ICI_tab}, the primer vector trajectory can be seen in Figure~\ref{fig:tb_c2c_ICI_pv}, and the views of the optimized trajectory, in Figure~\ref{fig:tb_c2c_ICI_figs}. It can be seen that impulses at the starting and ending condition are capable of satisfying the necessary optimality conditions, and the analytical Hohmann of \(\Delta v_H = 887.56199 m/s\), computed from Equation~\eqref{eq:hohmann_deltav}, has been attained.
 
 TODO try CICIC???
 
+% TB C2C ICI
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    8.0e6          & 1.0          & 0.0                & 0.0                        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{ICI}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    8.0e6          & 1.0          & 1.00e-05                & 2.11019e-08                        \\ \midrule
     \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 0.0          & 457.74489             & 0.0                    \\
     2                 & 3560.54079          & 429.8171             & 0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 887.56199             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for two body circle to circle \texttt{ICI} rendez-vous.}
-    \label{tab:tb_c2c_ICI_tab}
 \end{table}
+% TB C2C ICI
 
 \begin{figure}[htbp]
     \centering
@@ -295,8 +296,6 @@ Optimized maneuvers are presented for the aforementioned scenarios under the J2 
 TODO put texttt in tables
 
 The simple circle to circle rendez-vous case was first optimized with a \texttt{ICI} maneuver, with results that can be seen in Table~\ref{tab:j2_c2c_ICI_tab}, Figure~\ref{fig:j2_c2c_ICI_pv} and Figure~\ref{fig:j2_c2c_ICI_figs}. To analyze the polar trajectory that was found, first it is worth mentioning that orbital trajectories under the J2 model are, in general, not planar, which means that the two-body Hohmann transfer is impossible with this model. The only planar orbits are perfectly equatorial and perfectly polar orbits and, due to the inclination of the orbits' being greater than \(45^\circ\), the polar orbit is the best solution. It is vastly different to the two-body \texttt{ICI} solution, which shows the J2 perturbations are very relevant to LEO orbits, even in small time frames. However, the primer vector trajectory shows that the necessary conditions are not satisfied and, in particular, endpoint derivatives are positive and negative, respectively, which shows that the \texttt{ICI} solution is not even a local optimum in the space of \texttt{CICIC} solutions. Therefore, adding initial and final coasts should reduce the very large cost of this solution.
-
-TODO check add init, final coast is explained
 
 \begin{table}[htpb]
     \centering

@@ -63,6 +63,8 @@ save("./results/two_body/hohmann/ICI_primer_vector.png", f, px_per_unit = 300/96
 #L T constr_viol_tol deltax_tol  final error
 #maxnormp diag
 #i = 1 t dV theta_v theta_p, 
-export_transfer(solved_transfer, tspan_ppdot_glandorf, L, T, tolepsilon)
+hohmann_tab = transfer_table(solved_transfer, tspan_ppdot_glandorf, L, T, tolepsilon)
+dump_table("./report/text/resultados.tex", "% TB C2C ICI", hohmann_tab)
 ##
-export_setup(HOHMANN_START, HOHMANN_END, TRANSFER_TIME)
+hohmann_setup = setup_table(HOHMANN_START, HOHMANN_END, TRANSFER_TIME)
+dump_table("./report/text/resultados.tex", "% C2C SETUP", hohmann_setup)
