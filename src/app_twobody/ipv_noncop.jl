@@ -34,9 +34,13 @@ axislegend(ax3d, orb_lines, ["Initial orbit", "Final orbit"], position = (0.8, 0
 fig
 ##
 save_with_views!(ax3d, fig, "./results/two_body/ipv_noncop/scenario")
+##
 ##vary tf for each orbit
 tf_real = 2*orbital_period(orb2, GM_EARTH) #slightly different to paper
 orb_model = TwoBodyModel(GM_EARTH)
+##
+ncop_table = setup_table(orb1, orb2, tf_real)
+dump_table("./report/text/resultados.tex", "% NCOP SCENARIO", ncop_table)
 ##
 L = (orb1.a+orb2.a)/2
 T = 1
@@ -86,7 +90,8 @@ f
 ##
 save("./results/two_body/ipv_noncop/$(transfer_type(solved_transfer_2r))_primer_vector.png", f, px_per_unit = 300/96)
 ##
-export_transfer(solved_transfer_2r, tspan_ppdot_glandorf, L, T, tolepsilon)
+tableICI = transfer_table(solved_transfer_2r, tspan_ppdot_glandorf, L, T, tolepsilon, NAME)
+dump_table("./report/text/resultados.tex", "% TB NCOP ICI", tableICI)
 ###########################################################################################################################################
 ###########################################################################################################################################
 ###########################################################################################################################################
@@ -143,7 +148,8 @@ f
 ##
 save("./results/two_body/ipv_noncop/$(transfer_type(solved_transfer_2f))_primer_vector.png", f, px_per_unit = 300/96)
 ##
-export_transfer(solved_transfer_2f, tspan_ppdot_glandorf_2f, L, T, tolepsilon)
+tableCICIC = transfer_table(solved_transfer_2f, tspan_ppdot_glandorf_2f, L, T, tolepsilon, NAME)
+dump_table("./report/text/resultados.tex", "% TB NCOP 2 CICIC", tableCICIC)
 ###########################################################################################################################################
 ###########################################################################################################################################
 ###########################################################################################################################################
@@ -160,40 +166,10 @@ solver_3 = casadi.nlpsol("s", "ipopt", planner_3.prob, Dict("ipopt" => Dict(
     "constr_viol_tol" => tolepsilon,
     "max_wall_time" => 30,
     "max_resto_iter" => 100)))
-## add null impulse
+## 
+# best_random_transfer, best_part = random_starts(solver_3, planner_3, transfer_3, orb1, tf_real, L, T, 3)
 
-## init cond from sol 2
-# transfer_2f_redisc = rediscretize_transfer(solved_transfer_2f, N_3)
-
-# null_imp_transf_2 = scale(
-#     add_null_impulse(
-#         transfer_2f_redisc, 
-#         tspan_ppdot_glandorf_2f), L, T)
-
-# seq0 = null_imp_transf_2.sequence
-# seq0 = [scale(s, L, T) 
-#     for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [0.1, 0.4, 0.3, 0.2])
-# ]
-
-# tab0 = vcat(varlist.(seq0)...)
-
-# sol = solve_planner(solver_3, planner_3, tab0)
-# solved_transfer_3 = unscale(sol_to_transfer(sol, transfer_3), L, T)
-best_random_transfer, best_part = random_starts(solver_3, planner_3, transfer_3, orb1, tf_real, L, T, 3)
-
-total_dV(best_random_transfer)
-##
-transfer_2f_redisc = rediscretize_transfer(solved_transfer_2f, N_3)
-null_imp_transf_2 = scale(
-    add_null_impulse(
-        transfer_2f_redisc, 
-        tspan_ppdot_glandorf_2f), L, T)
-seq0 = null_imp_transf_2.sequence
-tab0 = vcat(varlist.(seq0)...)
-
-sol = solve_planner(solver_3, planner_3, tab0)
-transfer3_from_2 = unscale(sol_to_transfer(sol, transfer_3), L, T)
-total_dV(transfer3_from_2)
+# total_dV(best_random_transfer)
 ##
 seq0 = [scale(s, L, T) 
     for s = initial_orb_sequence(orb1, tf_real, N_3, 3, true, true, [ 0.22790549731708265
@@ -230,7 +206,8 @@ f
 ##
 save("./results/two_body/ipv_noncop/$(transfer_type(solved_transfer_3))_primer_vector.png", f, px_per_unit = 300/96)
 ##
-export_transfer(solved_transfer_3, tspan_ppdot_glandorf_3, L, T, tolepsilon)
+tableCICICIC = transfer_table(solved_transfer_3, tspan_ppdot_glandorf_3, L, T, tolepsilon, NAME)
+dump_table("./report/text/resultados.tex", "% TB NCOP 3 CICICIC", tableCICICIC)
 ##
 ###########################################################################################################################################
 ###########################################################################################################################################
@@ -249,8 +226,8 @@ solver_4 = casadi.nlpsol("s", "ipopt", planner_4.prob, Dict("ipopt" => Dict(
     "max_resto_iter" => 100))
 )
 ##
-best_random_transfer, best_part = random_starts(solver_4, planner_4, transfer_4, orb1, tf_real, L, T, 20)
-total_dV(best_random_transfer)
+# best_random_transfer, best_part = random_starts(solver_4, planner_4, transfer_4, orb1, tf_real, L, T, 20)
+# total_dV(best_random_transfer)
 ##
 seq0 = [scale(s, L, T) 
     for s = initial_orb_sequence(orb1, tf_real, N_4, 4, true, true, [0.07205383292143142, 0.8437961343872056, 0.03566546650471125, 0.04621096008052483, 0.002273606106126924])
@@ -284,4 +261,5 @@ f
 ##
 save("./results/two_body/ipv_noncop/$(transfer_type(solved_transfer_4))_primer_vector.png", f, px_per_unit = 300/96)
 ##
-export_transfer(solved_transfer_4, tspan_ppdot_glandorf_4, L, T, tolepsilon)
+tableCICICICIC = transfer_table(solved_transfer_4, tspan_ppdot_glandorf_4, L, T, tolepsilon, NAME)
+dump_table("./report/text/resultados.tex", "% TB NCOP 4 CICICICIC", tableCICICICIC)

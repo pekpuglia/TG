@@ -192,23 +192,23 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
 
 Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's summary, primer vector trajectory, and spatial views can be seen in Table~\ref{tab:tb_ncop_CICIC_tab}, Figure~\ref{fig:tb_ncop_CICIC_pv} and Figure~\ref{fig:tb_ncop_CICIC_figs}. Now, the cost is much lower, and the trajectory is very close to the natural orbit of the satellite. However, the primer vector history violates the norm condition and shows that the addition of an extra impulse can lower the cost even further. 
 
-% TB NCOP CICIC
+% TB NCOP 2 CICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICIC} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-06                & 0.0                        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 1.66471e-07                        \\ \midrule
     \(\max \lVert p \rVert\) & 3.327     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 6644.30733          & 37.29252             & -0.0                    \\
     2                 & 10689.86179          & 16.20984             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 53.50237             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for two body noncoplanar \texttt{CICIC} rendez-vous.}
-    \label{tab:tb_ncop_CICIC_tab}
+    \caption{Summary of optimization for \texttt{CICIC} Keplerian Non-Coplanar rendez-vous.}
+    \label{tab:tb_nr_CICIC_tab}
 \end{table}
-% TB NCOP CICIC
+% TB NCOP 2 CICIC
 
 \begin{figure}[htbp]
     \centering
@@ -241,13 +241,13 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
 
 A \texttt{CICICIC} maneuver was searched based on the previous results. The spatial view is omitted since the trajectory closely resembles the natural orbit of the satellite. The maneuver summary and primer vector history are shown in Table~\ref{tab:tb_ncop_CICICIC_tab} and Figure~\ref{fig:tb_ncop_CICICIC_pv}. The addition of yet another impulse did reduce the \(\Delta v\) cost, but not as dramatically as the addition of initial and final coasts. Again, the maximum primer vector norm exceeds unity, which suggests another addition of impulse.
 
-% TB C2C CICICIC
+% TB NCOP 3 CICICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICICIC} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 0.0                        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 1.08852e-07                        \\ \midrule
     \(\max \lVert p \rVert\) & 1.9638     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 3370.1071          & 11.76294             & -0.0                    \\
@@ -255,10 +255,10 @@ A \texttt{CICICIC} maneuver was searched based on the previous results. The spat
     3                 & 9176.42663          & 20.74554             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 43.07342             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for two body noncoplanar \texttt{CICICIC} rendez-vous.}
-    \label{tab:tb_ncop_CICICIC_tab}
+    \caption{Summary of optimization for \texttt{CICICIC} Keplerian Non-Coplanar rendez-vous.}
+    \label{tab:tb_nr_CICICIC_tab}
 \end{table}
-% TB C2C CICICIC
+% TB NCOP 3 CICICIC
 
 \begin{figure}[htbp]
     \centering
@@ -269,12 +269,13 @@ A \texttt{CICICIC} maneuver was searched based on the previous results. The spat
 
 Finally, the addition of a fourth impulse attains the primer vector necessary conditions, as attested in its trajectory in Figure~\ref{fig:tb_ncop_CICICICIC_pv} and its summary in Table~\ref{tab:tb_ncop_CICICICIC_tab}. A small error of \(0.4\%\) has been allowed in the primer vector norm, which is small enough that only a very small fifth impulse would marginally reduce cost, for no tangible algorithmic gain. The final velocity cost is well within feasible for many spatial applications, with the caveat that the spacecraft must be correctly pointed at four points in time. 
 
+% TB NCOP 4 CICICICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{CICICICIC} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 0.04983                        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICICICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 4.98323e-02                        \\ \midrule
     \(\max \lVert p \rVert\) & 1.0046     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 0.00394          & 3.58823             & 0.0                    \\
@@ -283,9 +284,10 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
     4                 & 11107.15747          & 8.19599             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 36.14596             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for two body noncoplanar \texttt{CICICICIC} rendez-vous.}
-    \label{tab:tb_ncop_CICICICIC_tab}
+    \caption{Summary of optimization for \texttt{CICICICIC} Keplerian Non-Coplanar rendez-vous.}
+    \label{tab:tb_nr_CICICICIC_tab}
 \end{table}
+% TB NCOP 4 CICICICIC
 
 \begin{figure}[htbp]
     \centering

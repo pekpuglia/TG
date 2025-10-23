@@ -23,6 +23,6 @@ NONCOP_END_0 = KeplerianElements(
 
 NONCOP_END = Propagators.propagate(Val(:TwoBody), 2*orbital_period(NONCOP_END_0, GM_EARTH), NONCOP_END_0)[3].tbd.orbk
 
-NAME = "Paper Non Coplanar Rendez-vous"
+NAME = "Non-coplanar RV"
 
 TRANSFER_TIME =  2*orbital_period(NONCOP_END, GM_EARTH)
