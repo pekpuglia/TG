@@ -40,7 +40,7 @@ A maneuver scenario corresponding to a Hohmann transfer (under a two body model)
 
 A second, more challenging scenario is taken from \citeonline{interactive_primer_vector}, where a noncoplanar rendez-vous scenario is proposed and solved under the two body model. Again, the goal is validating the code against a published result under the two body model, and exploring how the optimal trajectory may be different under other more realistic models. The orbital parameters are given in Table~\ref{tab:noncop_rdv_orb_elems}, and multiple views of the scenario are shown in Figure~\ref{fig:noncop_rdv_scenario}. The transfer time is equal to two orbital periods of the target orbit.
 
-
+% NCOP SCENARIO
 \begin{table}[htbp]
     \centering
     \begin{tabular}{ccc} \toprule
@@ -56,6 +56,7 @@ A second, more challenging scenario is taken from \citeonline{interactive_primer
     \caption{Orbital elements used for the noncoplanar rendez-vous case analysis}
     \label{tab:noncop_rdv_orb_elems}
 \end{table}
+% NCOP SCENARIO
 
 
 \begin{figure}[htbp]
@@ -104,6 +105,8 @@ TODO try CICIC???
     2                 & 3560.54079          & 429.8171             & 0.0                    \\\midrule
     \textbf{Total}   & 3560.54079          & 887.56199             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for Keplerian circle to circle \texttt{ICI} rendez-vous.}
+    \label{tab:tb_ctc_ICI_tab}
 \end{table}
 % TB C2C ICI
 
@@ -140,6 +143,7 @@ TODO try CICIC???
 
 The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI} maneuver at first. The maneuver's summary, primer vector trajectory, and spatial views can be seen in Table~\ref{tab:tb_ncop_ICI_tab}, Figure~\ref{fig:tb_ncop_ICI_pv} and Figure~\ref{fig:tb_ncop_ICI_figs}. The primer vector history shows that this is a local optimum, but physical intuition suggests that there are less aggressive maneuvers that can solve the maneuver problem. In order to find better optima, the problem must be relaxed: the introduction of initial and final coasts increases the degrees of freedom of the control, possibly allowing for a better cost.
 
+% TB NCOP ICI
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
@@ -155,6 +159,7 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
     \caption{Summary of optimization for two body noncoplanar \texttt{ICI} rendez-vous.}
     \label{tab:tb_ncop_ICI_tab}
 \end{table}
+% TB NCOP ICI
 
 \begin{figure}[htbp]
     \centering
@@ -187,6 +192,7 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
 
 Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's summary, primer vector trajectory, and spatial views can be seen in Table~\ref{tab:tb_ncop_CICIC_tab}, Figure~\ref{fig:tb_ncop_CICIC_pv} and Figure~\ref{fig:tb_ncop_CICIC_figs}. Now, the cost is much lower, and the trajectory is very close to the natural orbit of the satellite. However, the primer vector history violates the norm condition and shows that the addition of an extra impulse can lower the cost even further. 
 
+% TB NCOP CICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
@@ -202,6 +208,7 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
     \caption{Summary of optimization for two body noncoplanar \texttt{CICIC} rendez-vous.}
     \label{tab:tb_ncop_CICIC_tab}
 \end{table}
+% TB NCOP CICIC
 
 \begin{figure}[htbp]
     \centering
@@ -234,6 +241,7 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
 
 A \texttt{CICICIC} maneuver was searched based on the previous results. The spatial view is omitted since the trajectory closely resembles the natural orbit of the satellite. The maneuver summary and primer vector history are shown in Table~\ref{tab:tb_ncop_CICICIC_tab} and Figure~\ref{fig:tb_ncop_CICICIC_pv}. The addition of yet another impulse did reduce the \(\Delta v\) cost, but not as dramatically as the addition of initial and final coasts. Again, the maximum primer vector norm exceeds unity, which suggests another addition of impulse.
 
+% TB C2C CICICIC
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
@@ -250,6 +258,7 @@ A \texttt{CICICIC} maneuver was searched based on the previous results. The spat
     \caption{Summary of optimization for two body noncoplanar \texttt{CICICIC} rendez-vous.}
     \label{tab:tb_ncop_CICICIC_tab}
 \end{table}
+% TB C2C CICICIC
 
 \begin{figure}[htbp]
     \centering

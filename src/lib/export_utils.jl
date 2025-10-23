@@ -1,5 +1,5 @@
 using Printf
-function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon)
+function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon, scenario)
     format = raw"
 \begin{table}[htpb]
     \centering
@@ -12,6 +12,8 @@ function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon
     IMPINDEX                 & IMPTIME          & IMPDV             & IMPDIR                    \\
     \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
     \end{tabular}
+    \caption{Summary of optimization for MODEL SCENARIO \texttt{MANEUVER_TYPE} rendez-vous.}
+    \label{tab:tb_SCEN_MANEUVER_TYPE_tab}
 \end{table}
 "
 
@@ -35,7 +37,10 @@ function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon
         "MAXNORMP"    => round(maxnormp, sigdigits=5),
         "DIAGNOSTIC"  => diagnostic,
         "TOTALT"      => round(total_t, digits=5),
-        "TOTALDV"     => round(totaldv, digits=5)
+        "TOTALDV"     => round(totaldv, digits=5),
+        "SCENARIO"    => scenario,
+        "SCEN"        => (scenario |> lowercase |> split) .|> first |> join,
+        "MODEL"       => model_name(transfer.model)
     )
     
     tspan = tspan_ppdot[1]
@@ -73,8 +78,8 @@ function setup_table(start_orb::KeplerianElements, final_orb::KeplerianElements,
         \(\theta\) & \(THETA1^\circ\)  & \(THETA2^\circ\)  \\ 
         Transfer time & \multicolumn{2}{c}{\(TRANSFER_TIME\)} \\\bottomrule
     \end{tabular}
-    \caption{Orbital elements used for the Hohmann transfer case analysis}
-    \label{tab:hohmann_orb_elems}
+    \caption{Orbital elements used for the TODO transfer case analysis}
+    \label{tab:TODO_orb_elems}
 \end{table}
 "
     replace(format,
@@ -92,6 +97,10 @@ function setup_table(start_orb::KeplerianElements, final_orb::KeplerianElements,
     "THETA2" => round(rad2deg(final_orb.f), digits = 3),
     "TRANSFER_TIME" => round(transfer_time, digits = 3)
     )
+end
+
+function summary_table(transfers::Transfer...)
+    
 end
 
 function dump_table(filename::String, dlm::String, table::String)

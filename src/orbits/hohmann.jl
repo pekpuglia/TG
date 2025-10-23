@@ -18,6 +18,6 @@ HOHMANN_END = KeplerianElements(
     deg2rad(180) + HOHMANN_START.f
 )
 
-NAME = "Hohmann"
+NAME = "circle to circle"
 
 TRANSFER_TIME = orbital_period((HOHMANN_START.a+HOHMANN_END.a)/2, GM_EARTH) / 2

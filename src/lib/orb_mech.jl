@@ -26,6 +26,8 @@ struct TwoBodyModel <: AbstractConservativeModel
     mu
 end
 
+model_name(::TwoBodyModel) = "Keplerian"
+
 scale(tbm::TwoBodyModel, L, T) = TwoBodyModel(tbm.mu * T ^ 2 / L ^ 3)
 unscale(tbm::TwoBodyModel, L, T) = TwoBodyModel(tbm.mu * L^3 / T ^ 2)
 
@@ -46,6 +48,8 @@ struct J2model <: AbstractConservativeModel
 end
 
 J2model(mu, J2, R) = J2model(mu, J2*mu*R^2)
+
+model_name(::J2model) = "J2"
 
 scale(tbm::J2model, L, T) = J2model(tbm.mu * T ^ 2 / L ^ 3, tbm.J2_mu_R2 * T ^ 2 / L ^ 5)
 unscale(tbm::J2model, L, T) = J2model(tbm.mu * L^3 / T ^ 2, tbm.J2_mu_R2 * L ^ 5 / T ^ 2)
@@ -90,6 +94,9 @@ struct J2DragModel <: AbstractOrbitalMechanicsModel
 end
 
 # J2Dragmodel(mu, J2, R) = J2DragModel(mu, J2*mu*R^2)
+
+model_name(::J2DragModel) = "J2+Drag"
+
 
 scale(j2d::J2DragModel, L, T) = J2DragModel(
     j2d.mu * T ^ 2 / L ^ 3, 
