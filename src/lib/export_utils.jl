@@ -1,19 +1,19 @@
 using Printf
-function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon)
+function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon)
     format = raw"
-    \begin{table}[htpb]
-        \centering
-        \begin{tabular}{cccc} \toprule
-        \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{MANEUVER_TYPE} \\ \midrule
-        \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-        SCALEL          & SCALET          & TOLEPSILON                & DELTAXFINAL                        \\ \midrule
-        \(\max \lVert p \rVert\) & MAXNORMP     & \textbf{Diagnostic}   & DIAGNOSTIC        \\ \midrule
-        \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
-        IMPINDEX                 & IMPTIME          & IMPDV             & IMPDIR                    \\
-        \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
-        \end{tabular}
-    \end{table}
-    "
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{MANEUVER_TYPE}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    SCALEL          & SCALET          & TOLEPSILON                & DELTAXFINAL                        \\ \midrule
+    \(\max \lVert p \rVert\) & MAXNORMP     & \textbf{Diagnostic}   & DIAGNOSTIC        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    IMPINDEX                 & IMPTIME          & IMPDV             & IMPDIR                    \\
+    \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
+    \end{tabular}
+\end{table}
+"
 
     deltaxfinal = let 
         recomp_transfer = recompute_model(transfer, RK8)
@@ -31,7 +31,7 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
         "SCALEL"      => round(L, digits=3),
         "SCALET"      => round(T, digits=3),
         "TOLEPSILON"  => @sprintf("%.2e", tolepsilon),
-        "DELTAXFINAL" => round(deltaxfinal, digits=5),
+        "DELTAXFINAL" => @sprintf("%.5e", deltaxfinal),
         "MAXNORMP"    => round(maxnormp, sigdigits=5),
         "DIAGNOSTIC"  => diagnostic,
         "TOTALT"      => round(total_t, digits=5),
@@ -59,24 +59,24 @@ function export_transfer(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilo
     final_table
 end
 
-function export_setup(start_orb::KeplerianElements, final_orb::KeplerianElements, transfer_time)
+function setup_table(start_orb::KeplerianElements, final_orb::KeplerianElements, transfer_time)
     format = raw"
-    \begin{table}[htbp]
-        \centering
-        \begin{tabular}{ccc} \toprule
-            Element & Initial & Final \\ \midrule
-            \(a\)      & \(A1\) km         & \(A2\) km   \\
-            \(e\)      & \(E1\)            & \(E2\)        \\
-            \(i\)      & \(I1^\circ\)      & \(I2^\circ\) \\
-            \(\Omega\) & \(RAAN1^\circ\)   & \(RAAN2^\circ\)  \\
-            \(\omega\) & \(OMEGA1^\circ\)  & \(OMEGA2^\circ\)  \\
-            \(\theta\) & \(THETA1^\circ\)  & \(THETA2^\circ\)  \\ 
-            Transfer time & \multicolumn{2}{c}{\(TRANSFER_TIME\)} \\\bottomrule
-        \end{tabular}
-        \caption{Orbital elements used for the Hohmann transfer case analysis}
-        \label{tab:hohmann_orb_elems}
-    \end{table}
-    "
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{ccc} \toprule
+        Element & Initial & Final \\ \midrule
+        \(a\)      & \(A1\) km         & \(A2\) km   \\
+        \(e\)      & \(E1\)            & \(E2\)        \\
+        \(i\)      & \(I1^\circ\)      & \(I2^\circ\) \\
+        \(\Omega\) & \(RAAN1^\circ\)   & \(RAAN2^\circ\)  \\
+        \(\omega\) & \(OMEGA1^\circ\)  & \(OMEGA2^\circ\)  \\
+        \(\theta\) & \(THETA1^\circ\)  & \(THETA2^\circ\)  \\ 
+        Transfer time & \multicolumn{2}{c}{\(TRANSFER_TIME\)} \\\bottomrule
+    \end{tabular}
+    \caption{Orbital elements used for the Hohmann transfer case analysis}
+    \label{tab:hohmann_orb_elems}
+\end{table}
+"
     replace(format,
     "A1"     => round(start_orb.a / 1e3, digits = 3),
     "E1"     => round(start_orb.e, digits = 3),
@@ -92,4 +92,16 @@ function export_setup(start_orb::KeplerianElements, final_orb::KeplerianElements
     "THETA2" => round(rad2deg(final_orb.f), digits = 3),
     "TRANSFER_TIME" => round(transfer_time, digits = 3)
     )
+end
+
+function dump_table(filename::String, dlm::String, table::String)
+    file_contents = read(filename, String)
+
+    split_file = split(file_contents, dlm)
+    length(split_file) |> display
+    new_file = split_file[1]*dlm*table*dlm*split_file[3]
+
+    open(filename, "w") do f
+        write(f, new_file)
+    end
 end
