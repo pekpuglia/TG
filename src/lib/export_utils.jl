@@ -12,7 +12,7 @@ function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon
     IMPINDEX                 & IMPTIME          & IMPDV             & IMPDIR                    \\
     \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for MODEL SCENARIO \texttt{MANEUVER_TYPE} rendez-vous.}
+    \caption{Summary of optimization for \texttt{MANEUVER_TYPE} MODEL SCENARIO.}
     \label{tab:tb_SCEN_MANEUVER_TYPE_tab}
 \end{table}
 "
