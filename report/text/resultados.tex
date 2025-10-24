@@ -1,6 +1,6 @@
 
 The primer vector meta-algorithm was applied to some scenarios that represent generic maneuvers that may be of interest in LEO\@. These scenarios will be presented, together with an explanation of why they were chosen, and then solutions for each of them, under different orbital models, will be presented.
-%TODO discuss orbit unraveling
+%TODO discuss orbit unraveling, heavy drag models
 \section{Scenarios}
 
 \subsection{Circle to Circle rendez-vous}
@@ -660,7 +660,7 @@ The primer vector trajectory in Figure~\ref{fig:jd_c2c_ICI_pv} compares the STM 
     \label{fig:jd_c2c_ICI_pv}
 \end{figure}
 
-This can be explained by comparing the matrices \(\mathbf{A}_\delta\) and \(A_p\), the coefficients of the ODEs of the STM and ODE transition matrices respectively. They are only expected to differ in the lower right quadrant:
+This can be explained by comparing the matrices \(\mathbf{A}_\delta\) and \(\mathbf{A}_p\), the coefficients of the ODEs of the STM and PVTM respectively. They are only expected to differ in the lower right quadrant, shown here for the initial condition:
 \begin{align}
     (\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
         -5.56731-12 & 0.0 & 0.0 \\
@@ -674,4 +674,8 @@ This can be explained by comparing the matrices \(\mathbf{A}_\delta\) and \(A_p\
     \end{bmatrix}
 \end{align}
 
-Indeed, the matrices satisfy \(\mathbf{A}_\delta = - A_p^T\), as predicted, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(\mathbf{A}_{p, J2}\), the primer vector ODE coefficient matrix in the J2 model. This shows that maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected. An open question is whether or not there exists a realistic maneuver scenario where drag effects cause sufficient differences w.r.t.\ to the J2 case.
+Indeed, the matrices satisfy \((\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} = - (A_p)_{4\leq i \leq 6, 4 \leq j \leq 6}^T\), as predicted by the theory in Section~\ref{sssec:pv_calc_ncon}, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(\mathbf{A}_{p, J2}\), the primer vector ODE coefficient matrix in the J2 model. This shows that maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected. An open question is whether or not there exists a realistic maneuver scenario where drag effects cause sufficient differences w.r.t.\ to the J2 case.
+
+%J2 Drag C2C SUM
+
+%J2 Drag C2C SUM
