@@ -5,7 +5,7 @@ This work relies on optimal control theory and orbital mechanics. Certain tools 
 
 Optimal control is the area of control theory which tries to find the best control action to satisfy some requirements, such as altering a system's state in some desired way. Here, ``best''  is defined as maximizing or minimizing some performance metric. In practice, and in particular in the scope of this work, this can be interpreted as attaining a target orbit in a certain amount of time, while minimizing fuel consumption.
 
-The mathematical nature of an optimal control problem varies greatly depending on the nature of the system, the requirements, and the objective. Here, a selected subset of this vast theory shall be presented. Suppose a continuous time dynamical system operating on times \(t \in [0, t_f]\), where \(t_f \in \mathbb{R}\), given by
+The mathematical nature of an optimal control problem varies greatly depending on the nature of the system, the requirements, and the objective. Here, a selected subset of this vast theory shall be presented. Suppose a continuous time dynamical system operating on times \(t \in [0, t_f]\), where \(t_f \in \mathbb{R}_+\), given by
 
 \begin{equation} \label{eq:generic_dyn}
     \dot{\mathbf{x}}(t) = f(\mathbf{x}(t), \mathbf{u}(t))
@@ -47,7 +47,7 @@ subject to
     \left(\mathbf{x}(t_f)\right)_k &= (\mathbf{x}_f)_k, k\in \mathcal{K}.
 \end{align}
 
-In general, this is a very hard problem. The optimization variables \(\mathbf{u}\) and \(\x\) are infinite dimensional. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}~\cite{Conway_2010}, which shall be discussed later. There are however tools for extracting necessary conditions for the optimal solution of this problem at all points in time. These are known as \textit{indirect methods}. Both are explored in the following sections, as well as a classification of the possible solutions of optimal control problems.
+In general, this is a very hard problem. The optimization variables \(\mathbf{u}\) and \(\x\) are infinite dimensional. There are techniques to turn this problem into a simple parameter optimization problem, which are known as \textit{direct methods}~\cite{Conway_2010}, which shall be discussed in the next section. There are however tools for extracting necessary conditions for the optimal solution of this problem at all points in time. These are known as \textit{indirect methods}. Both are explored in the following sections, as well as a classification of the possible solutions of optimal control problems.
 
 \subsection{Direct methods}
 
@@ -57,17 +57,17 @@ Multiple shooting is a very scalable and flexible method that allows for many di
 
 \subsection{Indirect methods}
 
-Indirect methods introduce more continuous-time variables that facilitate analytical or numerical analysis of the problem. One of this tools is the Hamiltonian~\cite{Conway_2010}, a quantity that describes the ensemble of objectives and constraints. Together with Pontryagin's Minimum Principle, it will provide a powerful tool in analyzing candidates to optimal trajectories. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in Equation~\eqref{eq:generic_dyn}, constraints in the forms of Equations~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
+Indirect methods introduce more continuous-time variables that facilitate analytical or numerical analysis of the problem. One of this tools is the Hamiltonian~\cite{Conway_2010}, a quantity that describes the ensemble of cost, dynamics and constraints. Together with Pontryagin's Minimum Principle, it will provide a powerful tool in analyzing candidates to optimal trajectories. It shall be defined for a minimization problem, and maximization problems can be adapted by changing the sign of the performance metric. Given a system of the form in Equation~\eqref{eq:generic_dyn}, constraints in the forms of Equations~\eqref{eq:generic_initial_constraint} and~\eqref{eq:generic_final_constraint}, and a cost function in the form~\eqref{eq:generic_cost}, the Hamiltonian \(H\) is defined as~\cite{bertsekas}
 \begin{equation}
-    H(\mathbf{x}(t), \mathbf{u}(t), \mathbf{\lambda}(t)) = L(\mathbf{x}, \mathbf{u}) + \mathbf{\lambda}{(t)}^T f(\mathbf{x}, \mathbf{u})
+    H(\mathbf{x}(t), \mathbf{u}(t), \boldsymbol{\lambda}(t)) = L(\mathbf{x}, \mathbf{u}) + \boldsymbol{\lambda}{(t)}^T f(\mathbf{x}, \mathbf{u})
 \end{equation}
-for all times \(t\), state and control vectors \(\mathbf{x}  \) and \(\mathbf{u}\) along a trajectory.\ \( \mathbf{\lambda}: \R \rightarrow \R^n, \mathbf{\lambda} \in C^1\) is the costate trajectory, a new set of variables introduced as the continuous-time equivalent of Lagrangian multipliers. These new variables are subject to the adjoint equations
+for all times \(t\), state and control vectors \(\mathbf{x}  \) and \(\mathbf{u}\) along a trajectory.\ \( \boldsymbol{\lambda}: \R \rightarrow \R^n, \boldsymbol{\lambda} \in C^1\) is the costate trajectory, a new set of variables introduced as the continuous-time equivalent of Lagrangian multipliers. These new variables are subject to the adjoint equations
 \begin{equation}
-    \dot{\mathbf{\lambda}} = - \left( \frac{\partial H}{\partial \mathbf{x}} \right)^T = -\left( \frac{\partial f}{\partial \mathbf{x}} \right)^T \mathbf{\lambda} - \left( \frac{\partial L}{\partial \mathbf{x}} \right)^T
+    \dot{\boldsymbol{\lambda}} = - \left( \frac{\partial H}{\partial \mathbf{x}} \right)^T = -\left( \frac{\partial f}{\partial \mathbf{x}} \right)^T \boldsymbol{\lambda} - \left( \frac{\partial L}{\partial \mathbf{x}} \right)^T
 \end{equation}
 and boundary conditions~\cite{bryson_applied_optimal_control}
 \begin{equation}\label{eq:final_costate}
-    \mathbf{\lambda}^k(t_f) = \frac{\partial h(\mathbf{x}(t_f))}{\partial \mathbf{x}^k}, k \notin \mathcal{K}.
+    \boldsymbol{\lambda}^k(t_f) = \frac{\partial h(\mathbf{x}(t_f))}{\partial \mathbf{x}^k}, k \notin \mathcal{K}.
 \end{equation}
 
 An important property of the Hamiltonian for fixed-time problems is that its value is constant with respect to time along the optimal trajectory~\cite{bertsekas}. For an optimal trajectory \(\x^\star(t)\), \(\uc^\star(t)\), \(\lambda^\star(t)\), and some value \(C \in \R\),
@@ -77,14 +77,14 @@ An important property of the Hamiltonian for fixed-time problems is that its val
 
 To complete the Hamiltonian approach, Pontryagin's Minimum Principle (PMP) is introduced. It states that a necessary condition for attaining the minimum in Equation~\eqref{eq:argmin_cost} is that, at all times \(t\), and along the optimal trajectory,~\cite{bertsekas}
 \begin{equation} \label{eq:Pontryagin}
-    \mathbf{u}^\star(t) = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}(t), \mathbf{u}, \mathbf{\lambda}(t)].
+    \mathbf{u}^\star(t) = \arg \min_{\mathbf{u} \in \mathcal{U}} H[\mathbf{x}(t), \mathbf{u}, \boldsymbol{\lambda}(t)].
 \end{equation}
 
-With the control trajectory obtained as a function of \(\mathbf{x}(t)\) and \(\mathbf{\lambda}(t)\) from Equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial states, some final states and some final costates according to Equations \eqref{eq:generic_final_constraint} and \eqref{eq:final_costate}. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
+With the control trajectory obtained as a function of \(\mathbf{x}^\star(t)\) and \(\boldsymbol{\lambda}^\star(t)\) from Equation~\eqref{eq:Pontryagin}, there are 2n variables, the state and costate trajectories, and 2n boundary conditions, the initial states, some final states and some final costates according to Equations \eqref{eq:generic_final_constraint} and \eqref{eq:final_costate}. Thus, the problem is well-posed and configures a Two Point Boundary Value Problem (TPBVP)~\cite{bryson_applied_optimal_control}.
 
 \subsection{Solution hierarchy}
 
-It is worth highlighting that in optimal control problems, a hierarchy of solutions exist~\cite{ross2015primer}, shown in Figure~\ref{fig:opt_sol_hierarchy}. The least valuable solution is a mere feasible solution, which satisfies the constraints, but is not optimal in any sense. It is enough in some applications, but not in others. Next, local optima have generally lower costs, and are found numerically with nonlinear solvers, but no not necessarily reflect extrema of the original problem. If it can be shown that a local optimum also satisfies the PMP, it comes is inherently a more valuable solution, since it satisfies the necessary conditions to be an extremum of the problem. The most valuable solution type, and the one which is almost impossible to characterize, are global optima, which are guaranteed to have the lowest possible feasible cost for the problem. Finally, lower bound estimations give (infeasible) costs which are guaranteed to be lower than the global optimum, and can be estimated physically~\cite{impulsive_europa} or mathematically, for instance with sum-of-squares decompositions~\cite{sos_book}. This work will search for extrema satisfying the PMP.
+It is worth highlighting that in optimal control problems, a hierarchy of solutions exist~\cite{ross2015primer}, shown in Figure~\ref{fig:opt_sol_hierarchy}. The least valuable solution is a mere feasible solution, which satisfies the constraints, but is not optimal in any sense. It is enough in some applications, but not in others. Next, local optima have generally lower costs, and are found numerically with nonlinear solvers, but do not necessarily reflect extrema of the original problem. If it can be shown that a local optimum also satisfies the PMP, it is inherently a more valuable solution, since it satisfies the necessary conditions to be an extremum of the problem. The most valuable solution type, and the one which is almost impossible to characterize, are global optima, which are guaranteed to have the lowest possible feasible cost for the problem. Finally, lower bound estimations give (infeasible) costs which are guaranteed to be lower than the global optimum, and can be estimated physically~\cite{impulsive_europa} or mathematically, for instance with sum-of-squares decompositions~\cite{sos_book}. This work will search for extrema satisfying the PMP.
 
 \begin{figure}[htbp]
     \centering
@@ -104,9 +104,9 @@ It is worth highlighting that in optimal control problems, a hierarchy of soluti
 
 \section{Orbital Mechanics}
 
-Orbital mechanics concerns itself with the motion of bodies in space subject to gravitational and disturbance forces. A variety of models exist, differing in precision and availability of analytical tools. The simpler the model, the more analytical tools are available, and the smaller the precision. The simplest model of all, and the basis for all others, is the two body problem, where a central massive body is supposed to be stationary while a moving satellite is subject to its gravitational attraction, also known as Keplerian motion. 
+Orbital mechanics concerns itself with the motion of bodies in space subject to gravitational and disturbance forces. A variety of models exist, differing in precision and availability of analytical tools. The simpler the model, the more analytical tools are available, and the smaller the precision. The simplest model of all, and the basis for all others, is the two body problem, where a central massive body is supposed to be stationary while a moving satellite is subject to its spherically symmetric gravitational attraction, also known as Keplerian motion.
 
-\subsection{Two Body Motion}
+\subsection{Keplerian Motion}
 
 Let \(\mathbf{r}\) be the 3-dimensional position of a satellite, and \(\mu \) the gravitational parameter of the central body. The dynamics of the satellite's position are given by~\cite{curtis2015orbital}
 \begin{equation} \label{eq:kepler_dyn}
@@ -120,13 +120,13 @@ In this model, the possible trajectories are known to be conics, and therefore r
 \begin{equation}
     \epsilon = -\frac{\mu}{\lVert \mathbf{r} \rVert} + \frac{\mathbf{v}^2}{2},
 \end{equation}
-is negative. The trajectory is closed, and the movement is periodic with period~\cite{curtis2015orbital}
+is negative. The trajectory is closed, and the movement is periodic with period \(P\) given by~\cite{curtis2015orbital}
 \begin{equation}
-    T = 2\pi \sqrt{\frac{a^3}{\mu}}
+    P = 2\pi \sqrt{\frac{a^3}{\mu}}
 \end{equation}
 where \(a\) is the semi-major axis of the ellipse.
 
-In this case, an alternative state vector may be introduced in the form of the Keplerian elements. These are~\cite{curtis2015orbital}:
+In the case of a bound orbit, an alternative state vector may be introduced in the form of the Keplerian elements. These are~\cite{curtis2015orbital}:
 \begin{itemize}
     \item \(a\): semi-major axis of the ellipse;
     \item \(e\): excentricity of the ellipse;
@@ -136,7 +136,7 @@ In this case, an alternative state vector may be introduced in the form of the K
     \item \(\theta \): true anomaly, or angle between the perigee and the current position of the satellite.
 \end{itemize}
 
-These elements are related to the Cartesian state vector through the geometric description of a point on an ellipse, rotated through the Euler angles \(\Omega\), \(i\), \(\omega\)~\cite{curtis2015orbital}.
+These elements are related to the Cartesian state vector through the geometric description of a point on an ellipse, rotated in space through the Euler angles \(\Omega\), \(i\), \(\omega\)~\cite{curtis2015orbital}.
 
 
 In this formulation, only the true anomaly is a function of time, all other elements being constant. The true anomaly can be related to time implictly through two other quantities, the mean anomaly \(M\) and the excentric anomaly \(E\)~\cite{curtis2015orbital}:
@@ -154,11 +154,11 @@ where \(\mathbf{x}_f\) is the satellite's final state after a time \(t\), with i
 
 \subsection{Orbital Perturbations}
 
-The two body model is an idealized model amenable to analytical solutions, which neglects many real world phenomena. In LEO, the most important perturbations are oblateness effects (J2) and atmospheric drag~\cite{curtis2015orbital}, which are introduced ahead.
+The Keplerian model is an idealized model amenable to analytical solutions, which neglects many real world phenomena. In LEO, the most important perturbations are oblateness effects (J2) and atmospheric drag~\cite{curtis2015orbital}, which are introduced ahead.
 
 \subsubsection{Oblateness effects}
 
-The Earth being an oblate spheroid, its gravity field is not perfectly central, neither does it behave like the inverse square law predicted by the two body model. Instead, the Earth's geopotential is modeled as a point mass potential plus spherical harmonics terms with coefficients subject to empirical fitting. The biggest non-sphericity of Earth is its oblateness, the increased width at the Equator. This effect is described by the coefficient \(J_2\), which causes a perturbing acceleration \(\mathbf{a}_{J2}\) given by
+The Earth being an oblate spheroid, its gravity field is not perfectly central, neither does it behave like the inverse square law predicted by the two body model. Instead, the Earth's geopotential can be modeled as a point mass potential plus spherical harmonics terms with coefficients subject to empirical fitting. The biggest non-sphericity of Earth is its oblateness, the increased width at the Equator. This effect is described by the coefficient \(J_2\), which causes a perturbing acceleration \(\mathbf{a}_{J2}\) given by~\cite{curtis2015orbital}
 \begin{equation}\label{eq:j2_acc}
     \mathbf{a}_{J2} = \frac{3 J_2 \mu R^2}{2 r^4} \begin{bmatrix}
         \frac{x}{r} \left(5 \frac{z^2}{r^2} - 1\right) \\
@@ -168,28 +168,29 @@ The Earth being an oblate spheroid, its gravity field is not perfectly central, 
 \end{equation}
 where \(R\) is Earth's Equatorial radius.
 
-Thus, this model's dynamics can be expressed solely as a function of the position, since it is a conservative model:
+Thus, this model's dynamics can be expressed solely as a function of the position through the J2 gravitational acceleration function \(g_{J2}(\pos)\), since it is a conservative model:
 \begin{equation}\label{eq:j2_dyn}
     \ddot{\mathbf{r}} = g_{J2}(\mathbf{r}) = -\frac{\mu}{r^3} \mathbf{r} + \mathbf{a}_{J2}.
 \end{equation}
 
 \subsubsection{Atmospheric Drag}\label{sssec:drag}
 
-Atmospheric drag affects satellites in LEO by generating a force opposed to the relative velocity of the satellite w.r.t.\ the Earth's atmosphere, which rotates with it. The drag force is proportional to atmospheric density \(\rho(r)\), as a function of the satellite's distance to Earth. Modelling this dependence is not a trivial task, with accurate models taking solar activity and Earth's temperature into account. A simple model is given by the US Standard Atmosphere 1976, which gives empirical coefficients \(\rho_i\) and \(H_i\), valid for height intervals \([h_i, h_i+1]\), for \(i = 1,\dots, 28\). Then, atmospheric density is given piecewise by
+Atmospheric drag affects satellites in LEO by generating a force opposed to the relative velocity of the satellite w.r.t.\ the Earth's atmosphere, which rotates with it. The drag force is proportional to the local atmospheric density \(\rho(r)\), which depends on the satellite's distance to Earth. Modelling this dependence is not a trivial task, with accurate models taking solar activity and Earth's temperature into account. A simple model is given by the US Standard Atmosphere 1976~\cite{curtis2015orbital}, which gives empirical coefficients \(\rho_i\) and \(H_i\), valid for height intervals \([h_i, h_i+1]\), for \(i = 1,\dots, 28\). Then, atmospheric density is given piecewise by
 \begin{equation}\label{eq:rho}
     \rho(r) = \rho_i \exp{\big(-\frac{\left(r - (h_i + R)\right)}{H_i}\big)},
 \end{equation}
 where \(i\) is such that \(h_i \leq r - R \leq h_{i+1}\). The satellite is parameterized by a reference surface \(S\), drag coefficient \(C_D\) and mass \(m\). Considering that the Earth rotates with angular velocity \(\omega_E\), the relative velocity of the satellite w.r.t.\ the atmosphere is given by
 \begin{equation}
-    \vel_{r} = \vel - (\omega_E \hat{\mathbf{z}}) \times \pos.
+    \vel_{r} = \vel - (\omega_E \hat{\mathbf{z}}) \times \pos
 \end{equation}
+with \(\hat{\mathbf{z}}\) being the unit vector in the direction of Earth's rotation.
 
 Finally, the acceleration due to drag \(\acc_D\) is given by
 \begin{equation}\label{eq:acc_drag}
     \acc_D = - \frac{1}{2} \rho(r) \frac{S C_D}{m} \lVert \vel_r \rVert \vel_r,
 \end{equation}
 
-which can be added as a perturbing non-conservative acceleration to the model.
+which can be added as a perturbing non-conservative acceleration to a gravitational model.
 
 % \subsection{Lambert's Problem}
 
@@ -210,7 +211,7 @@ which can be added as a perturbing non-conservative acceleration to the model.
 
 It is sometimes useful to characterize how the solution of an ODE depends on its initial condition. For the solution \(\x(t) \in \R^n\) of the dynamical system \(\dot{\x} = f(\x)\) with initial condition \(\x_0\), this is mathematically described by the state transition matrix (STM) \(\Phi_\delta(t) \in \R^{n \times n}\):
 \begin{equation}\label{eq:stm_def}
-    \Phi_\delta(t) = \frac{\partial \x(t)}{\x_0}.
+    \Phi_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}.
 \end{equation}
 
 In general, this matrix is subject to the initial value problem~\cite{montenbruck2000satellite}
@@ -222,7 +223,7 @@ In general, this matrix is subject to the initial value problem~\cite{montenbruc
 \end{equation}
 with \(n^2\) variables and initial conditions.
 
-In particular, for a double-integrator system with position \(\pos\) and velocity \(\vel\) in the state vector described by
+In particular, for a double-integrator system with position \(\pos\), velocity \(\vel\) and acceleration given by \(\acc(\pos, \vel)\) described by
 \begin{equation}
     \dot{\x} = \begin{bmatrix}
         \dot{\pos} \\ \dot{\vel}
@@ -230,7 +231,7 @@ In particular, for a double-integrator system with position \(\pos\) and velocit
         \vel \\ \acc(\pos, \vel)
     \end{bmatrix},
 \end{equation}
-the STM equation can be expanded to
+the STM equation can be expanded to %TODO introduce A_delta as df / dx?
 \begin{equation}\label{eq:STM_r_v}
     \dot{\Phi}_\delta(t) = \begin{bmatrix}
         \mathbf{0}_{3\times 3} & \mathbf{I}_3 \\
@@ -241,7 +242,7 @@ where \(A_\delta(\pos(t), \vel(t))\) is defined to be matrix coefficient of the 
 \begin{equation}
     \dot{\mathbf{z}}(t) = A_\delta(\pos(t), \vel(t)) \mathbf{z}(t),
 \end{equation}
-its solution is given in terms of the initial condition \(\mathbf{z}_0\) and the STM:
+has a solution given in terms of the initial condition \(\mathbf{z}_0\) and the STM:
 \begin{equation}\label{eq:remark_STM}
     \mathbf{z}(t) = \Phi_\delta(t) \mathbf{z}_0.
 \end{equation}
@@ -249,67 +250,68 @@ its solution is given in terms of the initial condition \(\mathbf{z}_0\) and the
 For a two-body model, an analytical expression for the STM exists, given for instance in \citeonline{montenbruck2000satellite} and \citeonline{glandorf_transition_matrix}. 
 
 \section{Orbital Maneuvers}
-
-When a satellite is able to maneuver, the Keplerian dynamics of Equation~\eqref{eq:kepler_dyn} need to be augmented with the thrust control vector \(\mathbf{F}\), which applies a propulsion force on the satellite. Supposing that \(m\) is the total current mass of the spacecraft, which in general is a seventh state variable (in addition to orbital state variables), the dynamics are given by
+%TODO remove control constraint set, final state set, etc
+When a satellite has a propulsion system, the Keplerian dynamics of Equation~\eqref{eq:kepler_dyn} need to be augmented with the thrust control vector \(\mathbf{F}\), which applies a propulsion force on the satellite. Supposing that \(m\) is the total current mass of the spacecraft, which in general is a seventh state variable (in addition to orbital state variables), the dynamics are given by
 \begin{equation}
     \ddot{\mathbf{r}} = -\frac{\mu}{\lvert \mathbf{r} \rVert^3}\mathbf{r} + \frac{\mathbf{F}}{m}.
 \end{equation}
 
-The generation of thrust \(\mathbf{F}\) is tied to the consumption of propellant, according to some propulsion model. Three main models exist. The first is the constant specific impulse continuous (as opposed to instantaneous) thrust model, adequate for chemical engines. The second is the impulsive thrust model, the limiting case of the previous model where a burn is considered to happen instantly. And the last one is the continuous thrust variable specific impulse model, which models electric rocket engines and shall not be explored in this work.
+The generation of thrust \(\mathbf{F}\) is tied to the consumption of propellant, according to some propulsion model. Three main models exist. The first is the constant specific impulse finite (as opposed to instantaneous) thrust model, adequate for chemical engines. The second is the impulsive thrust model, the limiting case of the previous model where a burn is considered to happen instantly. And the last one is the continuous thrust variable specific impulse model, which models electric rocket engines and shall not be explored in this work. Let \(\boldsymbol{\Gamma} = \frac{\mathbf{F}}{m}\) be the acceleration due to propulsion of the satellite.
 
-The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. Suppose a satellite has an orbital state \(\mathbf{x}_i\) and is required to maneuver to an orbital state \(\mathbf{x}_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used. A convenient way of expressing this is to maximize the final mass of the spacecraft, with constraints:
-\begin{align}
-    \max_{\mathbf{F}(t)}&\quad m(t_f) \label{eq:max_final_mass} \\
-    \mathbf{x}(0) &= \mathbf{x}_i \\
-    \mathbf{x}(t_f) &= \mathbf{x}_f
-\end{align}
+The application of optimal control to the field of orbital maneuvering is mainly concerned with the preservation of propellant. In general, a satellite has an orbital state \(\mathbf{x}_i\) and is required to maneuver to an orbital state \(\mathbf{x}_f\) in a time \(t_f\), and it is desired to minimize the amount of propellant used, that is, maximize the remaining mass of the satellite \(m(t_f)\):
+\begin{align}\label{eq:orb_man_obj}
+    \begin{tabular}{cl}
+     $\max$ & $m(t_f)$\\
+         $\mathbf{F}(t)$ &  \\
+          subject to: &$\x(0) = \x_i$\\
+                      & $\x(t_f) = \x_f$
+    \end{tabular}
+ \end{align}
+%TODO rename transfer to maneuver everywhere
+% \subsection{Constant specific impulse model}
 
-\subsection{Constant specific impulse model}
+% Chemical and cold gas thrusters are characterized by an exhaust velocity \(v_e\) at which the propellant flow is ejected from the spacecraft. With a propellant flow rate \(\dot{m}_p\), the thrust \(\mathbf{F}\) is given by
+% \begin{equation}
+%    \lVert \mathbf{F} \rVert = v_e \dot{m}_p
+% \end{equation}
 
-Chemical and cold gas thrusters are characterized by an exhaust velocity \(v_e\) at which the propellant flow is ejected from the spacecraft. With a propellant flow rate \(\dot{m}_p\), the thrust \(\mathbf{F}\) is given by
-\begin{equation}
-   \lVert \mathbf{F} \rVert = v_e \dot{m}_p
-\end{equation}
+% The propellant flow is deducted from the spacecraft's mass; therefore it can be stated that \(\dot{m} = - \dot{m}_p\). Thus, in this model, the spacecraft's mass is a seventh state variable. A new state vector \(\mathbf{x}_m = \begin{bmatrix}
+%     \mathbf{r}^T & \mathbf{v}^T & m 
+% \end{bmatrix}^T\) is defined and subject to the dynamics
+% \begin{equation}
+%     \begin{bmatrix}
+%         \dot{\mathbf{r}} \\ \dot{\mathbf{v}} \\ \dot{m}
+%     \end{bmatrix} = \begin{bmatrix}
+%         \mathbf{v} \\ -\frac{\mu}{\lVert \mathbf{r} \rVert^3}\mathbf{r} + \frac{\mathbf{F}}{m} \\ -\frac{\lVert \mathbf{F} \rVert}{v_e}
+%     \end{bmatrix}
+% \end{equation}
 
-The propellant flow is deducted from the spacecraft's mass; therefore it can be stated that \(\dot{m} = - \dot{m}_p\). Thus, in this model, the spacecraft's mass is a seventh state variable. A new state vector \(\mathbf{x}_m = \begin{bmatrix}
-    \mathbf{r}^T & \mathbf{v}^T & m 
-\end{bmatrix}^T\) is defined and subject to the dynamics
-\begin{equation}
-    \begin{bmatrix}
-        \dot{\mathbf{r}} \\ \dot{\mathbf{v}} \\ \dot{m}
-    \end{bmatrix} = \begin{bmatrix}
-        \mathbf{v} \\ -\frac{\mu}{\lVert \mathbf{r} \rVert^3}\mathbf{r} + \frac{\mathbf{F}}{m} \\ -\frac{\lVert \mathbf{F} \rVert}{v_e}
-    \end{bmatrix}
-\end{equation}
+% In addition, thrusters have limited flow rates, which imposes a maximum thrust magnitude \(F_{\max}\):
+% \begin{equation}
+%     \lVert \mathbf{F} \rVert \leq F_{\max}
+% \end{equation}
 
-In addition, thrusters have limited flow rates, which imposes a maximum thrust magnitude \(F_{\max}\):
-\begin{equation}
-    \lVert \mathbf{F} \rVert \leq F_{\max}
-\end{equation}
+% The final mass of the satellite, the objective to be maximized, can be developed for this model by integrating \(\dot{m}\) as
+% \begin{equation}
+%     m(t_f) = m(0) - \int_0^{t_f} \frac{\lVert \mathbf{F} \rVert}{v_e} dt
+% \end{equation}
 
-The objective from Equation~\eqref{eq:max_final_mass} can be developed for this model by integrating \(\dot{m}\) as
-\begin{equation}
-    m(t_f) = m(0) - \int_0^{t_f} \frac{\lVert \mathbf{F} \rVert}{v_e} dt
-\end{equation}
+% Let \(\mathbf{\Gamma}\) be the acceleration due to thrust such that \(\mathbf{\Gamma} = \frac{\mathbf{F}}{m}\). The literature~\cite{Conway_2010} then suggests considering that the propellant consumption is small compared to the total mass of the satellite, such that it can be stated that
+% \begin{equation}\label{eq:final_mass_gamma}
+%     m(t_f) \approx m(0) - \frac{m(0)}{v_e}\int_0^{t_f} \lVert \mathbf{\Gamma} \rVert dt
+% \end{equation}
 
-Let \(\mathbf{\Gamma}\) be the acceleration due to thrust such that \(\mathbf{\Gamma} = \frac{\mathbf{F}}{m}\). The literature~\cite{Conway_2010} then suggests considering that the propellant consumption is small compared to the total mass of the satellite, such that it can be stated that
-\begin{equation}
-    m(t_f) \approx m(0) - \frac{m(0)}{v_e}\int_0^{t_f} \lVert \mathbf{\Gamma} \rVert dt
-\end{equation}
+% Therefore maximizing final mass is equivalent to minimizing the integral term in Equation~\eqref{eq:final_mass_gamma}:
+% \begin{equation}\label{eq:obj_continuous_thrust}
+%     \min_{\mathbf{\Gamma}(t)} \int_0^{t_f} \lVert \mathbf{\Gamma} \rVert dt
+% \end{equation}
+% subject to \(\lVert \mathbf{\Gamma}(t) \rVert \leq \Gamma_{\max}\) at all times, with \(\Gamma_{\max} = \frac{F_{\max}}{m(0)}\).
 
-Therefore the objective can be restated as
-\begin{equation}\label{eq:obj_continuous_thrust}
-    \min_{\mathbf{\Gamma}(t)} \int_0^{t_f} \lVert \mathbf{\Gamma} \rVert dt
-\end{equation}
-subject to \(\lVert \mathbf{\Gamma}(t) \rVert \leq \Gamma_{\max}\) at all times, with \(\Gamma_{\max} = \frac{F_{\max}}{m(0)}\).
-
-If the control variable is set to be \(\mathbf{\Gamma}\) instead of \(\mathbf{F}\), this leads to a mass-independent problem. This approximation leads to primer vector theory, and is therefore important. 
-%However, the assumption of constant mass should be challenged.
-
+% If the control variable is set to be \(\mathbf{\Gamma}\) instead of \(\mathbf{F}\), the mass can therefore be removed from the problem.
 
 \subsection{Impulsive propulsion model}\label{sec:imp_prop_model}
 
-% \subsubsection{Impulsive thrust}
+% justify: high thrust, simple, and solution to unbounded problem
 
 A very simple propulsion model that allows for easier solution of the orbital maneuvering problem supposes that the propulsive forces are much greater and operate much faster than the gravitational force, introducing discontinuities in velocity. This is called \textit{impulsive thrust}. The propulsion model relies on Tsiolkovsky's Equation~\cite{Conway_2010}, 
 \begin{equation}
@@ -317,27 +319,29 @@ A very simple propulsion model that allows for easier solution of the orbital ma
 \end{equation}
 where \(\Delta v\) is the magnitude of an instantaneous change in velocity, \(v_e\) is the engine's exhaust velocity (which is treated as a known parameter), \(m_i\) is the initial spacecraft mass and \(m_f\) is the final mass. Supposing a burn happens at time \(t_b\), the propulsion model can then be expressed through a Dirac delta as
 \begin{equation}
-    \left.\frac{F}{m}\right\vert_{t = t_b} = \delta(t - t_b) v_e \ln{\left(\frac{m(t_b^-)}{m(t_b^+)} \right)} = \delta(t - t_b) \Delta v,
+    \Gamma(t) = \delta(t - t_b) v_e \ln{\left(\frac{m(t_b^-)}{m(t_b^+)} \right)} = \delta(t - t_b) \Delta v,
 \end{equation}
 which yields a velocity discontinuity
 \begin{equation}
     \lVert \mathbf{v}(t_b^+) - \mathbf{v}(t_b^-) \rVert = v_e \ln{\left(\frac{m(t_b^-)}{m(t_b^+)}\right)} = \Delta v.
 \end{equation}
 
-Now, between impulses there are coasting arcs where the vessel is subject only to external (gravitational) forces, as illustrated in Figure~\ref{fig:impulsive_maneuver_diagram}. Considering a generic maneuver with \(n\) burns, there are \(n+1\) coasting segments related by the change in velocity \(\Delta \mathbf{v}_j\) associated with the j-th burn. Considering burn times \(t_j\), with \(t_f \geq t_{j+1} \geq t_j \geq 0\), and the initial and final times \(0\) and \(t_f\), the system is subject to boundary conditions
+% TODO rewrite
+
+Now, between impulses there are coasting arcs where the vessel is subject only to external (gravitational) forces, as illustrated in Figure~\ref{fig:impulsive_maneuver_diagram}. Considering a generic maneuver with \(n_i\) burns, there are \(n_i+1\) coasting segments related by the change in velocity \(\Delta \mathbf{v}_j\) associated with the j-th burn. Considering burn times \(t_j\), with \(t_f \geq t_{j+1} \geq t_j \geq 0\), and the initial and final times \(0\) and \(t_f\), the system is subject to boundary conditions
 \begin{align}
     \mathbf{x}(0) &= \mathbf{x}_i \\
-    \mathbf{r}(t_j^+) &= \mathbf{r}(t_j^-),& \forall j=1,\dots,n \\
-    \mathbf{v}(t_j^+) &= \mathbf{v}(t_j^-) + \Delta \vec v_j,& \forall j=1,\dots,n \\
+    \mathbf{r}(t_j^+) &= \mathbf{r}(t_j^-),& \forall j=1,\dots,n_i \\
+    \mathbf{v}(t_j^+) &= \mathbf{v}(t_j^-) + \Delta \vec v_j,& \forall j=1,\dots,n_i \\
     \mathbf{x}(t_f) &= \mathbf{x}_f
 \end{align}
-and to dynamical Equation~\eqref{eq:kepler_dyn} in the intermediate times. Using the concept of orbit propagator, this adds the constraints
+and to the propulsion-free orbital model dynamics in the intermediate times. Using the concept of orbit propagator, this adds the constraints
 \begin{align}
     \mathbf{x}(t_1^-) &= p_o(\mathbf{x}(0), t_1) \\
-    \mathbf{x}(t_{j+1}^-) &= p_o(\mathbf{x}(t_j^+), t_{j+1} - t_j), \forall j = 1, \dots, n-1 \\
+    \mathbf{x}(t_{j+1}^-) &= p_o(\mathbf{x}(t_j^+), t_{j+1} - t_j), \forall j = 1, \dots, n_i-1 \\
     \mathbf{x}(t_f) &= p_o(\mathbf{x}(t_n^+), t_f - t_n)
 \end{align}
-to the previous list. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta \mathbf{v}_j\). Accounting for \(\mathbf{x}(0)\), all of the intermediate \(\mathbf{r}(t_j^-)\), \(\mathbf{r}(t_j^+)\), \(\mathbf{v}(t_j^-)\) and \(\mathbf{v}(t_j^+)\), and also the final state \(\mathbf{x}(t_f)\), plus the impulse parameters, there are \(6 + 12n + 6 + 4n = 16n + 12\) unknowns. At the same time, there are \(6 + (3 + 3)n + 6 + 6 + 6(n-1) + 6 = 12n + 18\) constraints. Therefore, for general initial and final conditions, the \textit{minimal number of impulses} is 2. 
+to the previous list. Each impulse is described by its time \(t_j\) and its velocity change vector \(\Delta \mathbf{v}_j\). Accounting for \(\mathbf{x}(0)\), all of the intermediate \(\mathbf{r}(t_j^-)\), \(\mathbf{r}(t_j^+)\), \(\mathbf{v}(t_j^-)\) and \(\mathbf{v}(t_j^+)\), and also the final state \(\mathbf{x}(t_f)\), plus the impulse parameters, there are \(6 + 12n + 6 + 4n = 16n + 12\) unknowns. At the same time, there are \(6 + (3 + 3)n_i + 6 + 6 + 6(n_i-1) + 6 = 12n + 18\) constraints. Therefore, for general initial and final conditions, the \textit{minimal number of impulses} is 2. 
 
 \begin{figure}[htbp]
     \centering
@@ -346,17 +350,25 @@ to the previous list. Each impulse is described by its time \(t_j\) and its velo
     \label{fig:impulsive_maneuver_diagram}
 \end{figure}
 
-Tsiolkovsky's equation can be applied to all impulses, thus relating the final and initial masses with the total velocity change, which is the sum of all \(n\) burns executed during the transfer:
+Tsiolkovsky's equation can be applied at all impulses, which yields an expression relating the final and initial masses with the total velocity change, which is the sum of all \(n_i\) burns executed during the transfer:
 \begin{equation}
-    m(t_f) = m(0) \exp{\left(-\frac{\sum_{i=1}^{n}\Delta v_i}{v_e}\right)}
+    m(t_f) = m(0) \exp{\left(-\frac{\sum_{j=1}^{n_i}\Delta v_j}{v_e}\right)}
 \end{equation}
 
-Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref{eq:max_final_mass} is equivalent to minimizing the sum of magnitudes of impulses used during the transfer:
-\begin{equation}
-    \min \sum_{i=1}^{n} \Delta v_i.
-\end{equation}
+Since \(v_e\) and \(m(0)\) are not subject to optimization, the objective~\eqref{eq:orb_man_obj} is equivalent to minimizing the sum of magnitudes of impulses used during the transfer:
+\begin{align}\label{eq:imp_man_obj}
+    \begin{tabular}{cl}
+     $\min$ & $\sum_{j=1}^{n_i} \Delta v_j = \int_0^{t_f} \Gamma(t) dt$\\
+         $\Delta \vel_j, t_j,$ &  \\
+         \(j = 1, \dots, n_i\) & \\
+          subject to: &$\x(0) = \x_i$\\
+                      & $\x(t_f) = \x_f$
+    \end{tabular}
+ \end{align}
 
-Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. However, the control trajectory \(\mathbf{\Gamma}(t)\) in the impulsive case is not a function, but a \textit{measure}. It therefore needs to be implemented not as a function of time, as usual in optimal control, but as magnitudes of discontinuities in the state trajectory. This introduces the number of allowed impulses as an optimization hyperparameter~\cite{optimal_impulsive_control}. To choose an optimal number of impulses, the theory of primer vectors (see ahead) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
+Thus, in the impulsive case, the problem is \textit{independent of spacecraft mass}, and it can be eliminated from the state vector. 
+
+The control trajectory \(\mathbf{\Gamma}(t)\) in the impulsive case is not a function, but a \textit{measure}. Should the controls be restricted to the space of integrable bounded functions, leading to continuous state trajectories, as is usual in optimal control, the minimum of the problem is not attainable~\cite{impulsive_control}. It therefore needs to be extended to the space of measures, which encompasses the Dirac delta measure, which leads to \textit{bounded variation} trajectories. In numerical solution schemes, this introduces the number of allowed impulses as an optimization hyperparameter~\cite{optimal_impulsive_control}. To choose an optimal number of impulses, the theory of primer vectors (see ahead) can help determine the number of impulses needed~\cite{interactive_primer_vector}.
 
 \subsubsection{Hohmann transfer}\label{sssec:hohmann}
 
@@ -381,20 +393,16 @@ The transfer time is half of the transfer orbit's period. With \(t_H\) being the
 \section{Primer vector theory}
 %redo for impulsive maneuvers: Hamiltonionan must be constant
 %do for multiple models
-The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\citeonline{Conway_2010}. Here, the impulsive thrust case will be treated as a limiting case of finite thrust when \(\Gamma_{\max} \rightarrow \infty\). 
+The application of optimal control theory to orbital maneuvers dates back to the 1960s, with pioneering work by Lawden~\cite{Conway_2010}. In particular, he coined the term "primer vector"  as an analogy with the fact that the costate trajectory imposes a necessary condition for firing the engines, thus acting as a "primer". This theory is based on the indirect necessary conditions provided by the Hamiltonian formalism previously exposed, and is explored in~\citeonline{Conway_2010}. Here, the theory will be introduced firstly for a finite thrust case with maximum acceleration \(\Gamma_{\max}\), and the impulsive thrust case will be treated as the limiting case \(\Gamma_{\max} \rightarrow \infty\). The theory under conservative orbital models is reviewed before the introduction of the non-conservative primer vector equations.
 
 \subsection{Conservative Orbital model}
 
-Firstly, a model where \(\ddot{\pos} = g(\pos) = \nabla \Phi(\pos)\), where \(\Phi(\pos)\) is a gravitational potential field, is considered. This type of model contains the two body approach as well as the J2 model. 
+Firstly, a model where \(\ddot{\pos} = g(\pos) = [\frac{\partial}{\partial \pos} \Phi(\pos)]^T\), where \(\Phi(\pos)\) is a gravitational potential field, is considered. This type of model contains the two body approach as well as the J2 model. 
 
-The acceleration due to the thrust \(\mathbf{\Gamma} \) can be split into its magnitude and direction as \(\mathbf{\Gamma} = \Gamma \hat{\mathbf{u}}\), \(\Gamma = \lVert \mathbf{\Gamma} \rVert\), \(\lVert \hat{\mathbf{u}} \rVert = 1\) so that the objective from Equation~\eqref{eq:obj_continuous_thrust} can be rewritten as
-\begin{equation}
-    \min_{\Gamma(t), \hat{\mathbf{u}}(t)} \int_0^{t_f} \Gamma dt
-\end{equation}
-and the Hamiltonian of the system is the given by
+The acceleration due to the thrust \(\mathbf{\Gamma} \) can be split into its magnitude and direction as \(\mathbf{\Gamma} = \Gamma \hat{\mathbf{u}}\), \(\Gamma = \lVert \mathbf{\Gamma} \rVert\), \(\lVert \hat{\mathbf{u}} \rVert = 1\) so that the objective from Equation~\eqref{eq:imp_man_obj} is used in the Hamiltonian of the system:
 \begin{equation}
     H = \Gamma + \begin{bmatrix}
-        \mathbf{\lambda}_r^T & \mathbf{\lambda}_v^T
+        \boldsymbol{\lambda}_r^T & \boldsymbol{\lambda}_v^T
     \end{bmatrix} \begin{bmatrix}
         \mathbf{v} \\ g(\mathbf{r}) + \Gamma \hat{\mathbf{u}}
     \end{bmatrix}
@@ -403,39 +411,39 @@ and the Hamiltonian of the system is the given by
 The costate is subject to the adjoint equations given in block matrix form as
 \begin{equation}\label{eq:lambda_dot_cons}
     \begin{bmatrix}
-        \dot{\mathbf{\lambda}}_r \\ \dot{\mathbf{\lambda}}_v
+        \dot{\boldsymbol{\lambda}}_r \\ \dot{\boldsymbol{\lambda}}_v
     \end{bmatrix} = \begin{bmatrix}
-        0_{3\times3} & -\left(\frac{\partial g(\mathbf{r})}{\partial \mathbf{r}}\right)^T \\
-        -I_{3\times3} & 0
+        \mathbf{0}_{3\times3} & -\left(\frac{\partial g(\mathbf{r})}{\partial \mathbf{r}}\right)^T \\
+        -\mathbf{I}_3 & \mathbf{0}_{3\times3}
     \end{bmatrix} \begin{bmatrix}
-        \mathbf{\lambda}_r \\ \mathbf{\lambda}_v
+        \boldsymbol{\lambda}_r \\ \boldsymbol{\lambda}_v
     \end{bmatrix}
 \end{equation}
 which is linear in the costate variables. For problems with final position and velocity constraints, no boundary conditions are given for the adjoint equations.
 
 Rearranging the Hamiltonian to factor \(\Gamma \), 
 \begin{equation}
-    H = (1 + \mathbf{\lambda}_v^T \hat{\mathbf{u})} \Gamma + \mathbf{\lambda}_r^T \mathbf{v} + \mathbf{\lambda}_v^T g(\mathbf{r}).
+    H = (1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u})} \Gamma + \boldsymbol{\lambda}_r^T \mathbf{v} + \boldsymbol{\lambda}_v^T g(\mathbf{r}).
 \end{equation}
 
 By applying Pontryagin's Minimum Principle, the thrust magnitude \(\Gamma\) is given piecewise by analyzing the sign of its coefficient:
 \begin{equation}
     \Gamma = \begin{cases}
-        \Gamma_{\max}&, 1+\mathbf{\lambda}_v^T \hat{\mathbf{u}} < 0 \\
-        0&, 1 + \mathbf{\lambda}_v^T \hat{\mathbf{u}} > 0 \\
+        \Gamma_{\max}&, 1+\boldsymbol{\lambda}_v^T \hat{\mathbf{u}} < 0 \\
+        0&, 1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u}} > 0 \\
         \text{intermediate}&, \text{otherwise}
     \end{cases}
 \end{equation}
 
 %check what lawden has to say
-The case where \(1 + \mathbf{\lambda}_v^T \hat{\mathbf{u}} = 0\) on a finite interval of time will not be considered here; these are \textit{singular arcs} and occur rarely~\cite{singular_arcs}. When \(\Gamma = \Gamma_{\max}\), its coefficient should be as negative as possible, which happens when \(\hat{\mathbf{u}}\) has the opposite direction to \(\mathbf{\lambda}_v\):
+The case where \(1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u}} = 0\) on a finite interval of time will not be considered here; these are \textit{singular arcs} and occur rarely~\cite{singular_arcs}. When \(\Gamma = \Gamma_{\max}\), its coefficient should be as negative as possible, which happens when \(\hat{\mathbf{u}}\) has the opposite direction to \(\boldsymbol{\lambda}_v\):
 \begin{equation}
-    \hat{\mathbf{u}} = - \frac{\mathbf{\lambda}_v}{\lVert \mathbf{\lambda}_v \rVert}.
+    \hat{\mathbf{u}} = - \frac{\boldsymbol{\lambda}_v}{\lVert \boldsymbol{\lambda}_v \rVert}.
 \end{equation}
 
-This direction, the \textit{optimal thrust direction} given by \(-\mathbf{\lambda}_v\) is what constitutes the primer vector \(\mathbf{p}\), which is defined as 
+This direction, the \textit{optimal thrust direction} given by \(-\boldsymbol{\lambda}_v\) is what constitutes the primer vector \(\mathbf{p}\), which is defined as 
 \begin{equation}\label{eq:p_lambda_v_cons}
-    \mathbf{p} = -\mathbf{\lambda}_v.
+    \mathbf{p} = -\boldsymbol{\lambda}_v.
 \end{equation}
 
 The engine firing conditions can be stated solely as a function of the primer vector as~\cite{Conway_2010}
@@ -450,14 +458,14 @@ The engine firing conditions can be stated solely as a function of the primer ve
 The impulsive thrust case is then found by letting \(\Gamma_{\max} \rightarrow \infty\), in which case the segments where \(\lVert \mathbf{p} \rVert > 1\) approach points, and the thrust cases become
 
 \begin{equation}
-    \Gamma = \begin{cases}
+    \mathbf{\Gamma} = \begin{cases}
         0&, \lVert \mathbf{p} \rVert < 1 \\
         \Delta \vel \delta&, \lVert \mathbf{p} \rVert = 1 \\
     \end{cases},
 \end{equation}
-for some (possibly null) velocity increment \(\Delta \vel\)
+for some (possibly null) velocity increment vector \(\Delta \vel\).
 
-Alternatively, one could reason about the constant value of the Hamiltonian which, from Equation~\eqref{eq:constant_hamilt}, is finite. Therefore, at the impulse instants, where \(\Gamma\) is unbounded, its coefficient \(1 + \lambda_v^T \hat{\uc}\) must be \(0\), leading to \(\hat{\uc} = -\lambda_v = \mathbf{p}\), and the condition \(\lVert \mathbf{p} \rVert = 1\).
+Alternatively, one could reason about the constant value of the Hamiltonian which, from Equation~\eqref{eq:constant_hamilt}, is finite. Therefore, at the impulse instants, where \(\Gamma\) is unbounded, its coefficient \(1 + \boldsymbol{\lambda}_v^T \hat{\uc}\) must be \(0\), leading to \(\hat{\uc} = -\boldsymbol{\lambda}_v = \mathbf{p}\), and the condition \(\lVert \mathbf{p} \rVert = 1\).
 
 The necessary conditions offered by primer vector theory for an impulsive maneuver scenario are~\cite{Conway_2010}:
 \begin{enumerate}
@@ -485,7 +493,7 @@ From Equations~\eqref{eq:lambda_dot_cons} and \eqref{eq:p_lambda_v_cons}, the pr
         \left[\frac{\partial g}{\partial \pos}\right]^T & \mathbf{0}_3
     \end{bmatrix} \begin{bmatrix}
         \mathbf{p} \\ \dot{\mathbf{p}}
-    \end{bmatrix} = \mathbf{A}_p \begin{bmatrix}
+    \end{bmatrix} = \mathbf{A}_p(\pos) \begin{bmatrix}
         \mathbf{p} \\ \dot{\mathbf{p}}
     \end{bmatrix}
 \end{equation}
@@ -498,7 +506,7 @@ Since Equation~\eqref{eq:pdot_const} is linear on the variables, it admits a sol
         \mathbf{p}(t_0) \\ \dot{\mathbf{p}}(t_0)
     \end{bmatrix}.
 \end{equation}
-However, since \(g = \nabla \Phi = \left(\frac{\partial \Phi}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same differential equation as the STM in Equation~\eqref{eq:STM_r_v}, and Equation~\eqref{eq:remark_STM} can be used to equate the PVTM to the STM:
+However, since \(g = \left(\frac{\partial \Phi}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same differential equation as the STM in Equation~\eqref{eq:STM_r_v}, and Equation~\eqref{eq:remark_STM} can be used to equate the PVTM to the STM:
 \begin{equation}
     \mathbf{\Phi}_p(t - t_0) = \mathbf{\Phi}_\delta(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
 \end{equation}
@@ -558,7 +566,7 @@ Here, the model considered has a conservative part \(g(\pos)\) and a non-conserv
 The Hamiltonian of the system is the given by
 \begin{equation}
     H = \Gamma + \begin{bmatrix}
-        \mathbf{\lambda}_r^T & \mathbf{\lambda}_v^T
+        \boldsymbol{\lambda}_r^T & \boldsymbol{\lambda}_v^T
     \end{bmatrix} \begin{bmatrix}
         \mathbf{v} \\ g(\mathbf{r}) + d(\pos, \vel) + \Gamma \hat{\mathbf{u}}
     \end{bmatrix}
@@ -567,25 +575,25 @@ The Hamiltonian of the system is the given by
 The costate is subject to the adjoint equations given in block matrix form as
 \begin{equation}\label{eq:lambda_dot_ncon}
     \begin{bmatrix}
-        \dot{\mathbf{\lambda}}_r \\ \dot{\mathbf{\lambda}}_v
+        \dot{\boldsymbol{\lambda}}_r \\ \dot{\boldsymbol{\lambda}}_v
     \end{bmatrix} = \begin{bmatrix}
         0_{3\times3} & -\left[\frac{\partial }{\partial \mathbf{r}}\big(g(\mathbf{r}) + d(\pos, \vel)\big)\right]^T \\
         -I_{3\times3} & -\left(\frac{\partial d(\pos, \vel)}{\partial \vel}\right)^T 
     \end{bmatrix} \begin{bmatrix}
-        \mathbf{\lambda}_r \\ \mathbf{\lambda}_v
+        \boldsymbol{\lambda}_r \\ \boldsymbol{\lambda}_v
     \end{bmatrix}.
 \end{equation}
 
 Rearranging the Hamiltonian to factor \(\Gamma \), 
 \begin{equation}
-    H = (1 + \mathbf{\lambda}_v^T \hat{\mathbf{u}}) \Gamma + \mathbf{\lambda}_r^T \mathbf{v} + \mathbf{\lambda}_v^T (g(\mathbf{r}) + d(\pos, \vel)).
+    H = (1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u}}) \Gamma + \boldsymbol{\lambda}_r^T \mathbf{v} + \boldsymbol{\lambda}_v^T (g(\mathbf{r}) + d(\pos, \vel)).
 \end{equation}
 
 By similar reasoning to the conservative case, \(\mathbf{p} = - \lambda_v\), with the same necessary conditions. 
 
 \subsubsection{Primer Vector calculation}\label{sssec:pv_calc_ncon}
 
-The primer vector differential equation is the main difference of the non-conservative case w.r.t. the conservative case. It can be found from Equation~\eqref{eq:lambda_dot_ncon}:
+The primer vector differential equation is the main difference of the non-conservative case w.r.t.\ the conservative case. It can be found from Equation~\eqref{eq:lambda_dot_ncon}:
 
 \begin{equation}\label{eq:pdot_ncon}
     \begin{bmatrix}
@@ -595,7 +603,7 @@ The primer vector differential equation is the main difference of the non-conser
         \left[\frac{\partial }{\partial \mathbf{r}}\big(g(\mathbf{r}) + d(\pos, \vel)\big)\right]^T & -\left(\frac{\partial d(\pos, \vel)}{\partial \vel}\right)^T
     \end{bmatrix} \begin{bmatrix}
         \mathbf{p} \\ \dot{\mathbf{p}}
-    \end{bmatrix} = \mathbf{A}_p \begin{bmatrix}
+    \end{bmatrix} = \mathbf{A}_p(\pos, \vel) \begin{bmatrix}
         \mathbf{p} \\ \dot{\mathbf{p}}
     \end{bmatrix}.
 \end{equation}
@@ -607,7 +615,7 @@ Save some very particular non-conservative force models, the non-conservative pr
         \mathbf{\Phi}_p(0) = \mathbf{0}_6
     \end{cases},
 \end{equation}
-which allows for the solution of a linear TPBVP as described in Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular}. The integration of the initial value problem in Equation~\eqref{eq:PVTM_ODE} as a method for calculating the primer vector will be referred to as the ODE method.
+which allows for the solution of a linear TPBVP as described in Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular}. The integration of the initial value problem in Equation~\eqref{eq:PVTM_ODE} coupled with the system's dynamical equations as a method for calculating the PVTM will be referred to as the ODE method. 
 
 \subsection{Primer vector theory summary}
 
@@ -616,8 +624,8 @@ A short summary of primer vector calculation methods per model type is in order 
 \begin{table}[htbp]
     \centering
     \begin{tabular}{cccc} \toprule
-        Model & Glandorf & STM & ODE \\ \midrule
-        Two Body & \checkmark & \checkmark & \checkmark \\
+        Model Class & Glandorf & STM & ODE \\ \midrule
+        Keplerian & \checkmark & \checkmark & \checkmark \\
         Conservative & \(\times\) & \checkmark & \checkmark \\
         Non-conservative & \(\times\) & \(\times\) & \checkmark \\ \bottomrule
     \end{tabular}

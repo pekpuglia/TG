@@ -1,11 +1,11 @@
 
 The primer vector meta-algorithm was applied to some scenarios that represent generic maneuvers that may be of interest in LEO\@. These scenarios will be presented, together with an explanation of why they were chosen, and then solutions for each of them, under different orbital models, will be presented.
-
+%TODO discuss orbit unraveling
 \section{Scenarios}
 
 \subsection{Circle to Circle rendez-vous}
 
-A maneuver scenario corresponding to a Hohmann transfer (under a two body model) was chosen. Firstly, because in the two body model, there is an analytical solution for the transfer, given in Section~\ref{sssec:hohmann}. And secondly, this is a simple scenario that highlights the difference between the different orbital models used in the work. The orbital parameters are given in Table~\ref{tab:c2c_orb_elems}, as well as a 3D rendering of the scenario in Figure~\ref{fig:hohmann_scenario}. The transfer time was calculated analytically to correspond to the Hohmann transfer time.
+A maneuver scenario corresponding to a Hohmann transfer (under a Keplerian model) was chosen. Firstly, because in the Keplerian model, there is an analytical solution for the transfer, given in Section~\ref{sssec:hohmann}. And secondly, this is a simple scenario that highlights the difference between the different orbital models used in the work. The orbital parameters are given in Table~\ref{tab:c2c_orb_elems}, as well as a 3D rendering of the scenario in Figure~\ref{fig:hohmann_scenario}. The transfer time was calculated analytically to correspond to the Hohmann transfer time.
 
 % C2C SETUP
 \begin{table}[htbp]
@@ -35,7 +35,7 @@ A maneuver scenario corresponding to a Hohmann transfer (under a two body model)
 
 \subsection{Noncoplanar rendez-vous}
 
-A second, more challenging scenario is taken from \citeonline{interactive_primer_vector}, where a noncoplanar rendez-vous scenario is proposed and solved under the two body model. Again, the goal is validating the code against a published result under the two body model, and exploring how the optimal trajectory may be different under other more realistic models. The orbital parameters are given in Table~\ref{tab:noncop_rdv_orb_elems}, and multiple views of the scenario are shown in Figure~\ref{fig:noncop_rdv_scenario}. The transfer time is equal to two orbital periods of the target orbit.
+A second, more challenging scenario is taken from \citeonline{interactive_primer_vector}, where a noncoplanar rendez-vous scenario is proposed and solved under the Keplerian model. Again, the goal is validating the code against a published result under the Keplerian model, and exploring how the optimal trajectory may be different under other more realistic models. The orbital parameters are given in Table~\ref{tab:noncop_rdv_orb_elems}, and multiple views of the scenario are shown in Figure~\ref{fig:noncop_rdv_scenario}. The transfer time is equal to two orbital periods of the target orbit.
 
 % NCOP SCENARIO
 \begin{table}[htbp]
@@ -79,9 +79,9 @@ A second, more challenging scenario is taken from \citeonline{interactive_primer
 \end{figure}
 
 \FloatBarrier
-\section{Two Body}
+\section{Keplerian Model}
 
-The results for all scenarios under the two body model are presented in the following. All primer vector histories in this section were calculated with the Glandorf, STM and ODE methods, to numerically show they are equivalent. In all primer vector plots, vertical dashed lines indicate impulse times.
+The results for all scenarios under the Keplerian model are presented in the following. All primer vector histories in this section were calculated with the Glandorf, STM and ODE methods, to numerically show they are equivalent. In all primer vector plots, vertical dashed lines indicate impulse times.
 
 \subsection{Circle to Circle}
 
@@ -130,7 +130,7 @@ The circle to circle transfer scenario was first optimized for an \texttt{ICI} m
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/two_body/hohmann/ICI_primer_vector.png}
-    \caption{Primer vector trajectory for two body circle to circle \texttt{ICI} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian circle to circle \texttt{ICI} rendez-vous.}
     \label{fig:tb_c2c_ICI_pv}
 \end{figure}
 
@@ -151,7 +151,7 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
     2                 & 11107.1576          & 11708.69678             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 23449.63713             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for two body noncoplanar \texttt{ICI} rendez-vous.}
+    \caption{Summary of optimization for Keplerian noncoplanar \texttt{ICI} rendez-vous.}
     \label{tab:tb_ncop_ICI_tab}
 \end{table}
 % TB NCOP ICI
@@ -159,7 +159,7 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/ICI_primer_vector.png}
-    \caption{Primer vector trajectory for two body noncoplanar \texttt{ICI} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian noncoplanar \texttt{ICI} rendez-vous.}
     \label{fig:tb_ncop_ICI_pv}
 \end{figure}
 
@@ -208,7 +208,7 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICIC_primer_vector.png}
-    \caption{Primer vector trajectory for two body noncoplanar \texttt{CICIC} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian noncoplanar \texttt{CICIC} rendez-vous.}
     \label{fig:tb_ncop_CICIC_pv}
 \end{figure}
 
@@ -258,7 +258,7 @@ A \texttt{CICICIC} maneuver was searched based on the previous results. The spat
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICIC_primer_vector.png}
-    \caption{Primer vector trajectory for two body noncoplanar \texttt{CICICIC} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian noncoplanar \texttt{CICICIC} rendez-vous.}
     \label{fig:tb_ncop_CICICIC_pv}
 \end{figure}
 
@@ -287,7 +287,7 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICICIC_primer_vector.png}
-    \caption{Primer vector trajectory for two body noncoplanar \texttt{CICICICIC} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian noncoplanar \texttt{CICICICIC} rendez-vous.}
     \label{fig:tb_ncop_CICICICIC_pv}
 \end{figure}
 
@@ -409,11 +409,11 @@ The solution of the \texttt{CICIC} maneuver is shown in Table~\ref{tab:J2_ctcr_C
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/j2/hohmann/CICIC_primer_vector.png}
-    \caption{Primer vector trajectory for two body circle to circle \texttt{CICIC} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian circle to circle \texttt{CICIC} rendez-vous.}
     \label{fig:j2_c2c_CICIC_pv}
 \end{figure}
 
-Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab:J2_ctcr_CICICIC_tab}, primer vector trajectory shown in Figure~\ref{fig:j2_c2c_CICICIC_pv}, and spatial views in Figure~\ref{fig:j2_c2c_CICICIC_figs}. Now, two large impulses are made close to the endpoints, and a very small intermediate impulse is made about halfway throught the maneuver. The necessary conditions for optimality are satisfied with 3 impulses, and the final cost of the J2 model is about \(6 m/s\) higher than under the two body model.
+Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab:J2_ctcr_CICICIC_tab}, primer vector trajectory shown in Figure~\ref{fig:j2_c2c_CICICIC_pv}, and spatial views in Figure~\ref{fig:j2_c2c_CICICIC_figs}. Now, two large impulses are made close to the endpoints, and a very small intermediate impulse is made about halfway throught the maneuver. The necessary conditions for optimality are satisfied with 3 impulses, and the final cost of the J2 model is about \(6 m/s\) higher than under the Keplerian model.
 
 % J2 C2C 3 CICICIC
 \begin{table}[htpb]
@@ -459,7 +459,7 @@ Now, the \texttt{CICICIC} case is solved, with a summary shown in Table~\ref{tab
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{../results/j2/hohmann/CICICIC_primer_vector.png}
-    \caption{Primer vector trajectory for two body circle to circle \texttt{CICICIC} rendez-vous.}
+    \caption{Primer vector trajectory for Keplerian circle to circle \texttt{CICICIC} rendez-vous.}
     \label{fig:j2_c2c_CICICIC_pv}
 \end{figure}
 
@@ -528,7 +528,7 @@ Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usua
     \label{fig:j2_ncop_ICI_pv}
 \end{figure}
 
-The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:J2_nr_CICIC_tab}, its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}, and its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. Now, this maneuver is only \(5 m/s\) more expensive than its two body counterpart (compare with Table~\ref{tab:tb_nr_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of low \(\Delta v\) usage. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
+The \texttt{CICIC} maneuver is summarized in Table~\ref{tab:J2_nr_CICIC_tab}, its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}, and its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. Now, this maneuver is only \(5 m/s\) more expensive than its Keplerian counterpart (compare with Table~\ref{tab:tb_nr_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of low \(\Delta v\) usage. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
 
 % J2 NCOP 2 CICIC
 \begin{table}[htpb]
