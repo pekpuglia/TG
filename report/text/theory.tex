@@ -209,16 +209,16 @@ which can be added as a perturbing non-conservative acceleration to a gravitatio
 
 \subsection{State Transition Matrix}
 
-It is sometimes useful to characterize how the solution of an ODE depends on its initial condition. For the solution \(\x(t) \in \R^n\) of the dynamical system \(\dot{\x} = f(\x)\) with initial condition \(\x_0\), this is mathematically described by the state transition matrix (STM) \(\Phi_\delta(t) \in \R^{n \times n}\):
+It is sometimes useful to characterize how the solution of an ODE depends on its initial condition. For the solution \(\x(t) \in \R^n\) of the dynamical system \(\dot{\x} = f(\x)\) with initial condition \(\x_0\), this is mathematically described by the state transition matrix (STM) \(\mathbf{\Phi}_\delta(t) \in \R^{n \times n}\):
 \begin{equation}\label{eq:stm_def}
-    \Phi_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}.
+    \mathbf{\Phi}_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}.
 \end{equation}
 
 In general, this matrix is subject to the initial value problem~\cite{montenbruck2000satellite}
 \begin{equation}
     \begin{cases}
-        \dot{\Phi}_\delta(t) = \frac{\partial f(\x(t))}{\partial x(t)} \Phi_\delta(t) \\
-        \Phi_\delta(0) = \mathbf{I}_n
+        \dot{\mathbf{\Phi}}_\delta(t) = \frac{\partial f(\x(t))}{\partial x(t)} \mathbf{\Phi}_\delta(t) \\
+        \mathbf{\Phi}_\delta(0) = \mathbf{I}_n
     \end{cases}
 \end{equation}
 with \(n^2\) variables and initial conditions.
@@ -233,18 +233,18 @@ In particular, for a double-integrator system with position \(\pos\), velocity \
 \end{equation}
 the STM equation can be expanded to %TODO introduce A_delta as df / dx?
 \begin{equation}\label{eq:STM_r_v}
-    \dot{\Phi}_\delta(t) = \begin{bmatrix}
+    \dot{\mathbf{\Phi}}_\delta(t) = \begin{bmatrix}
         \mathbf{0}_{3\times 3} & \mathbf{I}_3 \\
         \frac{\partial \acc(\pos(t), \vel(t))}{\partial \pos} & \frac{\partial \acc(\pos(t), \vel(t))}{\partial \vel}
-    \end{bmatrix} \Phi_\delta(t) = A_\delta(\pos(t), \vel(t)) \Phi_\delta(t),
+    \end{bmatrix} \mathbf{\Phi}_\delta(t) = \mathbf{A}_\delta(\pos(t), \vel(t)) \mathbf{\Phi}_\delta(t),
 \end{equation}
-where \(A_\delta(\pos(t), \vel(t))\) is defined to be matrix coefficient of the STM in its differential equation. Note also that any vector ODE with state \(\mathbf{z}(t) \in \R^n\) subject to
+where \(\mathbf{A}_\delta(\pos(t), \vel(t))\) is defined to be matrix coefficient of the STM in its differential equation. Note also that any vector ODE with state \(\mathbf{z}(t) \in \R^n\) subject to
 \begin{equation}
-    \dot{\mathbf{z}}(t) = A_\delta(\pos(t), \vel(t)) \mathbf{z}(t),
+    \dot{\mathbf{z}}(t) = \mathbf{A}_\delta(\pos(t), \vel(t)) \mathbf{z}(t),
 \end{equation}
 has a solution given in terms of the initial condition \(\mathbf{z}_0\) and the STM:
 \begin{equation}\label{eq:remark_STM}
-    \mathbf{z}(t) = \Phi_\delta(t) \mathbf{z}_0.
+    \mathbf{z}(t) = \mathbf{\Phi}_\delta(t) \mathbf{z}_0.
 \end{equation}
 
 For a two-body model, an analytical expression for the STM exists, given for instance in \citeonline{montenbruck2000satellite} and \citeonline{glandorf_transition_matrix}. 
@@ -397,7 +397,7 @@ The application of optimal control theory to orbital maneuvers dates back to the
 
 \subsection{Conservative Orbital model}
 
-Firstly, a model where \(\ddot{\pos} = g(\pos) = [\frac{\partial}{\partial \pos} \Phi(\pos)]^T\), where \(\Phi(\pos)\) is a gravitational potential field, is considered. This type of model contains the two body approach as well as the J2 model. 
+Firstly, a model where \(\ddot{\pos} = g(\pos) = [\frac{\partial}{\partial \pos} \mathbf{\Phi}(\pos)]^T\), where \(\mathbf{\Phi}(\pos)\) is a gravitational potential field, is considered. This type of model contains the two body approach as well as the J2 model. 
 
 The acceleration due to the thrust \(\mathbf{\Gamma} \) can be split into its magnitude and direction as \(\mathbf{\Gamma} = \Gamma \hat{\mathbf{u}}\), \(\Gamma = \lVert \mathbf{\Gamma} \rVert\), \(\lVert \hat{\mathbf{u}} \rVert = 1\) so that the objective from Equation~\eqref{eq:imp_man_obj} is used in the Hamiltonian of the system:
 \begin{equation}
@@ -498,20 +498,20 @@ From Equations~\eqref{eq:lambda_dot_cons} and \eqref{eq:p_lambda_v_cons}, the pr
     \end{bmatrix}
 \end{equation}
 
-Since Equation~\eqref{eq:pdot_const} is linear on the variables, it admits a solution through the form of a primer vector transition matrix (PVTM) \(\mathbf{\Phi}_p(t - t_0)\) such that
+Since Equation~\eqref{eq:pdot_const} is linear on the variables, it admits a solution through the form of a primer vector transition matrix (PVTM) \(\mathbf{\mathbf{\Phi}}_p(t - t_0)\) such that
 \begin{equation}
     \begin{bmatrix}
         \mathbf{p}(t) \\ \dot{\mathbf{p}}(t)
-    \end{bmatrix} = \mathbf{\Phi}_p(t - t_0) \begin{bmatrix}
+    \end{bmatrix} = \mathbf{\mathbf{\Phi}}_p(t - t_0) \begin{bmatrix}
         \mathbf{p}(t_0) \\ \dot{\mathbf{p}}(t_0)
     \end{bmatrix}.
 \end{equation}
-However, since \(g = \left(\frac{\partial \Phi}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same differential equation as the STM in Equation~\eqref{eq:STM_r_v}, and Equation~\eqref{eq:remark_STM} can be used to equate the PVTM to the STM:
+However, since \(g = \left(\frac{\partial \mathbf{\Phi}}{\partial \pos}\right)^T\), \(\left[\frac{\partial g}{\partial \pos}\right]\) is actually the Hessian matrix of the potential field, which is symmetric. Therefore, the primer vector is subject to the same differential equation as the STM in Equation~\eqref{eq:STM_r_v}, and Equation~\eqref{eq:remark_STM} can be used to equate the PVTM to the STM:
 \begin{equation}
-    \mathbf{\Phi}_p(t - t_0) = \mathbf{\Phi}_\delta(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
+    \mathbf{\mathbf{\Phi}}_p(t - t_0) = \mathbf{\mathbf{\Phi}}_\delta(t - t_0) = \frac{\partial \x(t)}{\partial \x(t_0)}.
 \end{equation}
 
-This way of computing \(\mathbf{\Phi}_p(t - t_0)\) will be termed the STM method for primer vector calculation, and is valid for all conservative force models. For the two body model in particular, a closed form for \(\mathbf{\Phi}_p(t-t_0)\) exists~\cite{glandorf_transition_matrix}. 
+This way of computing \(\mathbf{\mathbf{\Phi}}_p(t - t_0)\) will be termed the STM method for primer vector calculation, and is valid for all conservative force models. For the two body model in particular, a closed form for \(\mathbf{\mathbf{\Phi}}_p(t-t_0)\) exists~\cite{glandorf_transition_matrix}. 
 
 Computing the primer vector trajectory is done piecewise on coasting arcs between two consecutive impulses, since the primer vector is known at impulse times. Since \(\mathbf{p}\) is known at both ends, but not \(\dot{\mathbf{p}}\), this configures a linear TPBVP\@. For two consecutive impulses, \(\Delta v_1\) at time \(t_1\) and \(\Delta v_2\) at time \(t_2\), the primer vector values are given by:
 \begin{align}\label{eq:pv_deltav}
@@ -523,7 +523,7 @@ The state transition between these two instants can be stated as
 \begin{equation}
     \begin{bmatrix}
         \mathbf{p}(t_2) \\ \dot{\mathbf{p}}(t_2)
-    \end{bmatrix} = \mathbf{\Phi}_p(t_2 - t_1) \begin{bmatrix}
+    \end{bmatrix} = \mathbf{\mathbf{\Phi}}_p(t_2 - t_1) \begin{bmatrix}
         \mathbf{p}(t_1) \\ \dot{\mathbf{p}}(t_1)
     \end{bmatrix} = \begin{bmatrix}
         \mathbf{M}(t_2-t_1) & \mathbf{N}(t_2-t_1) \\ \mathbf{S}(t_2-t_1) & \mathbf{T}(t_2-t_1)
@@ -608,11 +608,11 @@ The primer vector differential equation is the main difference of the non-conser
     \end{bmatrix}.
 \end{equation}
 
-Save some very particular non-conservative force models, the non-conservative primer vector dynamics in Equation~\eqref{eq:pdot_ncon} is \textbf{not} equal to the non-conservative variational perturbation differential equation, which disallows the STM method from being used. However, it remains a linear differential equation with PVTM \(\mathbf{\Phi}_p(t - t_0)\) subject to 
+Save some very particular non-conservative force models, the non-conservative primer vector dynamics in Equation~\eqref{eq:pdot_ncon} is \textbf{not} equal to the non-conservative variational perturbation differential equation, which disallows the STM method from being used. However, it remains a linear differential equation with PVTM \(\mathbf{\mathbf{\Phi}}_p(t - t_0)\) subject to 
 \begin{equation}\label{eq:PVTM_ODE}
     \begin{cases}
-        \dot{\mathbf{\Phi}}_p = \mathbf{A}_p(\pos, \vel) \mathbf{\Phi}_p \\
-        \mathbf{\Phi}_p(0) = \mathbf{0}_6
+        \dot{\mathbf{\mathbf{\Phi}}}_p = \mathbf{A}_p(\pos, \vel) \mathbf{\mathbf{\Phi}}_p \\
+        \mathbf{\mathbf{\Phi}}_p(0) = \mathbf{0}_6
     \end{cases},
 \end{equation}
 which allows for the solution of a linear TPBVP as described in Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular}. The integration of the initial value problem in Equation~\eqref{eq:PVTM_ODE} coupled with the system's dynamical equations as a method for calculating the PVTM will be referred to as the ODE method. 

@@ -654,9 +654,9 @@ The primer vector trajectory in Figure~\ref{fig:jd_c2c_ICI_pv} compares the STM 
     \label{fig:jd_c2c_ICI_pv}
 \end{figure}
 
-This can be explained by comparing the matrices \(A_\delta\) and \(A_p\), the coefficients of the ODEs of the STM and ODE transition matrices respectively. They are only expected to differ in the lower right quadrant:
+This can be explained by comparing the matrices \(\mathbf{A}_\delta\) and \(A_p\), the coefficients of the ODEs of the STM and ODE transition matrices respectively. They are only expected to differ in the lower right quadrant:
 \begin{align}
-    (A_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
+    (\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
         -5.56731-12 & 0.0 & 0.0 \\
         0.0 & -7.77221e-12    & -2.72282e-12 \\
         0.0 & -2.72282e-12    & -8.92972e-12 \\
@@ -668,4 +668,4 @@ This can be explained by comparing the matrices \(A_\delta\) and \(A_p\), the co
     \end{bmatrix}
 \end{align}
 
-Indeed, the matrices satisfy \(A_\delta = - A_p^T\), as predicted, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(A_{p, J2}\), the primer vector ODE coefficient matrix in the J2 model. This shows that maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected. An open question is whether or not there exists a realistic maneuver scenario where drag effects cause sufficient differences w.r.t.\ to the J2 case.
+Indeed, the matrices satisfy \(\mathbf{A}_\delta = - A_p^T\), as predicted, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(\mathbf{A}_{p, J2}\), the primer vector ODE coefficient matrix in the J2 model. This shows that maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected. An open question is whether or not there exists a realistic maneuver scenario where drag effects cause sufficient differences w.r.t.\ to the J2 case.
