@@ -1,7 +1,7 @@
 
 All code was implemented in the Julia language due to the availability of \textit{packages} for subproblems of this work. In the next section, several components of the solution to the problem of optimization of impulsive maneuvers are detailed, and the following section assembles all components into the full optimization algorithm.
 
-\section{Components}
+\section{Program Components}
 
 The optimization of impulsive maneuvers relies on the representation and manipulation of several concepts in a programmatic fashion. In particular there is a need for a nonlinear numerical solver, a numerical way of propagating orbits, a representation for sequences of impulses and coasting arcs, an implicit formulation for maneuvers amenable to optimization, and a way of calculating primer vector trajectories on multi-impulse maneuvers. Each of those components will be explored in the following sections.
 
@@ -9,9 +9,9 @@ The optimization of impulsive maneuvers relies on the representation and manipul
 
 Nonlinear solvers are algorithms which iteratively approximate the solution to a system of nonlinear equations or a constrained optimization problem. Their choice is problem dependent and problems must be stated in a format compatible with the desired solver. Many algorithms exist, with different smoothness requirements, convergence properties, or optimality guarantees. 
 
-Of interest to this work are local gradient-based algorithms. They are well suited to nonlinear (but twice differentiable) problems with continuous variables subject to nonlinear constraints. By exploiting the gradient, and sometimes the Hessian of the cost as well, faster algorithms are available. The downside of this type of algorithm is that they return a \textit{local} solution, that is, a solution where no small change can improve it. Those are, in general, not \textit{global} solutions. Orbital maneuver problems have many local solutions of varying qualities, meaning that this distinction has practical consequences. The algorithm takes an initial guess as a parameter and improves it, simultaneously satisfying constraints and minimizing the objective function.
+Of interest to this work are local gradient-based algorithms~\cite{numerical_recipes}. They are well suited to nonlinear (but twice differentiable) problems with continuous variables subject to nonlinear constraints. By exploiting the gradient, and sometimes the Hessian of the cost as well, faster algorithms are available. The downside of this type of algorithm is that they return a \textit{local} solution, that is, a solution where no small change can improve it~\cite{nonlinear_opt}. Those are, in general, not \textit{global} solutions. Orbital maneuver problems have many local solutions of varying qualities, meaning that this distinction has practical consequences. The algorithm takes an initial guess as a parameter and improves it, simultaneously satisfying constraints and minimizing the objective function.
 
-Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{CasADi}~\cite{casadi}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation, and is the industry standard for optimal control. Internally, CasADi converts the problem to a format accepted by Ipopt~\cite{ipopt}, the default nonlinear solver in CasaDi. Ipopt is an open-source nonlinear solver widely recognized for its speed and precision, outperforming many competitors and being quite flexible. It is especially well suited to problems with many variables (up to thousands) with sparse constraints (that is, constraints that depend only on small subsets of variables). It is a Newton-like algorithm with many optimizations to iteration acceptance criteria, filtering of bad iterates, and many configurable parameters. Internally, this means that Ipopt must solve very large linear systems (Jacobian inversion) as a part of the solve process, which introduces normalization concerns (discussed later).
+Julia offers a multitude of nonlinear solvers, each with different scope, interface, and algorithms. This work has chosen to use \texttt{CasADi}~\cite{casadi}, a package which offers a modelling language for optimization problems that is quite close to mathematical notation, and is the industry standard for optimal control. Internally, CasADi converts the problem to a format accepted by Ipopt~\cite{ipopt}, the default nonlinear solver in CasaDi. Ipopt is an open-source nonlinear solver widely recognized for its speed and precision, outperforming many competitors and being quite flexible. It is especially well suited to problems with many variables (up to thousands) with sparse constraints (that is, constraints that depend only on small subsets of variables). It is a Newton-like algorithm with many optimizations to iteration acceptance criteria, filtering of bad iterates, and many configurable parameters. Internally, this means that Ipopt must solve very large linear systems (Jacobian inversion) as a part of the solve process, which introduces normalization concerns (discussed in Section~\ref{sssec:var_norm}).
 
 This solver allows for the specification of lower and upper bounds of variables separately to the specification of inequality constraints. Variable bounds are guaranteed to be respected at all iterations; inequality constraints are only guaranteed to be satisfied at the converged solution, if the problem is feasible. This distinction is important because some constraints define the domain of problem and should never be violated, such as positivity of time durations; other constraints are problem-based and therefore can be violated during the iteration process.
 
@@ -27,7 +27,7 @@ Brazil's National Institute of Space Research (INPE) developed a package for orb
     \mathbf{r}^T & \mathbf{v}^T
 \end{bmatrix}^T\) and the Keplerian elements, as well as functions for the propagation of orbits by some specified amount of time \(t_p\). Its algorithms were chosen with precision around edge cases in mind~\cite{rv_to_kepler}, making it numerically precise but unsuitable for nonlinear solvers, which expect differentiable functions everywhere. The functions in this package are also limited to elliptic orbits, which are not guaranteed to be found during iteration inside a numerical solver like Ipopt.
 
-Therefore, this is an auxiliary package used for verification, initial guess generation, and direct numerical propagation whenever required. When propagation is required in the statement of a nonlinear optimization problem, another method for orbit propagation is required. Despite being useful for explicit propagation, Keplerian elements are unsuited for optimization (at least with the chosen solver, see Section~\ref{sssec:solver}). This can be seen from the equation relating the true anomaly \(\theta\) and the eccentric anomaly \(E\), Equation~\eqref{eq:true_exc_anom}, discussed in Table~\ref{tab:kep_ecc_true}. In summary, the anomaly equations require special treatment close to the apogee to avoid infinities or discontinuities.
+Therefore, this is an auxiliary package used for verification, initial guess generation, and direct numerical propagation whenever required. When propagation is required in the statement of a nonlinear optimization problem, another method for orbit propagation is required. Despite being useful for explicit propagation, Keplerian elements are unsuited for optimization (at least with the chosen solver, see Section~\ref{sssec:solver}). This can be seen from the equation relating the true anomaly \(\theta\) and the eccentric anomaly \(E\), Equation~\eqref{eq:true_exc_anom}, discussed in Table~\ref{tab:kep_ecc_true}, which compares the left hand side (LHS) and right hand side (RHS) of different forms of this equation. In summary, the anomaly equations require special treatment close to the apogee to avoid infinities or discontinuities.
 
 \begin{table}[htbp]
     \centering
@@ -43,7 +43,7 @@ Therefore, this is an auxiliary package used for verification, initial guess gen
 Therefore, the dynamics in Cartesian coordinates were chosen for implicit propagation, due to the differentiability of this model in the usual range of orbital variables. Many methods for integrating dynamical systems for optimal control exist, such as collocation, pseudospectral methods, direct shooting, and multiple shooting~\cite{numerical_recipes}. Multiple shooting was chosen since it leads to a numerically stable problem and is standard in optimal control. An eighth-order Runge-Kutta (RK8) method~\cite{rk8} was used for discretizing the dynamical equations. Let  \(\mathbf{x}_{\text{next}} = f_{RK}(\mathbf{x}_{\text{prev}}, \Delta t)\) be the RK8 integration function from Cartesian state \(\x_{\text{prev}}\) to Cartesian state \(\mathbf{x}_{\text{next}}\) over a time step \(\Delta t\). This discretization scheme is agnostic to the dynamics of the system, that is, one can "drop-in" the Keplerian model, the J2 model, or the J2-Drag model and the scheme remains the same, which is quite convenient.
 
 The multiple shooting implicit orbit propagation uses \(N\) discretization points for a coasting arc of duration \(d_c\), which are parameterized with Cartesian state vector variables \(\x^j \in \R^6, j=1,\dots,N\) subject to 
-\begin{equation}
+\begin{equation}\label{eq:implicit_integration}
     \mathbf{x}^{j+1} = f_{RK}(\frac{d_c}{N - 1}, \mathbf{x}^j), j = 1, \dots, N.
 \end{equation}
 
@@ -58,20 +58,15 @@ To complete the implicit description, \(\dim \mathbf{x} = 6\) boundary condition
 
 \subsubsection{Orbital Models}
 
-Three orbital models are proposed for this work. The first is Keplerian dynamics, with dynamical system given in Equation~\eqref{eq:kepler_dyn}. The other two are perturbed orbital models chosen as representatives of the class of general conservative models, and general non-conservative models, respecting the relative magnitudes of orbital perturbations. The J2 Model, with dynamics given in Equation~\eqref{eq:j2_dyn}, was chosen as the representative of general conservative models. For the non-conservative model, the acceleration due to drag from Equation~\eqref{eq:acc_drag} is added to the dynamical equation of the J2 Model, yielding the dynamics of the J2+Drag Model:
-\begin{equation}
-    \ddot{\pos} = -\frac{\mu}{r^3} \pos + \acc_{J2} + \acc_{D}.
-\end{equation}
-
-Table~\ref{tab:orb_models} summarizes the models, model classes and dynamics used.
+Three orbital models are proposed for this work. The first is Keplerian dynamics, with dynamical system given in Equation~\eqref{eq:kepler_dyn}. The other two are perturbed orbital models chosen as representatives of the class of general conservative models, and general non-conservative models, respecting the relative magnitudes of orbital perturbations. The J2 Model, with dynamics given in Equation~\eqref{eq:j2_dyn}, was chosen as the representative of general conservative models. For the non-conservative model, the dynamics of the J2+Drag Model in Equation~\eqref{eq:drag_dyn} is considered. Table~\ref{tab:orb_models} summarizes the models, model classes and dynamics used. Keplerian dynamics is treated as a special case, since its trajectories have so many known properties. The J2 model is used as a representative of many possible conservative perturbation models, and the J2+Drag model, as a representative of the non-conservative perturbation models. This table should be paired with Table~\ref{tab:pv_calc} to find which primer vector calculation methods are allowed for each model.
 
 \begin{table}[htbp]
     \centering
-    \begin{tabular}{ccc}\toprule
-        Model & Model Class & Dynamics \\ \midrule
-        Keplerian & Keplerian & \(\ddot{\pos} = -\frac{\mu}{r^3} \pos\) \\
-        J2 & Conservative & \(\ddot{\pos} = -\frac{\mu}{r^3} \pos + \acc_{J2}\) \\
-        J2+Drag & Non-conservative & \(\ddot{\pos} = -\frac{\mu}{r^3} \pos + \acc_{J2} + \acc_{D}\) \\ \bottomrule
+    \begin{tabular}{cccc}\toprule
+        Model & Model Class & Dynamics & Equation reference \\ \midrule
+        Keplerian & Keplerian & \(\ddot{\pos} = -\frac{\mu}{r^3} \pos\) & \eqref{eq:kepler_dyn} \\
+        J2 & Conservative & \(\ddot{\pos} = -\frac{\mu}{r^3} \pos + \acc_{J2}\) & \eqref{eq:j2_dyn} \\
+        J2+Drag & Non-conservative & \(\ddot{\pos} = -\frac{\mu}{r^3} \pos + \acc_{J2} + \acc_{D}\) & \eqref{eq:drag_dyn} \\ \bottomrule
     \end{tabular}
     \caption{Summary of orbital models, classes and dynamics considered.}
     \label{tab:orb_models}
@@ -81,7 +76,7 @@ Table~\ref{tab:orb_models} summarizes the models, model classes and dynamics use
 
 Impulsive maneuvers are characterized by a sequence of impulses and coasting arcs. A notation for maneuvers is introduced, where \texttt{C} represents a coasting arc, and \texttt{I} represents an impulse. Any alternating sequence \(\mathcal{S} \in \{\texttt{C}, \texttt{I}\}^{n_c + n_i}\), where \(n_c\) is the number of coasting arcs and \(n_i\) is the number of impulses, with 2 or more impulses makes a valid maneuver: \texttt{ICI}, \texttt{ICIC}, \texttt{CICICICIC}, etc. Maneuvers need at least 2 impulses to be able to take any initial state to any final state (see Section~\ref{sec:imp_prop_model}). Also, let \(\mathcal{I} = \{i \in 1,\dots,n_i+n_c | \mathcal{S}_i = \texttt{I}\}\) and \(\mathcal{C} = \{c \in 1,\dots,n_i+n_c | \mathcal{S}_c = \texttt{C}\}\) be the sets of impulse and coast indices respectively. Figure~\ref{fig:maneuver_propagation} illustrates the algorithm for propagating a maneuver: at impulses, a velocity discontinuity is applied; at coasting arcs, the orbit is propagated. This algorithm follows the specified sequence of maneuvers for given values of impulse magnitudes and directions, and coast durations. 
 
-Implicit maneuver propagation is required for optimization. For this, coasts are parameterized according to the multiple shooting scheme of last section, and impulsive boundary conditions between arcs are added as constraints.  
+Implicit maneuver propagation is required for optimization. For this, coasts are parameterized according to the scheme of Equation~\eqref{eq:implicit_integration}, and impulsive boundary conditions between arcs are added as constraints.  
 
 
 \begin{figure}[htbp]
@@ -122,7 +117,7 @@ The full maneuver optimization problem, in its multiple shooting formulation, sh
     \item \(\mathcal{S} \in \{\texttt{C}, \texttt{I}\}^{n_c + n_i}\): the desired sequence of coasts and impulses.
 \end{enumerate}
 
-The problem's definition and variable set dynamically depends on the input sequence. The \(i\)-th impulse is described by the variables\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec{\mathbf{v}}\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec{\mathbf{v}}^T \Delta \vec{\mathbf{v}}}\), which is not differentiable at \(\Delta \vec {\mathbf{v}} = 0\), which is inconvenient.}
+The problem's definition and variable set dynamically depends on the input sequence. The \(i\)-th impulse is described by the variables\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec{\mathbf{v}}\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec{\mathbf{v}}^T \Delta \vec{\mathbf{v}}}\), which is not differentiable at \(\Delta \vec {\mathbf{v}} = 0\), which is inconvenient.}:
 \begin{enumerate}
     \item \(\Delta v_i \geq 0\): magnitude of the impulse;
     \item \(\hat{\uc}_i \in \R^3\): direction of the impulse.
@@ -131,7 +126,7 @@ The problem's definition and variable set dynamically depends on the input seque
 The \(c\)-th coasting arc is described by:
 \begin{enumerate}
     \item \(d_c \geq 0\): total duration of the arc;
-    \item \(\x^j_c \in \R^6, j=1,\dots,N\): tate vector variables for each coasting arc. 
+    \item \(\x^j_c \in \R^6, j=1,\dots,N\): state vector variables for each coasting arc. 
 \end{enumerate}
 
 Some care needs to be taken about the first sequence element, an impulse or coast, since this changes the necessary constraints for the initial and final conditions. The full multiple shooting problem for the optimization of the impulsive maneuver is:
@@ -171,13 +166,13 @@ Some care needs to be taken about the first sequence element, an impulse or coas
 
 % The solver should be initialized with a feasible, but not necessarily optimal solution, for better convergence (since Ipopt is a local solver, the choice of initial guesses is important). Values for \(\Delta t_1\) and \(\Delta t_2\) should be proposed based on physical reasoning. Then, the variables of the first and last coasting arcs are initialized with direct orbital propagation results (computed with the \texttt{SatelliteToolbox} package). The second coasting arc, between the impulses, is initialized with the solution to the Lambert problem between the final position of the first coasting arc and the initial position of the last coasting arc. Finally, the variables concerning the impulses' magnitudes and directions are initialized with the difference in velocity between consecutive arcs.
 
-As discussed in Section~\ref{sssec:solver}, the solver should be initialized with an initial guess that is not far from being feasible. For multiple shooting schemes, this means satisfying the dynamical constraints, but possibly not the final condition constraint. Therefore, initial guesses can be generated by guessing impulse magnitudes and directions, coast durations and applying the maneuver propagation algorithm from Section~\ref{sec:maneuver_propagation}. Early experimentation shows that coast durations have the biggest impact on the optimization result, so impulse magnitudes can be set to 0. Therefore, to best explore the available solutions and somewhat counteract the local nature of Ipopt, a random sampling scheme was setup, which samples coast durations adding up to the total time (see Appendix~\ref{app:random_sum}) and creates a "zero" maneuver composed of coasting arcs along the initial orbit and zero magnitude impulses at specified times. This, combined with early stopping in divergent cases (limiting restoration iterations mentioned in~\ref{sssec:solver}), allowed for speedy optimization of short and mid duration maneuvers.
+As discussed in Section~\ref{sssec:solver}, the solver should be initialized with an initial guess that is not far from being feasible. For multiple shooting schemes, this means satisfying the dynamical constraints, but possibly not the final condition constraint. Therefore, initial guesses can be generated by guessing impulse magnitudes and directions, coast durations and applying the maneuver propagation algorithm from Section~\ref{sec:maneuver_propagation}. Early experimentation shows that coast durations have the biggest impact on the optimization result, so impulse magnitudes can be set to 0. Therefore, to best explore the available solutions and somewhat counteract the local nature of Ipopt, a random sampling scheme was setup, which samples coast durations adding up to the total time (see Appendix~\ref{app:random_sum}) and creates a "zero" maneuver composed of coasting arcs along the initial orbit and zero magnitude impulses at specified times. This, combined with early stopping in divergent cases (limiting restoration iterations, as mentioned in Section~\ref{sssec:solver}), allowed for speedy optimization of short and mid duration maneuvers.
 
 Finally, some practical considerations about the multiple shooting scheme are presented. During optimization, dynamical constraints are allowed to be violated up to the solver's tolerance \(\varepsilon\), which warrants a verification with forward propagation of the maneuver. The difference between the final position of the forward-propagated maneuver and the desired final position \(\pos_2\) shall be denoted \(\Delta \pos_f\) in the analysis of numerical results. The issues of normalizing variables and having a twice differentiable model are discussed in the next sections.
 
-\subsubsection{Variable normalization}
+\subsubsection{Variable normalization}\label{sssec:var_norm}
 
-Cartesian orbital variables regularly take on values on the order of \(10^6\). At this range of values, floating-point number are more spaced out than on the order of \(1\), meaning that the optimal values for a problem may lie between two consecutive floating point number representations. In addition, Jacobians evaluated at big variable values tend to be ill-conditioned, leading to worse iterates due to lost precision. All of this leads to the need of normalizing variables.
+Cartesian orbital variables regularly take on values on the order of \(10^6\). At this range of values, floating-point number are more spaced out than on the order of \(1\), meaning that the optimal values for a problem may lie between two consecutive floating point number representations. In addition, Jacobians of large problems tend to be ill-conditioned, requiring variable scaling to place all variables, constraint residuals and objective at similar orders of magnitude~\cite{ipopt}. All of this leads to the need of normalizing variables.
 
 Variable normalization was done by rescaling physical units for length and time before assembling the multiple shooting problem. Let \(L\) be a normalizing length, and \(T\) be a normalizing time. Then, a change of units is performed and new, rescaled physical parameters are found. Let \(\tilde{\bullet}\) represent the rescaled version of any variable \(\bullet\). This procedure is exemplified with the two-body model, but is analogous for the other models explored in the work:
 \begin{equation}
@@ -217,7 +212,7 @@ which was deemed an acceptable approximation error.
 
 \subsection{Primer vector algorithm}
 
-The primer vector calculation methods from Sections~\ref{sssec:pv_calc_cons} and~\ref{sssec:pv_calc_ncon} apply only between two consecutive impulses. Figure~\ref{fig:pv_calc} shows a diagram with the algorithm for a general maneuver. First, the primer vector trajectory between all pairs of consecutive impulses is calculated by means of Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular} and the PVTM\@. If the STM method is valid for the orbital model being used, it can be directly estimated by the Jacobian of the final condition w.r.t.\ to the initial condition, as in Equation~\eqref{eq:stm_def}, which is computed handily with Julia's ForwardDiff package~\cite{forward_diff}. Then, if the maneuver starts with a coasting arc, the primer vector is propagated backwards with its transition matrix. Similarly, for the last impulse, the primer vector is propagated forwards. 
+The primer vector calculation methods from Sections~\ref{sssec:pv_calc_cons} and~\ref{sssec:pv_calc_ncon} apply only between two consecutive impulses. Figure~\ref{fig:pv_calc} shows a diagram with the algorithm for a general maneuver. First, the primer vector trajectory between all pairs of consecutive impulses is calculated by means of Equations~\eqref{eq:pv_deltav}-\eqref{eq:pdot1_singular} and the PVTM\@. If the STM method is valid for the orbital model being used, it can be directly estimated by the Jacobian of the final condition with respect to to the initial condition, as shown in Equation~\eqref{eq:stm_def}, which is computed handily with Julia's ForwardDiff package~\cite{forward_diff}. Then, if the maneuver starts with a coasting arc, the primer vector is propagated backwards with its transition matrix. Similarly, for the last impulse, the primer vector is propagated forwards. 
 
 Thereafter, the primer vector trajectory is analyzed. By construction, \(\mathbf{p}\) should be continuous, and \(\mathbf{p} = \hat{\uc}\). What is left to verify is whether \(\dot{\mathbf{p}}\) is continuous and \(\lVert \mathbf{p} \rVert \leq 1\) during the maneuver.
 
@@ -243,25 +238,6 @@ Thereafter, the primer vector trajectory is analyzed. By construction, \(\mathbf
     \caption{Primer vector trajectory calculation algorithm, and conclusions that may be drawn from their analysis.}
     \label{fig:pv_calc}
 \end{figure}
-
-
-% \section{Lambert problem implementation}
-
-% The formulations stated in the previous chapter make for one-dimensional nonlinear programs, which leads to high performance. However, they do not handle the singularity case of \(r_1 \parallel r_2\), which is of particular importance to orbital maneuvers as they often happen at periapsis and apoapsis. Sukhanov's formulation actually gives expressions for the initial radial and normal velocity when the input positions are collinear; the plane of the orbit should then be adequately chosen afterwards~\cite{sukhanov}. However, this was found to be very numerically sensitive and another algorithm was used in the rest of this work. An implicit orbit propagation algorithm, as described in Section~\ref{sec:orbit_propagation} is setup with boundary conditions
-
-% \begin{align}
-%     \mathbf{r}_{(j=1)}   &= \mathbf{r}_1 \\
-%     \mathbf{r}_{(j=N+1)} &= \mathbf{r}_2
-% \end{align}
-% which account for the 6 boundary conditions needed. In order to help convergence in the collinear case (and neighboring cases), two inequality constraints may be added:
-% \begin{align}
-%     \mathbf{r}_j^T \mathbf{r}_j &\geq R_{\text{Earth}}^2 \\
-%     \mathbf{r}_j \times \mathbf{v}_j &\geq 0
-% \end{align}
-% where the second constraint must be inverted if the desired orbit is retrograde. 
-
-% The propagation variables are initialized with the initial position and velocity.
-
 
 \section{Primer vector meta-algorithm}
 
