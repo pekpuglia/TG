@@ -33,7 +33,7 @@ fig, ax3d, orb_lines = plot_orbit(orb1, orb2)
 axislegend(ax3d, orb_lines, ["Initial orbit", "Final orbit"], position = (0.8, 0.9))
 fig
 ##
-save_with_views!(ax3d, fig, "./results/two_body/ipv_noncop/scenario")
+save_with_views("./results/two_body/ipv_noncop/scenario", orb1, orb2)
 ##
 ##vary tf for each orbit
 tf_real = 2*orbital_period(orb2, GM_EARTH) #slightly different to paper
@@ -75,7 +75,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_2r, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse x$imp_sc s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/two_body/ipv_noncop/$(transfer_type(solved_transfer_2r))")
+save_with_views("results/two_body/ipv_noncop/$(transfer_type(solved_transfer_2r))", orb1, orb2, solved_transfer_2r, imp_sc)
 ##
 #automate this - discard early departure/late arrival
 tspan_ppdot_glandorf = primer_vector(solved_transfer_2r, PVTMGlandorf(), 100)
@@ -134,7 +134,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_2f, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" imp_sc) * " s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/two_body/ipv_noncop/$(transfer_type(solved_transfer_2f))")
+save_with_views("results/two_body/ipv_noncop/$(transfer_type(solved_transfer_2f))", orb1, orb2, solved_transfer_2f, imp_sc)
 ##
 tspan_ppdot_glandorf_2f = primer_vector(solved_transfer_2f, PVTMGlandorf(), 100)
 tspan_ppdot_stm      = primer_vector(solved_transfer_2f, PVTMFromSTM(100, RK8), 100)
@@ -192,7 +192,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_3, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" imp_sc) * " s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/two_body/ipv_noncop/$(transfer_type(solved_transfer_3))")
+save_with_views("results/two_body/ipv_noncop/$(transfer_type(solved_transfer_3))", orb1, orb2, solved_transfer_3, imp_sc)
 ##
 tspan_ppdot_glandorf_3 = primer_vector(solved_transfer_3, PVTMGlandorf(), 100)
 tspan_ppdot_stm      = primer_vector(solved_transfer_3, PVTMFromSTM(100, RK8), 100)
@@ -247,7 +247,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_4, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" imp_sc) * " s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/two_body/ipv_noncop/$(transfer_type(solved_transfer_4))")
+save_with_views("results/two_body/ipv_noncop/$(transfer_type(solved_transfer_4))", orb1, orb2, solved_transfer_4, imp_sc)
 ##
 tspan_ppdot_glandorf_4 = primer_vector(solved_transfer_4, PVTMGlandorf(), 100)
 tspan_ppdot_stm      = primer_vector(solved_transfer_4, PVTMFromSTM(100, RK8), 100)

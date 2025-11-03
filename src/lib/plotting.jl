@@ -1,6 +1,7 @@
 using GLMakie
 using SatelliteToolboxBase
 using Setfield
+using Printf
 
 function orbit_plot_data(orbs::KeplerianElements...)
     N = 100
@@ -201,7 +202,7 @@ end
 function plot_transfer(orb1::KeplerianElements, orb2::KeplerianElements, solved_transfer::Transfer, scaling)
     f, ax3d, orb_lines = plot_orbit(orb1, orb2)
     coast_ps, ia = add_transfer!(ax3d, solved_transfer, scaling)
-    Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
+    Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" scaling) * " s"], position = (0.8, 0.9))
     f
 end
 
@@ -228,15 +229,15 @@ end
 
 function save_with_views(prefix, orb1::KeplerianElements, orb2::KeplerianElements)
     #3d plot
-    f = plot_orbit(orb1, orb2)
+    f, _, _ = plot_orbit(orb1, orb2)
     save(prefix*"_3d.png", f, px_per_unit = 300/96)
     
     #2d plots
-    fxp = plot_orbit_2d(:Xp, orb1, orb2)
+    fxp, _, _ = plot_orbit_2d(:Xp, orb1, orb2)
     save(prefix*"_x+.png", fxp, px_per_unit = 300/96)
-    fym = plot_orbit_2d(:Ym, orb1, orb2)
+    fym, _, _ = plot_orbit_2d(:Ym, orb1, orb2)
     save(prefix*"_y-.png", fym, px_per_unit = 300/96)
-    fzp = plot_orbit_2d(:Zp, orb1, orb2)
+    fzp, _, _ = plot_orbit_2d(:Zp, orb1, orb2)
     save(prefix*"_z+.png", fzp, px_per_unit = 300/96)
 end
 

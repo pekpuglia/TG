@@ -51,8 +51,8 @@ A second, more challenging scenario is taken from \citeonline{interactive_primer
         \(\theta\) & \(175.0^\circ\)  & \(180.0^\circ\)  \\ 
         Transfer time & \multicolumn{2}{c}{\(11107.158\)} \\\bottomrule
     \end{tabular}
-    \caption{Orbital elements used for the noncoplanar rendez-vous case analysis}
-    \label{tab:noncop_rdv_orb_elems}
+    \caption{Orbital elements used for the TODO transfer case analysis}
+    \label{tab:TODO_orb_elems}
 \end{table}
 % NCOP SCENARIO
 
@@ -143,17 +143,17 @@ The more complex noncoplanar rendez-vous case was optimized with an \texttt{ICI}
 \begin{table}[htpb]
     \centering
     \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{ICI} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\Delta x_{f}\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-06                & 0.0                        \\ \midrule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{ICI}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 1.0          & 1.00e-06                & 4.26292e-06                        \\ \midrule
     \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 0.0          & 11740.94035             & -0.0                    \\
     2                 & 11107.1576          & 11708.69678             & -0.0                    \\\midrule
     \textbf{Total}   & 11107.1576          & 23449.63713             &                     \\ \bottomrule   
     \end{tabular}
-    \caption{Summary of optimization for Keplerian noncoplanar \texttt{ICI} rendez-vous.}
-    \label{tab:tb_ncop_ICI_tab}
+    \caption{Summary of optimization for \texttt{ICI} Keplerian Non-Coplanar rendez-vous.}
+    \label{tab:Keplerian_nr_ICI_tab}
 \end{table}
 % TB NCOP ICI
 
@@ -194,7 +194,7 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
     \begin{tabular}{cccc} \toprule
     \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICIC}} \\ \midrule
     \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 1.66471e-07                        \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-06                & 1.66471e-07                        \\ \midrule
     \(\max \lVert p \rVert\) & 3.327     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
     \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
     1                 & 6644.30733          & 37.29252             & -0.0                    \\
@@ -202,7 +202,7 @@ Therefore, a \texttt{CICIC} maneuver case was optimized next. The maneuver's sum
     \textbf{Total}   & 11107.1576          & 53.50237             &                     \\ \bottomrule   
     \end{tabular}
     \caption{Summary of optimization for \texttt{CICIC} Keplerian Non-Coplanar rendez-vous.}
-    \label{tab:tb_nr_CICIC_tab}
+    \label{tab:Keplerian_nr_CICIC_tab}
 \end{table}
 % TB NCOP 2 CICIC
 
@@ -252,7 +252,7 @@ A \texttt{CICICIC} maneuver was searched based on the previous results. The spat
     \textbf{Total}   & 11107.1576          & 43.07342             &                     \\ \bottomrule   
     \end{tabular}
     \caption{Summary of optimization for \texttt{CICICIC} Keplerian Non-Coplanar rendez-vous.}
-    \label{tab:tb_nr_CICICIC_tab}
+    \label{tab:Keplerian_nr_CICICIC_tab}
 \end{table}
 % TB NCOP 3 CICICIC
 
@@ -281,7 +281,7 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
     \textbf{Total}   & 11107.1576          & 36.14596             &                     \\ \bottomrule   
     \end{tabular}
     \caption{Summary of optimization for \texttt{CICICICIC} Keplerian Non-Coplanar rendez-vous.}
-    \label{tab:tb_nr_CICICICIC_tab}
+    \label{tab:Keplerian_nr_CICICICIC_tab}
 \end{table}
 % TB NCOP 4 CICICICIC
 
