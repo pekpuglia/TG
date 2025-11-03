@@ -41,16 +41,9 @@ sol = solve_planner(solver, planner, tab0)
 ##
 solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
-f, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
-coast_ps, ia = add_transfer!(ax3d, solved_transfer, 1e4)
-Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
-f
+plot_transfer(HOHMANN_START, HOHMANN_END, solved_transfer, 1e4)
 ##
-f, ax, orb_lines = plot_orbit_2d(:Zp, HOHMANN_START, HOHMANN_END)
-add_transfer_2d!(ax, :Zp, solved_transfer, 1e4)
-f
-##
-save_with_views!(ax3d, f, "results/two_body/hohmann/ICI")
+save_with_views!("results/two_body/hohmann/ICI", HOHMANN_START, HOHMANN_END, solved_transfer, 1e4)
 ##
 tspan_ppdot_glandorf = primer_vector(solved_transfer, PVTMGlandorf(), 100)
 tspan_ppdot_stm = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)

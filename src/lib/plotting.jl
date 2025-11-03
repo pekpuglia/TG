@@ -198,17 +198,32 @@ function add_transfer_2d!(ax, view, solved_transfer::Transfer, scaling=1e3)
     add_transfer_2d!(ax, view, tpd)
 end
 
-function save_with_views!(ax3d, f, prefix)
+function plot_transfer(orb1::KeplerianElements, orb2::KeplerianElements, solved_transfer::Transfer, scaling)
+    f, ax3d, orb_lines = plot_orbit(orb1, orb2)
+    coast_ps, ia = add_transfer!(ax3d, solved_transfer, scaling)
+    Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
+    f
+end
+
+function plot_transfer_2d(view, orb1::KeplerianElements, orb2::KeplerianElements, solved_transfer::Transfer, scaling)
+    f, ax, orb_lines = plot_orbit_2d(view, orb1, orb2)
+    coast_ps, ia = add_transfer_2d!(ax, view, solved_transfer, scaling)
+    # Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
+    f
+end
+
+function save_with_views!(prefix, orb1::KeplerianElements, orb2::KeplerianElements, solved_transfer::Transfer, scaling)
+    #3d plot
+    f = plot_transfer(orb1, orb2, solved_transfer, scaling)
     save(prefix*"_3d.png", f, px_per_unit = 300/96)
     
-    az = [pi/2, 0, 0]
-    el = [0, 0, pi/2]
-    name = ["y+", "x+", "z+"]
-    for (a, e, n) in zip(az, el, name)
-        ax3d.azimuth = a
-        ax3d.elevation = e
-        save(prefix*"_"*n*".png", f, px_per_unit = 300/96)
-    end
+    #2d plots
+    fxp = plot_transfer_2d(:Xp, HOHMANN_START, HOHMANN_END, solved_transfer, scaling)
+    save(prefix*"_x+.png", fxp, px_per_unit = 300/96)
+    fym = plot_transfer_2d(:Ym, HOHMANN_START, HOHMANN_END, solved_transfer, scaling)
+    save(prefix*"_y-.png", fym, px_per_unit = 300/96)
+    fzp = plot_transfer_2d(:Zp, HOHMANN_START, HOHMANN_END, solved_transfer, scaling)
+    save(prefix*"_z+.png", fzp, px_per_unit = 300/96)
 end
 
 function plot_primer_vector(transfer::Transfer, tspan_ppdot::Tuple; name, label, style)
