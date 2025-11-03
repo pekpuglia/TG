@@ -71,7 +71,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_2r, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse x$imp_sc s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/j2/ipv_noncop/$(transfer_type(solved_transfer_2r))")
+save_with_views("results/j2/ipv_noncop/$(transfer_type(solved_transfer_2r))", orb1, orb2, solved_transfer_2r, imp_sc)
 ##
 tspan_ppdot_stm      = primer_vector(solved_transfer_2r, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode      = primer_vector(solved_transfer_2r, PVTMFromODE(100, RK8), 100)
@@ -133,7 +133,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_2f, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" imp_sc) * " s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/j2/ipv_noncop/$(transfer_type(solved_transfer_2f))")
+save_with_views("results/j2/ipv_noncop/$(transfer_type(solved_transfer_2f))", orb1, orb2, solved_transfer_2f, imp_sc)
 ##
 tspan_ppdot_stm      = primer_vector(solved_transfer_2f, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode      = primer_vector(solved_transfer_2f, PVTMFromODE(100, RK8), 100)
@@ -186,7 +186,7 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer_3, imp_sc)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse ×" * (@sprintf "%.1e" imp_sc) * " s"], position = (0.8, 0.9))
 f
 ##
-save_with_views!(ax3d, f, "results/j2/ipv_noncop/$(transfer_type(solved_transfer_3))")
+save_with_views("results/j2/ipv_noncop/$(transfer_type(solved_transfer_3))", orb1, orb2, solved_transfer_3, imp_sc)
 ##
 tspan_ppdot_stm      = primer_vector(solved_transfer_3, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode      = primer_vector(solved_transfer_3, PVTMFromODE(100, RK8), 100)
