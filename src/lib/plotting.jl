@@ -2,7 +2,7 @@ using GLMakie
 using SatelliteToolboxBase
 using Setfield
 
-function plot_orbit_data(orbs::KeplerianElements...)
+function orbit_plot_data(orbs::KeplerianElements...)
     N = 100
     θ = LinRange(0, 2π, N)
 
@@ -48,7 +48,7 @@ function plot_orbit(plot_data::Vector{Dict})
 end
 
 function plot_orbit(orbs::KeplerianElements...)
-    plot_data = plot_orbit_data(orbs...)
+    plot_data = orbit_plot_data(orbs...)
 
     plot_orbit(plot_data)
 end
@@ -89,7 +89,7 @@ function plot_orbit_2d(view, plot_data::Vector{Dict})
 end
 
 function plot_orbit_2d(view, orbs::KeplerianElements...)
-    plot_data = plot_orbit_data(orbs...)
+    plot_data = orbit_plot_data(orbs...)
 
     plot_orbit_2d(view, plot_data)
 end
@@ -103,7 +103,7 @@ function add_discretized_trajectory_2d!(ax, view, solved_r, color="green")
     scatter!(ax, solved_r[view_inds[1], :], solved_r[view_inds[2], :], color=color)
 end
 
-function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
+function transfer_plot_data(solved_transfer::Transfer, scaling=1e3)
     #get first position
     last_r = if solved_transfer.sequence[1] isa Coast
         solved_transfer.sequence[1].rcoast[:, 1]
@@ -113,25 +113,60 @@ function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
 
     coast_points = []
 
-    imp_arrows = []
+    imp_data = []
 
     for el in solved_transfer.sequence
         if el isa Coast
-            c= add_discretized_trajectory!(ax3d, el.rcoast)
-            push!(coast_points, c)
+            # c= add_discretized_trajectory!(ax3d, el.rcoast)
+            push!(coast_points, el.rcoast)
             last_r = el.rcoast[:, end]
         else
-            scatter!(ax3d, last_r...)
-            #add line on impulse
+            # scatter!(ax3d, last_r...)
+            # #add line on impulse
             dir = el.deltaVdir
             mag = el.deltaVmag
             
             arrow_data = [last_r last_r+mag*dir*scaling]
-            i = lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
-            push!(imp_arrows, i)
+            # i = lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
+            # push!(imp_arrows, i)
+            push!(imp_data, (last_r, arrow_data))
         end
     end
-    coast_points, imp_arrows
+    (coast_points, imp_data)
+end
+
+function add_transfer!(ax3d, tpd::Tuple)
+    #get first position
+    # last_r = if solved_transfer.sequence[1] isa Coast
+    #     solved_transfer.sequence[1].rcoast[:, 1]
+    # else
+    #     solved_transfer.sequence[2].rcoast[:, 1]
+    # end
+
+    coast_points, imp_data = tpd
+
+    coast_plots = []
+
+    for cp = coast_points
+        c= add_discretized_trajectory!(ax3d, cp)
+        push!(coast_plots, c)
+    end
+
+    imp_arrows = []
+
+    for id = imp_data
+        r, arrow_data = id
+        scatter!(ax3d, r...)
+        i = lines!(ax3d, arrow_data[1, :], arrow_data[2, :], arrow_data[3, :], color="red")
+        push!(imp_arrows, i)
+    end
+    coast_plots, imp_arrows
+end
+
+function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
+    tpd = transfer_plot_data(solved_transfer, scaling)
+
+    add_transfer!(ax3d, tpd)
 end
 
 function save_with_views!(ax3d, f, prefix)
