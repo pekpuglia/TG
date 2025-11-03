@@ -2,29 +2,55 @@ using GLMakie
 using SatelliteToolboxBase
 using Setfield
 
-function plot_orbit(orbs::KeplerianElements...)
+function plot_orbit_data(orbs::KeplerianElements...)
     N = 100
     θ = LinRange(0, 2π, N)
 
-    fig = Figure()
-    ax3d = Axis3(fig[1, 1])
-    
-    orb_lines = []
+    plot_data = Dict[]
 
-    for (orb, c) in zip(orbs, Makie.wong_colors())
+    for orb in orbs
         orbit = ((@set orb.f = theta) for theta in θ) .|> kepler_to_rv .|> first |> stack
         current_pos, current_velocity = kepler_to_rv(orb)
         velocity_arrow_base = current_pos
         velocity_arrow_tip = velocity_arrow_base + current_velocity / √sum(current_velocity .^ 2) * 0.4 * √sum(current_pos .^ 2)
         velocity_arrow_data = [velocity_arrow_base velocity_arrow_tip] |> Matrix
+
+        push!(plot_data, Dict(
+            :orbit => orbit,
+            :curr_pos => current_pos,
+            :vel_arrow_data => velocity_arrow_data
+        ))
+    end
+    plot_data
+end
+
+function plot_orbit(plot_data::Vector{Dict})
+    fig = Figure()
+    ax3d = Axis3(fig[1, 1])
+    
+    orb_lines = []
+
+    fig = Figure()
+    ax3d = Axis3(fig[1, 1])
+
+    for (data, c) in zip(plot_data, Makie.wong_colors())
+        orbit = data[:orbit]
+        current_pos = data[:curr_pos]
+        velocity_arrow_data = data[:vel_arrow_data]
         l = lines!(ax3d, orbit[1, :], orbit[2, :], orbit[3, :], color=c)
         push!(orb_lines, l)
         scatter!(ax3d, current_pos, markersize=20, color=c)
         lines!(ax3d, velocity_arrow_data[1, :], velocity_arrow_data[2, :], velocity_arrow_data[3, :], color=c)
     end
-    
+
     wireframe!(ax3d, Sphere(Point3(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
     fig, ax3d, orb_lines
+end
+
+function plot_orbit(orbs::KeplerianElements...)
+    plot_data = plot_orbit_data(orbs...)
+
+    plot_orbit(plot_data)
 end
 
 function add_discretized_trajectory!(ax3d, solved_r, color="green")
