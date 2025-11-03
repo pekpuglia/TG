@@ -169,6 +169,35 @@ function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
     add_transfer!(ax3d, tpd)
 end
 
+function add_transfer_2d!(ax, view, tpd::Tuple)
+    view_inds = VIEW_DICT[view]
+
+    coast_points, imp_data = tpd
+
+    coast_plots = []
+
+    for cp = coast_points
+        c= add_discretized_trajectory_2d!(ax, view, cp)
+        push!(coast_plots, c)
+    end
+
+    imp_arrows = []
+
+    for id = imp_data
+        r, arrow_data = id
+        scatter!(ax, r[view_inds]...)
+        i = lines!(ax, arrow_data[view_inds[1], :], arrow_data[view_inds[2], :], color="red")
+        push!(imp_arrows, i)
+    end
+    coast_plots, imp_arrows
+end
+
+function add_transfer_2d!(ax, view, solved_transfer::Transfer, scaling=1e3)
+    tpd = transfer_plot_data(solved_transfer, scaling)
+
+    add_transfer_2d!(ax, view, tpd)
+end
+
 function save_with_views!(ax3d, f, prefix)
     save(prefix*"_3d.png", f, px_per_unit = 300/96)
     
