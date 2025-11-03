@@ -53,6 +53,47 @@ function plot_orbit(orbs::KeplerianElements...)
     plot_orbit(plot_data)
 end
 
+const VIEW_DICT = Dict(
+    :Xp => [2, 3],
+    :Ym => [1, 3],
+    :Zp => [1, 2]
+)
+
+const LABEL_DICT = Dict(
+    :Xp => ["y", "z"],
+    :Ym => ["x", "z"],
+    :Zp => ["x", "y"]
+)
+
+function plot_orbit_2d(view, plot_data::Vector{Dict})
+    view_inds = VIEW_DICT[view]
+
+    orb_lines = []
+    
+    fig = Figure()
+    ax = Axis(fig[1, 1], xlabel = LABEL_DICT[view][1], ylabel=LABEL_DICT[view][2])
+    
+    for (data, c) in zip(plot_data, Makie.wong_colors())
+        orbit = data[:orbit]
+        current_pos = data[:curr_pos]
+        velocity_arrow_data = data[:vel_arrow_data]
+        l = lines!(ax, orbit[view_inds[1], :], orbit[view_inds[2], :], color=c)
+        push!(orb_lines, l)
+        scatter!(ax, current_pos[view_inds[1]], current_pos[view_inds[2]], markersize=20, color=c)
+        lines!(ax, velocity_arrow_data[view_inds[1], :], velocity_arrow_data[view_inds[2], :], color=c)
+    end
+    
+    wireframe!(ax, Circle(Point2(0.0), EARTH_EQUATORIAL_RADIUS), color=:cyan, alpha=0.3)
+    
+    fig , ax, orb_lines
+end
+
+function plot_orbit_2d(view, orbs::KeplerianElements...)
+    plot_data = plot_orbit_data(orbs...)
+
+    plot_orbit_2d(view, plot_data)
+end
+
 function add_discretized_trajectory!(ax3d, solved_r, color="green")
     scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color=color)
 end

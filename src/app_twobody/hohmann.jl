@@ -46,6 +46,8 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer, 1e4)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
 f
 ##
+plot_orbit_2d(:Xp, HOHMANN_START, HOHMANN_END)
+##
 save_with_views!(ax3d, f, "results/two_body/hohmann/ICI")
 ##
 tspan_ppdot_glandorf = primer_vector(solved_transfer, PVTMGlandorf(), 100)
