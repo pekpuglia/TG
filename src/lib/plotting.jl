@@ -98,6 +98,11 @@ function add_discretized_trajectory!(ax3d, solved_r, color="green")
     scatter!(ax3d, solved_r[1, :], solved_r[2, :], solved_r[3, :], color=color)
 end
 
+function add_discretized_trajectory_2d!(ax, view, solved_r, color="green")
+    view_inds = VIEW_DICT[view]
+    scatter!(ax, solved_r[view_inds[1], :], solved_r[view_inds[2], :], color=color)
+end
+
 function add_transfer!(ax3d, solved_transfer::Transfer, scaling=1e3)
     #get first position
     last_r = if solved_transfer.sequence[1] isa Coast

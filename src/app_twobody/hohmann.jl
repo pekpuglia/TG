@@ -46,7 +46,9 @@ coast_ps, ia = add_transfer!(ax3d, solved_transfer, 1e4)
 Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse"], position = (0.8, 0.9))
 f
 ##
-plot_orbit_2d(:Xp, HOHMANN_START, HOHMANN_END)
+f, ax, orb_lines = plot_orbit_2d(:Xp, HOHMANN_START, HOHMANN_END)
+add_discretized_trajectory_2d!(ax, :Xp, solved_transfer.sequence[2].rcoast)
+f
 ##
 save_with_views!(ax3d, f, "results/two_body/hohmann/ICI")
 ##
