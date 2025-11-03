@@ -212,17 +212,31 @@ function plot_transfer_2d(view, orb1::KeplerianElements, orb2::KeplerianElements
     f
 end
 
-function save_with_views!(prefix, orb1::KeplerianElements, orb2::KeplerianElements, solved_transfer::Transfer, scaling)
+function save_with_views(prefix, orb1::KeplerianElements, orb2::KeplerianElements, solved_transfer::Transfer, scaling)
     #3d plot
     f = plot_transfer(orb1, orb2, solved_transfer, scaling)
     save(prefix*"_3d.png", f, px_per_unit = 300/96)
     
     #2d plots
-    fxp = plot_transfer_2d(:Xp, HOHMANN_START, HOHMANN_END, solved_transfer, scaling)
+    fxp = plot_transfer_2d(:Xp, orb1, orb2, solved_transfer, scaling)
     save(prefix*"_x+.png", fxp, px_per_unit = 300/96)
-    fym = plot_transfer_2d(:Ym, HOHMANN_START, HOHMANN_END, solved_transfer, scaling)
+    fym = plot_transfer_2d(:Ym, orb1, orb2, solved_transfer, scaling)
     save(prefix*"_y-.png", fym, px_per_unit = 300/96)
-    fzp = plot_transfer_2d(:Zp, HOHMANN_START, HOHMANN_END, solved_transfer, scaling)
+    fzp = plot_transfer_2d(:Zp, orb1, orb2, solved_transfer, scaling)
+    save(prefix*"_z+.png", fzp, px_per_unit = 300/96)
+end
+
+function save_with_views(prefix, orb1::KeplerianElements, orb2::KeplerianElements)
+    #3d plot
+    f = plot_orbit(orb1, orb2)
+    save(prefix*"_3d.png", f, px_per_unit = 300/96)
+    
+    #2d plots
+    fxp = plot_orbit_2d(:Xp, orb1, orb2)
+    save(prefix*"_x+.png", fxp, px_per_unit = 300/96)
+    fym = plot_orbit_2d(:Ym, orb1, orb2)
+    save(prefix*"_y-.png", fym, px_per_unit = 300/96)
+    fzp = plot_orbit_2d(:Zp, orb1, orb2)
     save(prefix*"_z+.png", fzp, px_per_unit = 300/96)
 end
 
