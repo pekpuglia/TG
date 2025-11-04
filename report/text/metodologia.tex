@@ -117,11 +117,12 @@ The full maneuver optimization problem, in its multiple shooting formulation, sh
     \item \(\mathcal{S} \in \{\texttt{C}, \texttt{I}\}^{n_c + n_i}\): the desired sequence of coasts and impulses.
 \end{enumerate}
 
-The problem's definition and variable set dynamically depends on the input sequence. The \(i\)-th impulse is described by the variables\footnote{The problem could have been parameterized with vector quantities for the changes in velocities, \(\Delta \vec{\mathbf{v}}\), but the objective function would then be stated \(\sum \sqrt{\Delta \vec{\mathbf{v}}^T \Delta \vec{\mathbf{v}}}\), which is not differentiable at \(\Delta \vec {\mathbf{v}} = 0\), which is inconvenient.}:
+The problem's definition and variable set dynamically depends on the input sequence. The \(i\)-th impulse is described by the variables:
 \begin{enumerate}
     \item \(\Delta v_i \geq 0\): magnitude of the impulse;
-    \item \(\hat{\uc}_i \in \R^3\): direction of the impulse.
+    \item \(\hat{\uc}_i \in \R^3\): direction of the impulse,
 \end{enumerate}
+which is a parameterization of impulses that avoids norm singularities. Had the impulses been parameterized by a vector \(\Delta \vel \in \R^3\), the magnitude of impulses given by \(\sqrt{\Delta \vel^T \Delta \vel}\) would not be differentiable at \(\Delta \vel = 0\), which would cause numerical issues.
 
 The \(c\)-th coasting arc is described by:
 \begin{enumerate}
