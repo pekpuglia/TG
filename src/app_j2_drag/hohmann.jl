@@ -53,12 +53,12 @@ solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
 tspan_ppdot_stm = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer, PVTMFromODE(100, RK8), 100)
 ##
-# f, axs = plot_primer_vector(solved_transfer, tspan_ppdot_stm, name=NAME, label="STM", style=:dash)
-# plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
-# Legend(f[1, 2], axs[1], "Methods")
-# f
+f, axs = plot_primer_vector(solved_transfer, tspan_ppdot_stm, name=NAME, label="STM", style=:dash)
+plot_primer_vector!(f, axs[1], axs[2], solved_transfer, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
+Legend(f[1, 2], axs[1], "Methods")
+f
 # ##
-# save("./results/j2drag/hohmann/$(transfer_type(solved_transfer))_primer_vector.png", f, px_per_unit = 300/96)
+save("./results/j2drag/hohmann/$(transfer_type(solved_transfer))_primer_vector.png", f, px_per_unit = 300/96)
 ## STM ≈ ̇pdot
 # ForwardDiff.jacobian(X -> dynamics(X, solved_transfer.model), solved_transfer.X1)
 # ##
@@ -100,12 +100,12 @@ solved_transfer_2 = unscale(sol_to_transfer(sol, transfer), L, T)
 tspan_ppdot_stm = primer_vector(solved_transfer_2, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer_2, PVTMFromODE(100, RK8), 100)
 ##
-# f, axs = plot_primer_vector(solved_transfer_2, tspan_ppdot_stm, name=NAME, label="STM", style=:dash)
-# plot_primer_vector!(f, axs[1], axs[2], solved_transfer_2, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
-# Legend(f[1, 2], axs[1], "Methods")
-# f
+f, axs = plot_primer_vector(solved_transfer_2, tspan_ppdot_stm, name=NAME, label="STM", style=:dash)
+plot_primer_vector!(f, axs[1], axs[2], solved_transfer_2, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
+Legend(f[1, 2], axs[1], "Methods")
+f
 # ##
-# save("./results/j2drag/hohmann/$(transfer_type(solved_transfer_2))_primer_vector.png", f, px_per_unit = 300/96)
+save("./results/j2drag/hohmann/$(transfer_type(solved_transfer_2))_primer_vector.png", f, px_per_unit = 300/96)
 ## data summary
 # export_transfer(solved_transfer_2, tspan_ppdot_stm, L, T, tolepsilon)
 serialize("./src/app_j2_drag/c2c_CICIC", solved_transfer_2)
@@ -142,15 +142,15 @@ solved_transfer_3 = unscale(sol_to_transfer(sol, transfer), L, T)
 tspan_ppdot_stm = primer_vector(solved_transfer_3, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer_3, PVTMFromODE(100, RK8), 100)
 ##
-# f, axs = plot_primer_vector(solved_transfer_3, tspan_ppdot_stm, name=NAME, label="STM", style=:dash)
-# plot_primer_vector!(f, axs[1], axs[2], solved_transfer_3, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
-# Legend(f[1, 2], axs[1], "Methods")
-# f
+f, axs = plot_primer_vector(solved_transfer_3, tspan_ppdot_stm, name=NAME, label="STM", style=:dash)
+plot_primer_vector!(f, axs[1], axs[2], solved_transfer_3, tspan_ppdot_ode, label="ODE", style=:dashdotdot)
+Legend(f[1, 2], axs[1], "Methods")
+f
 # ##
-# save("./results/j2drag/hohmann/$(transfer_type(solved_transfer_3))_primer_vector.png", f, px_per_unit = 300/96)
+save("./results/j2drag/hohmann/$(transfer_type(solved_transfer_3))_primer_vector.png", f, px_per_unit = 300/96)
 ## data summary
 # export_transfer(solved_transfer_3, tspan_ppdot_stm, L, T, tolepsilon)
-serialize("./src/app_j2_drag/c2c_CICICIC", solved_transfer_3)
+serialize("./src/app_j2_drag/c2c_$(transfer_type(solved_transfer_3))", solved_transfer_3)
 ##
 sum_tab = summary_table(NAME, solved_transfer, solved_transfer_2, solved_transfer_3)
 dump_table("./report/text/resultados.tex", "%J2 Drag C2C SUM", sum_tab)
