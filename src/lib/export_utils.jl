@@ -8,8 +8,8 @@ function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon
     \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
     SCALEL          & SCALET          & TOLEPSILON                & DELTAXFINAL                        \\ \midrule
     \(\max \lVert p \rVert\) & MAXNORMP     & \textbf{Diagnostic}   & DIAGNOSTIC        \\ \midrule
-    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
-    IMPINDEX                 & IMPTIME          & IMPDV             & IMPDIR                    \\
+    \textbf{Impulse} & \(t\) (s) & \multicolumn{2}{c}{\(\Delta v\) (m/s)} \\ \midrule
+    IMPINDEX                 & IMPTIME          & \multicolumn{2}{c}{IMPDV}                                 \\
     \textbf{Total}   & TOTALT          & TOTALDV             &                     \\ \bottomrule   
     \end{tabular}
     \caption{Summary of optimization for \texttt{MANEUVER_TYPE} MODEL SCENARIO.}
@@ -55,8 +55,7 @@ function transfer_table(transfer::Transfer, tspan_ppdot::Tuple, L, T, tolepsilon
         impulse_lines[i] = replace(impulse_lines[i], 
             "IMPINDEX" => i, 
             "IMPTIME" => round(t, digits=5), 
-            "IMPDV" => round(dv, digits=5), 
-            "IMPDIR" => round(1 - dot(p, imp.deltaVdir), digits=3)
+            "IMPDV" => round(dv, digits=5)
         )
     end
     impulse_lines[end] = impulse_lines[end]*"\\midrule"
