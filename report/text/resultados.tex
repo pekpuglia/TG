@@ -690,3 +690,76 @@ Indeed, the matrices satisfy \((\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \le
     \label{tab:J2+Drag_ctcr_summary}
 \end{table}
 %J2 Drag C2C SUM
+
+\subsection{Noncoplanar rendez-vous}
+
+%ICI is infeasible
+
+% J2D NCOP ICI
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{ICI}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 1.0          & 1.00e-05                & 1.22605e-07                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 0.0          & 11743.60995             & -0.0                    \\
+    2                 & 11107.1576          & 11711.00712             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 23454.61707             &                     \\ \bottomrule   
+    \end{tabular}
+    \caption{Summary of optimization for \texttt{ICI} J2+Drag Non-Coplanar rendez-vous.}
+    \label{tab:J2+Drag_nr_ICI_tab}
+\end{table}
+% J2D NCOP ICI
+
+% J2D NCOP 2 CICIC
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 1.58998e-08                        \\ \midrule
+    \(\max \lVert p \rVert\) & 3.849     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 7078.65384          & 24.08948             & 0.0                    \\
+    2                 & 10011.90024          & 34.22663             & 0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 58.31611             &                     \\ \bottomrule   
+    \end{tabular}
+    \caption{Summary of optimization for \texttt{CICIC} J2+Drag Non-Coplanar rendez-vous.}
+    \label{tab:J2+Drag_nr_CICIC_tab}
+\end{table}
+% J2D NCOP 2 CICIC
+
+% J2D NCOP 3 CICICIC
+\begin{table}[htpb]
+    \centering
+    \begin{tabular}{cccc} \toprule
+    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICICIC}} \\ \midrule
+    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
+    6.7631e6          & 11107.158          & 1.00e-05                & 2.59433e-06                        \\ \midrule
+    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Final coast        \\ \midrule
+    \textbf{Impulse} & \(t\) (s) & \(\Delta v\) (m/s) & \(1 - p \cdot \hat{u}\) \\ \midrule
+    1                 & 1676.62119          & 5.8844             & -0.0                    \\
+    2                 & 7185.71036          & 20.80379             & 0.0                    \\
+    3                 & 9941.99005          & 29.326             & -0.0                    \\\midrule
+    \textbf{Total}   & 11107.1576          & 56.01418             &                     \\ \bottomrule   
+    \end{tabular}
+    \caption{Summary of optimization for \texttt{CICICIC} J2+Drag Non-Coplanar rendez-vous.}
+    \label{tab:J2+Drag_nr_CICICIC_tab}
+\end{table}
+% J2D NCOP 3 CICICIC
+
+% J2D NCOP SUM
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{ccc} \toprule
+        Maneuver type & Number of impulses & Cost (m/s) \\ \midrule
+        \texttt{ICI} & 2 & 23454.61707 \\
+        \texttt{CICIC} & 2 & 58.31611 \\
+        \texttt{CICICIC} & 3 & 56.01418 \\\bottomrule
+    \end{tabular}
+    \caption{Summary of J2+Drag Non-Coplanar rendez-vous maneuvers and costs.}
+    \label{tab:J2+Drag_nr_summary}
+\end{table}
+% J2D NCOP SUM
