@@ -478,6 +478,8 @@ The necessary conditions offered by primer vector theory for an impulsive maneuv
     \item \(\frac{d \lVert \mathbf{p} \rVert}{dt} = 0\) at impulses between the initial and final times (non-inclusive).
 \end{enumerate}
 
+Condition 2 can be conveniently tested by testing if \(\max_t \lVert \mathbf{p}(t) \rVert\) is less than 1.
+
 In addition to these conditions for the optimal solution, variational calculus results can give some insight into how to change a suboptimal trajectory based on how those conditions are violated~\cite{Conway_2010}. For a maneuver with start time between times \(0\) and \(t_f\), these results can be enumerated:
 \begin{enumerate}
     \item If the maneuver starts with an impulse (\(\lVert \mathbf{p}(0) \rVert = 1\)) and \(\partial_t \lVert \mathbf{p} \rVert \mid_{t=0} > 0\), adding an initial coast will lower the cost;
