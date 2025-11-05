@@ -1,7 +1,6 @@
 
 The primer vector meta-algorithm was applied to some scenarios that represent generic maneuvers that may be of interest in LEO\@. These scenarios will be presented, together with an explanation of why they were chosen, and then solutions for each of them, under different orbital models, will be presented.
-%TODO discuss orbit unraveling, heavy drag models
-%TODO change Y+ -> Y-
+
 \section{Maneuver scenarios}
 
 The scenarios of orbital maneuvering used in this work are introduced in this section before their solutions under different orbital models. Two scenarios were chosen, one where a coplanar transfer between two circular orbits is done in half a revolution, and a noncoplanar rendez-vous case spanning two full revolutions. Both cases are presented in detail ahead.
@@ -37,8 +36,6 @@ A maneuver scenario corresponding to a Hohmann transfer (under a Keplerian model
 % \end{figure}
 % \FloatBarrier
 \subsection{Noncoplanar rendez-vous}
-
-TODO compare with table from paper
 
 A second, more challenging scenario is taken from \citeonline{interactive_primer_vector}, where a noncoplanar rendez-vous scenario is proposed and solved under the Keplerian model. Again, the goal is validating the code against a published result under the Keplerian model, and exploring how the optimal trajectory may be different under other more realistic models. The orbital parameters are given in Table~\ref{tab:noncop_rdv_orb_elems}. The transfer time is equal to two orbital periods of the target orbit. This is a small maneuver in a medium-term scenario (2 revolutions) which will test the numerical stability of the algorithms used.
 
@@ -298,7 +295,7 @@ Finally, the addition of a fourth impulse attains the primer vector necessary co
     \label{fig:tb_ncop_CICICICIC_pv}
 \end{figure}
 
-Finally, all cases are summarized in Table~\ref{tab:Keplerian_nr_summary}, where the monotonic cost reduction obtained by following the primer vector algorithm is evident. Figure~\ref{fig:ipv_table} shows the results presented in~\citeonline{interactive_primer_vector}, the source article for this scenario. The results computed here are quite similar to those found there, but not exactly the same. Different local optima can be found by different algorithms, and that article did not disclose solver tolerances or configuration, which prevents an exact comparison. However, the similarity in values validates the algorithm, and allows the exploratory work of extending it to perturbed models. 
+Finally, all cases are summarized in Table~\ref{tab:Keplerian_nr_summary}, where the monotonic cost reduction obtained by following the primer vector algorithm is evident. It is worth mentioning that, in solving the multiple revolution problem, some spurious solutions were found where the orbits were ``unraveled'', resulting in a single revolution orbit of large semi-major axis. This is probably an artifact of the barrier function method used by Ipopt, which allows for some constraint violation during iteration, allowing the sequential orbits to unravel into a single, large orbit. Figure~\ref{fig:ipv_table} shows the results presented in~\citeonline{interactive_primer_vector}, the source article for this scenario. The results computed here are quite similar to those found there, but not exactly the same. Different local optima can be found by different algorithms, and that article did not disclose solver tolerances or configuration, which prevents an exact comparison. However, the similarity in values validates the algorithm, and allows the exploratory work of extending it to perturbed models. 
 
 % TB NCOP SUM
 \begin{table}[htbp]
@@ -499,7 +496,7 @@ Finally, all cases are summarized in Table~\ref{tab:J2_ctcr_summary}. The final 
 
 \subsection{Noncoplanar rendez-vous}
 
-Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usual, the first maneuver to be solved is a \texttt{ICI} case. The maneuver summary is given in Table~\ref{tab:J2_nr_ICI_tab}, spatial views in Figure~\ref{fig:j2_ncop_ICI_figs}, and the primer vector trajectory in Figure~\ref{fig:j2_ncop_ICI_pv}. Under this model, the non-planarity of the J2 orbits allow for a feasible \texttt{ICI} maneuver with multiple revolutions, much cheaper than the equivalent two-body maneuver. The spatial views show that this maneuver requires a plane change into an intermediate orbit, which intersects the initial and final positions, and a final plane change into the final orbit. The maneuver is still very expensive, and does not satisfy primer vector necessary conditions. In particular, primer vector norm derivative is not continuous. This violation of the necessary conditions does not correspond to any maneuver changes presented in the literature, but previous experience shows that adding initial and final coasts acn greatly reduce the cost. 
+Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usual, the first maneuver to be solved is a \texttt{ICI} case. The maneuver summary is given in Table~\ref{tab:J2_nr_ICI_tab}, spatial views in Figure~\ref{fig:j2_ncop_ICI_figs}, and the primer vector trajectory in Figure~\ref{fig:j2_ncop_ICI_pv}. Exceptionally in this case, the summary table shows a significant error in the final position of \(3.6\) m. Contrary to most other cases presented, where the position error is of the order of centimeters or milimeters, this case has a significant final error. However, it still lies within the required position tolerance given by \(L \times \varepsilon = 6.7\) m, meaning that the solver stopped at an iterate that satisfies tolerances, but not exactly. Under this model, the non-planarity of the J2 orbits allow for a feasible \texttt{ICI} maneuver with multiple revolutions, much cheaper than the equivalent two-body maneuver. The spatial views show that this maneuver requires a plane change into an intermediate orbit, which intersects the initial and final positions, and a final plane change into the final orbit. The maneuver is still very expensive, and does not satisfy primer vector necessary conditions. In particular, primer vector norm derivative is not continuous. This violation of the necessary conditions does not correspond to any maneuver changes presented in the literature, but previous experience shows that adding initial and final coasts acn greatly reduce the cost. 
 
 % J2 NCOP ICI
 \begin{table}[htpb]
@@ -548,7 +545,7 @@ Now, the noncoplanar rendez-vous scenario is tackled under the J2 model. As usua
     \label{fig:j2_ncop_ICI_pv}
 \end{figure}
 \FloatBarrier
-Next, the \texttt{CICIC} maneuver is summarized in Table~\ref{tab:J2_nr_CICIC_tab}, its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}, and its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}. Now, this maneuver is only \(5 m/s\) more expensive than its Keplerian counterpart (compare with Table~\ref{tab:Keplerian_nr_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of small changes in velocity. The primer vector trajectory is now continuous, but still violates the necessary conditions. Now, adding an impulse is necessary.
+Next, the \texttt{CICIC} maneuver is summarized in Table~\ref{tab:J2_nr_CICIC_tab}, its spatial views are shown in Figure~\ref{fig:j2_ncop_CICIC_figs}, and its primer vector trajectory is shown in Figure~\ref{fig:j2_ncop_CICIC_pv}. Now, this maneuver is only \(5 m/s\) more expensive than its Keplerian counterpart (compare with Table~\ref{tab:Keplerian_nr_CICIC_tab}), but the impulse magnitudes and times are considerably different. The spatial trajectory does not deviate far from the initial and final orbits, sign of small changes in velocity. The primer vector trajectory is now continuous, but still violates the unity norm condition. Now, adding an impulse is necessary.
 
 % J2 NCOP 2 CICIC
 \begin{table}[htpb]
@@ -625,7 +622,7 @@ A \texttt{CICICIC} maneuver was solved next, with summary in Table~\ref{tab:J2_n
     \label{fig:j2_ncop_CICICIC_pv}
 \end{figure}
 
-Finally, all results are summarized in Table~\ref{tab:J2_nr_summary}. The optimal maneuver now has one impulse less than the corresponding Keplerian maneuver, and a significantly higher cost.
+Finally, all results are summarized in Table~\ref{tab:J2_nr_summary}. The optimal maneuver now has one impulse less than the corresponding Keplerian maneuver, and a significantly higher cost. Both scenarios had higher costs under the J2 model when compared with the Keplerian model. This does not generalize, and is in fact an artifact of the fact that these scenarios were originally conceived for study under the Keplerian model. The important takeaway is that costs, instants and number of impulses can be different between maneuvers in the Keplerian and J2 models, even at time frames of 2 revolutions or less.
 
 % J2 NCOP SUM
 \begin{table}[htbp]
@@ -645,7 +642,7 @@ Finally, all results are summarized in Table~\ref{tab:J2_nr_summary}. The optima
 \FloatBarrier
 \section{J2 and Drag}
 
-Finally, the non-conservative model of J2 and drag disturbances is tackled. This model's results will be presented in a summarized fashion, since they were found to be almost identical to J2 results. In addition, although the theory predicts that only the ODE method of primer vector calculation should work for this system, it was found that the STM method gave almost identical trajectories. Both of those findings will be discussed based on the \texttt{ICI} maneuver of the circle-to-circle scenario.
+Finally, the non-conservative model of J2 and drag disturbances is tackled. This model's results will be presented in a summarized fashion, since they were found to be almost identical to J2 results. In addition, although the theory predicts that only the ODE method of primer vector calculation should work for this system, it was found that the STM method gave almost identical trajectories, as will be discussed.
 
 \subsection{Circle to Circle}
 
@@ -676,21 +673,21 @@ The primer vector trajectory in Figure~\ref{fig:jd_c2c_ICI_pv} compares the STM 
     \label{fig:jd_c2c_ICI_pv}
 \end{figure}
 
-This can be explained by comparing the matrices \(\mathbf{A}_\delta\) and \(\mathbf{A}_p\), the coefficients of the ODEs of the STM and PVTM respectively. They are only expected to differ in the lower right quadrant, shown here for the initial condition:
+This can be explained by comparing the matrices \(\mathbf{A}_\delta\) and \(\mathbf{A}_p\), the coefficients of the ODEs of the STM and PVTM respectively. They are only expected to differ in the lower right quadrant, shown here for the initial state:
 \begin{align}
-    (\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
+    (\mathbf{A}_\delta)_{\substack{4\leq i \leq 6 \\ 4 \leq j \leq 6}} &= \begin{bmatrix}
         -5.56731-12 & 0.0 & 0.0 \\
         0.0 & -7.77221e-12    & -2.72282e-12 \\
         0.0 & -2.72282e-12    & -8.92972e-12 \\
     \end{bmatrix} \\
-    (A_p)_{4\leq i \leq 6, 4 \leq j \leq 6} &= \begin{bmatrix}
+    (A_p)_{\substack{4\leq i \leq 6 \\ 4 \leq j \leq 6}} &= \begin{bmatrix}
         5.56731e-12 & 0.0 & 0.0 \\
         0.0 & 7.77221e-12 & 2.72282e-12 \\
         0.0 & 2.72282e-12 & 8.92972e-12 \\
     \end{bmatrix}
 \end{align}
 
-Indeed, the matrices satisfy \((\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \leq 6} = - (A_p)_{4\leq i \leq 6, 4 \leq j \leq 6}^T\), as predicted by the theory in Section~\ref{sssec:pv_calc_ncon}, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(\mathbf{A}_{p, J2}\), the primer vector ODE coefficient matrix in the J2 model. This shows that maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected. An open question is whether or not there exists a realistic maneuver scenario where drag effects cause sufficient differences with respect to to the J2 case.
+Indeed, the matrices satisfy \((\mathbf{A}_\delta)_{\substack{4\leq i \leq 6 \\ 4 \leq j \leq 6}} = - (A_p)_{\substack{4\leq i \leq 6 \\ 4 \leq j \leq 6}}^T\), as predicted by the theory in Section~\ref{sssec:pv_calc_ncon}, but due to the low intensity of drag forces, they are both close to \(\mathbf{0}_{3\times 3}\), which is the lower right quadrant of \(\mathbf{A}_{p}\) in the J2 model. This shows that for maneuvers where drag is weak, either by virtue of the short timespan or high altitude, the effects of drag may be neglected for primer vector calculation. 
 
 %J2 Drag C2C SUM
 \begin{table}[htbp]
@@ -708,62 +705,12 @@ Indeed, the matrices satisfy \((\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \le
 
 \subsection{Noncoplanar rendez-vous}
 
-%ICI is infeasible
+The noncoplanar rendez-vous case with drag was the most challenging problem solved in this work. The complexity of the model, with 28 terms to describe atmospheric density, combined with the sixteen nested dynamics function calls required by the RK8 method, meant that the CasADi models were big and slow, requiring 15GB of memory and the configuration of a \textit{swapfile} for their solution. 
 
-% J2D NCOP ICI
-\begin{table}[htpb]
-    \centering
-    \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{ICI}} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
-    6.7631e6          & 1.0          & 1.00e-05                & 1.22605e-07                        \\ \midrule
-    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Local optimum        \\ \midrule
-    \textbf{Impulse} & \(t\) (s) & \multicolumn{2}{c}{\(\Delta v\) (m/s)} \\ \midrule
-    1                 & 0.0          & \multicolumn{2}{c}{11743.60995}                  \\
-    2                 & 11107.1576          & \multicolumn{2}{c}{11711.00712}                  \\\midrule
-    \textbf{Total}   & 11107.1576          & \multicolumn{2}{c}{23454.61707}\\ \bottomrule   
-    \end{tabular}
-    \caption{Summary of optimization for \texttt{ICI} J2+Drag noncoplanar rendez-vous.}
-    \label{tab:J2_Drag_nr_ICI_tab}
-\end{table}
-% J2D NCOP ICI
+The results in this case are presented in summarized fashion in Table~\ref{tab:J2_Drag_nr_summary}. In the interest of avoiding repetition, the spatial views and primer vector histories are commented but not presented in this section, since they are very similar to previous results. 
 
-% J2D NCOP 2 CICIC
-\begin{table}[htpb]
-    \centering
-    \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICIC}} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 1.58998e-08                        \\ \midrule
-    \(\max \lVert p \rVert\) & 3.849     & \textbf{Diagnostic}   & Add impulse        \\ \midrule
-    \textbf{Impulse} & \(t\) (s) & \multicolumn{2}{c}{\(\Delta v\) (m/s)} \\ \midrule
-    1                 & 7078.65384          & \multicolumn{2}{c}{24.08948}                  \\
-    2                 & 10011.90024          & \multicolumn{2}{c}{34.22663}                  \\\midrule
-    \textbf{Total}   & 11107.1576          & \multicolumn{2}{c}{58.31611}\\ \bottomrule   
-    \end{tabular}
-    \caption{Summary of optimization for \texttt{CICIC} J2+Drag noncoplanar rendez-vous.}
-    \label{tab:J2_Drag_nr_CICIC_tab}
-\end{table}
-% J2D NCOP 2 CICIC
+The J2+Drag \texttt{ICI} maneuver has a cost and trajectory analogous to its Keplerian equivalent shown in Figure~\ref{fig:tb_ncop_ICI_figs}. It is in a way a ``brute force'' maneuver, with very high cost and very little dependence on the small perturbations of the orbital model. A multi-revolution \texttt{ICI} maneuver, as was found in the J2 model, was searched by tuning the initial guesses, but only solver errors and infeasible results were found, suggesting the conclusion that drag renders that multi-revolution J2 maneuver infeasible. Note however that the cost of 23454.61707 m/s of the J2+Drag maneuver is different to the Keplerian cost of 23449.63713 m/s, showing that the different models have correctly been taken into account.
 
-% J2D NCOP 3 CICICIC
-\begin{table}[htpb]
-    \centering
-    \begin{tabular}{cccc} \toprule
-    \multicolumn{2}{c}{\textbf{Maneuver type}} & \multicolumn{2}{c}{\texttt{CICICIC}} \\ \midrule
-    \(L\) (m) & \(T\) (s) & \(\varepsilon\) & \(\lVert \Delta \pos_{f} \rVert\) (m)    \\ \midrule
-    6.7631e6          & 11107.158          & 1.00e-05                & 2.59433e-06                        \\ \midrule
-    \(\max \lVert p \rVert\) & 1.0     & \textbf{Diagnostic}   & Final coast        \\ \midrule
-    \textbf{Impulse} & \(t\) (s) & \multicolumn{2}{c}{\(\Delta v\) (m/s)} \\ \midrule
-    1                 & 1676.62119          & \multicolumn{2}{c}{5.8844}                  \\
-    2                 & 7185.71036          & \multicolumn{2}{c}{20.80379}                  \\
-    3                 & 9941.99005          & \multicolumn{2}{c}{29.326}                  \\\midrule
-    \textbf{Total}   & 11107.1576          & \multicolumn{2}{c}{56.01418}\\ \bottomrule   
-    \end{tabular}
-    \caption{Summary of optimization for \texttt{CICICIC} J2+Drag noncoplanar rendez-vous.}
-    \label{tab:J2_Drag_nr_CICICIC_tab}
-\end{table}
-% J2D NCOP 3 CICICIC
 
 % J2D NCOP SUM
 \begin{table}[htbp]
@@ -778,3 +725,7 @@ Indeed, the matrices satisfy \((\mathbf{A}_\delta)_{4\leq i \leq 6, 4 \leq j \le
     \label{tab:J2_Drag_nr_summary}
 \end{table}
 % J2D NCOP SUM
+
+Next, the \texttt{CICIC} J2+Drag maneuver was found to be very similar to its J2 equivalent, shown in Figure~\ref{fig:j2_ncop_CICIC_figs}. The cost of 58.31611 m/s is slightly different to the J2 cost of 58.27439, proving that drag effects have been taken into account, but are not significant. And finally, the 3-impulse \texttt{CICICIC} case is very similar to its J2 equivalent in Table~\ref{tab:J2_nr_CICICIC_tab}, with a J2+Drag cost of 56.01418 m/s being compared with 56.00653 m/s for the J2 maneuver. In general, it is expected that maneuvers that take drag into account should be more expensive than maneuvers in conservative models, since drag reduces the effects of impulses by dissipating energy.
+
+All J2+Drag primer vector trajectories calculated with the STM and ODE methods are identical, and indistinguishable to J2 primer vector trajectories. This shows that the scenarios considered are cases where drag is too small to distinguish the STM and ODE methods, and to greatly distinguish J2+Drag maneuvers from J2 maneuvers. Therefore, it is reasonable to conjecture that both should happen together: a scenario where J2 and J2+Drag maneuvers are sufficiently distinct will also have STM and ODE primer vector trajectories that are sufficiently distinct. A maneuvering scenario including aerobraking or very long time periods could be investigated in future works to validate or refute this conjecture.
