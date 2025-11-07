@@ -284,6 +284,33 @@ fill=green!30]
 \end{frame}
 
 \begin{frame}
+    \frametitle{Dynamical systems tools}
+
+    \begin{itemize}
+        \item Full ODE for double integrator:
+        \begin{equation}
+            \dot{\x} = f(\x) = \begin{bmatrix}
+                \dot{\pos} \\ \dot{\vel}
+            \end{bmatrix} = \begin{bmatrix}
+                \vel \\ \acc(\pos, \vel)
+            \end{bmatrix}
+        \end{equation}
+        \item \(\acc(\pos, \vel)\) depends on model: \(\acc_{TB}\), \(\acc_{J2}\), \(\acc_{D}\)
+        \item State transition matrix (STM) for variational perturbations
+            \begin{equation}
+                \boldsymbol{\Phi}_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}
+            \end{equation}
+        \item STM differential equation
+        \begin{equation}
+            \begin{cases}
+                \dot{\boldsymbol{\Phi}}_\delta(t) = \frac{\partial f(\x(t))}{\partial x(t)} \boldsymbol{\Phi}_\delta(t) = \mathbf{A}_\delta(t) \boldsymbol{\Phi}_\delta(t) \\
+                \boldsymbol{\Phi}_\delta(0) = \mathbf{I}_n
+            \end{cases}
+        \end{equation}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
     \frametitle{Optimal control}\pause
     \begin{block}{Generic optimal control problem}
         Given a dynamical system \(\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})\), a fixed initial condition \(\mathbf{x}(0) = \mathbf{x}_i\), a total time \(t_f\) and a final condition \(\mathbf{x}(t_f) = \mathbf{x}_f\), find control trajectory \(\mathbf{u}(t)\) minimizing objective \(J[\mathbf{x}(t), \mathbf{u}(t)] = h(\mathbf{x}(t_f))+\int_0^{t_f} L(x(t), u(t)) dt\). 
@@ -317,7 +344,35 @@ fill=green!30]
 \begin{frame}
     \frametitle{OC Solution Hierarchy}
 
-    TODO
+    \begin{itemize}
+        \item Decreasing cost sequence~\cite{ross2015primer}:
+        \begin{enumerate}
+            \item Feasible solution
+            \begin{itemize}
+                \item Satisfies constraints
+                \item Found in nonlinear solver
+            \end{itemize}
+            \item Local optimum
+            \begin{itemize}
+                \item Satisfies constraints, better than neighbors
+                \item Found in nonlinear optimizer
+            \end{itemize}
+            \item PMP extremum
+            \begin{itemize}
+                \item Local optimum + Pontryagin's Minimum Principle
+            \end{itemize}
+            \item Global optimum
+            \begin{itemize}
+                \item Exists, almost impossible to characterize
+            \end{itemize}
+            \item Lower bound
+            \begin{itemize}
+                \item Infeasible solution, still useful
+                \item Problem intuition: Jupiter maneuvering \cite{impulsive_europa}
+                \item Mathematical structure: sum-of-squares~\cite{sos_book}
+            \end{itemize}
+        \end{enumerate}
+    \end{itemize}
 
 \end{frame}
 
@@ -681,8 +736,110 @@ fill=green!30]
 \begin{frame}
     \frametitle{J2+Drag circle to circle}
 
-    
+    \begin{table}[htbp]\small
+        \centering
+        \begin{tabular}{ccc} \toprule
+            Maneuver type & Number of impulses & \(\Delta \vel \) (m/s) \\ \midrule
+            \texttt{ICI} & 2 & 9528.19583 \\
+            \texttt{CICIC} & 2 & 911.93304 \\
+            \texttt{CICICIC} & 3 & 893.05339 \\\bottomrule
+        \end{tabular}
+        % \caption{Summary of J2+Drag Circle to circle rendez-vous maneuvers and costs.}
+        % \label{tab:J2_Drag_ctcr_summary}
+    \end{table}
 
+    % \begin{figure}[htbp]
+    %     \centering
+    %     \begin{subfigure}{0.32\linewidth}
+    %         \includegraphics[width=\linewidth]{../results/j2drag/hohmann/ICI_3d.png}
+    %     \end{subfigure}
+    %     \begin{subfigure}{0.32\linewidth}
+    %         \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICIC_3d.png}
+    %     \end{subfigure}
+    %     \begin{subfigure}{0.32\linewidth}
+    %         \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICICIC_3d.png}
+    %     \end{subfigure}
+    %     % \caption{<caption>}
+    %     % \label{<label>}
+    % \end{figure}
+    \begin{columns}[t]
+        \begin{column}{0.7\linewidth}
+            \only<1>{
+                \begin{figure}[htbp]
+                    \centering
+                    \includegraphics[width=\linewidth]{../results/j2drag/hohmann/ICI_3d.png}  
+                    \caption{\texttt{ICI}}
+                \end{figure}
+            }
+
+            \only<2>{
+                \begin{figure}[htbp]
+                    \centering
+                    \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICIC_3d.png}  
+                    \caption{\texttt{CICIC}}
+                \end{figure}
+            }
+
+            \only<3>{
+                \begin{figure}[htbp]
+                    \centering
+                    \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICICIC_3d.png}  
+                    \caption{\texttt{CICICIC}}
+                \end{figure}
+            }
+        \end{column}
+        \begin{column}{0.3\linewidth}
+            \only<1>{
+                \begin{itemize}
+                    \item J2 `twists' all orbits except polar
+                    \item VERY high cost compared to Hohmann transfer
+                \end{itemize}
+            }
+            \only<2>{
+                \begin{itemize}
+                    \item Similar to Hohmann, but small initial/final coasts
+                \end{itemize}
+            }
+
+            \only<3>{
+                \begin{itemize}
+                    \item 6 m/s more costly than Hohmann
+                    \item Extra impulse: plane change in middle of maneuver
+                    \item J2+Drag maneuver almost identical to J2 maneuver
+                \end{itemize}
+            }
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \frametitle{J2+Drag Primer Vector}
+
+    \begin{itemize}
+        \item Non-conservative model: only ODE method for primer vector calculation
+        \item In practice:
+    \end{itemize}
+
+    \begin{figure}[htbp]
+        \centering
+        \begin{subfigure}{0.32\linewidth}
+            \includegraphics[width=\linewidth]{../results/j2drag/hohmann/ICI_primer_vector.png}
+        \end{subfigure}
+        \begin{subfigure}{0.32\linewidth}
+            \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICIC_primer_vector.png}
+        \end{subfigure}
+        \begin{subfigure}{0.32\linewidth}
+            \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICICIC_primer_vector.png}
+        \end{subfigure}
+        % \caption{<caption>}
+        % \label{<label>}
+    \end{figure}
+
+    \begin{itemize}
+        \item STM method is indistinguishable from ODE method
+        \item \(\lVert \mathbf{A}_p - \mathbf{A}_\delta \rVert _\infty < 10^{-11}\)
+        \item \(\therefore\) drag is too weak! System is approx.\ conservative
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -719,7 +876,19 @@ fill=green!30]
 \begin{frame}
     \frametitle{Conclusions}
 
-    
+    \begin{itemize}
+        \item Accomplished optimization of LEO impulsive maneuvers;
+        \item J2 affects nature of trajectories and maneuvers significantly;
+        \item In the time scales considered, drag does not;
+        \item Extended primer vector theory to perturbed models;
+        \item Three proposed primer vector calculation methods compared and validated
+        \item Future works
+        \begin{itemize}
+            \item Longer time spans
+            \item Drag primer vector conjecture: differentiate STM and ODE methods
+            \item Estimate cost lower bound 
+        \end{itemize}
+    \end{itemize}
 
 \end{frame}
 
