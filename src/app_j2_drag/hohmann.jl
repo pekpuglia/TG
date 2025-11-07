@@ -43,12 +43,12 @@ sol = solve_planner(solver, planner, tab0)
 solved_transfer = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
 # f, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
-# imp_scale = 1e3
+imp_scale = 1e3
 # coast_ps, ia = add_transfer!(ax3d, solved_transfer, imp_scale)
 # Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse (×$imp_scale s)"], position = (0.8, 0.9))
 # f
-# ##
-# save_with_views!(ax3d, f, "results/j2drag/hohmann/$(transfer_type(solved_transfer))")
+##
+save_with_views("results/j2drag/hohmann/$(transfer_type(solved_transfer))", HOHMANN_START, HOHMANN_END, solved_transfer, imp_scale)
 ##
 tspan_ppdot_stm = primer_vector(solved_transfer, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer, PVTMFromODE(100, RK8), 100)
@@ -90,12 +90,12 @@ sol = solve_planner(solver, planner, tab0)
 solved_transfer_2 = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
 # f, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
-# imp_scale = 1e4
+imp_scale = 1e4
 # coast_ps, ia = add_transfer!(ax3d, solved_transfer_2, imp_scale)
 # Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse (×$imp_scale s)"], position = (0.8, 0.9))
 # f
 # ##
-# save_with_views!(ax3d, f, "results/j2/hohmann/$(transfer_type(solved_transfer_2))")
+save_with_views("results/j2drag/hohmann/$(transfer_type(solved_transfer_2))", HOHMANN_START, HOHMANN_END, solved_transfer_2, imp_scale)
 ##
 tspan_ppdot_stm = primer_vector(solved_transfer_2, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer_2, PVTMFromODE(100, RK8), 100)
@@ -132,12 +132,12 @@ sol = solve_planner(solver, planner, tab0)
 solved_transfer_3 = unscale(sol_to_transfer(sol, transfer), L, T)
 ##
 # f, ax3d, orb_lines = plot_orbit(HOHMANN_START, HOHMANN_END)
-# imp_scale = 1e4
+imp_scale = 1e4
 # coast_ps, ia = add_transfer!(ax3d, solved_transfer_3, imp_scale)
 # Legend(f[1, 2], [orb_lines..., coast_ps[1], ia[1]], ["Initial orbit", "Final orbit", "Coasting arc", "Impulse (×$imp_scale s)"], position = (0.8, 0.9))
 # f
 ##
-# save_with_views!(ax3d, f, "results/j2/hohmann/$(transfer_type(solved_transfer_3))")
+save_with_views("results/j2drag/hohmann/$(transfer_type(solved_transfer_3))", HOHMANN_START, HOHMANN_END, solved_transfer_3, imp_scale)
 ##
 tspan_ppdot_stm = primer_vector(solved_transfer_3, PVTMFromSTM(100, RK8), 100)
 tspan_ppdot_ode = primer_vector(solved_transfer_3, PVTMFromODE(100, RK8), 100)
