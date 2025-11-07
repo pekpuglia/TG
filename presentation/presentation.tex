@@ -186,56 +186,6 @@ fill=green!30]
     \end{itemize}
 \end{frame}
 
-% \begin{frame}
-%     \frametitle{Hypotheses}
-
-%     \begin{itemize}
-%         \item Parameter optimization problem
-%         \item Need fixed time for practical solution~\cite{impulsive_europa}
-%         \item More impulses, revolutions \(\rightarrow\) harder problem
-%         \item 
-%     \end{itemize}
-% \end{frame}
-
-% \begin{frame}
-%     \frametitle{Objectives}
-%     \textbf{Describe a method capable of finding the sequence
-%     of impulses that transfer a satellite between given orbits}. Secondary:
-%     \pause
-%     \begin{itemize}
-%         \item Apply primer vector theory;
-%         \item Study how much time fo transfer, and how to find it;
-%         \item Compare numerical and analytical results;
-%         \item Discuss applications in common scenarios;
-%     \end{itemize}
-
-% \end{frame}
-
-% \begin{frame}
-%     \frametitle{Justification}
-
-%     Some institutions already know how to optimize orbital maneuvers. Why study it again?
-%     \pause
-%     \begin{figure}[htbp]
-%         \centering
-%         \begin{subfigure}{0.25\textwidth}
-%             \includegraphics[width=\textwidth]{img/orekit-logo.png}
-%             \caption{Orekit library provides maneuver analysis, and indirect optimization (outdated).}
-%         \end{subfigure} \pause
-%         \begin{subfigure}{0.25\textwidth}
-%             \includegraphics[width=\textwidth]{img/patrius_logo.png}
-%             \caption{CNES Patrius library provides analysis, not Synthesis.}
-%         \end{subfigure} \pause
-%         \begin{subfigure}{0.25\textwidth}
-%             \centering
-%             \includegraphics[width=\textwidth]{img/mystic_no_download.png}
-%             \caption{NASA's Mystic software (Dawn mission) is not available for download.}
-%         \end{subfigure}
-%     \end{figure}
-%     \pause
-%     \textbf{No widely available orbital maneuver optimization software.}
-% \end{frame}
-
 \section{Theory}
 
 \begin{frame}
@@ -250,7 +200,7 @@ fill=green!30]
             Closed, planar, periodic elliptical trajectory for negative energy (bound satellite).
         }
     \end{block}
-    \begin{columns}[t]
+    \begin{columns}[t]\pause
         \begin{column}{0.5\linewidth}
             \begin{center}
                 \textbf{J2 perturbation}
@@ -265,7 +215,7 @@ fill=green!30]
                 \end{itemize}
                 \item Nonplanar trajectory
             \end{itemize}
-        \end{column}
+        \end{column}\pause
         \begin{column}{0.5\linewidth}
             \begin{center}
                 \textbf{Drag perturbation}
@@ -294,12 +244,12 @@ fill=green!30]
             \end{bmatrix} = \begin{bmatrix}
                 \vel \\ \acc(\pos, \vel)
             \end{bmatrix}
-        \end{equation}
-        \item \(\acc(\pos, \vel)\) depends on model: \(\acc_{TB}\), \(\acc_{J2}\), \(\acc_{D}\)
+        \end{equation}\pause
+        \item \(\acc(\pos, \vel)\) depends on model: \(\acc_{TB}\), \(\acc_{J2}\), \(\acc_{D}\)\pause
         \item State transition matrix (STM) for variational perturbations
             \begin{equation}
                 \boldsymbol{\Phi}_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}
-            \end{equation}
+            \end{equation}\pause
         \item STM differential equation
         \begin{equation}
             \begin{cases}
@@ -311,7 +261,7 @@ fill=green!30]
 \end{frame}
 
 \begin{frame}
-    \frametitle{Optimal control}\pause
+    \frametitle{Optimal control}
     \begin{block}{Generic optimal control problem}
         Given a dynamical system \(\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})\), a fixed initial condition \(\mathbf{x}(0) = \mathbf{x}_i\), a total time \(t_f\) and a final condition \(\mathbf{x}(t_f) = \mathbf{x}_f\), find control trajectory \(\mathbf{u}(t)\) minimizing objective \(J[\mathbf{x}(t), \mathbf{u}(t)] = h(\mathbf{x}(t_f))+\int_0^{t_f} L(x(t), u(t)) dt\). 
     \end{block}\pause
@@ -343,7 +293,7 @@ fill=green!30]
 
 \begin{frame}
     \frametitle{OC Solution Hierarchy}
-
+    \pause
     \begin{itemize}
         \item Decreasing cost sequence~\cite{ross2015primer}:
         \begin{enumerate}
@@ -351,20 +301,20 @@ fill=green!30]
             \begin{itemize}
                 \item Satisfies constraints
                 \item Found in nonlinear solver
-            \end{itemize}
+            \end{itemize}\pause
             \item Local optimum
             \begin{itemize}
                 \item Satisfies constraints, better than neighbors
                 \item Found in nonlinear optimizer
-            \end{itemize}
+            \end{itemize}\pause
             \item PMP extremum
             \begin{itemize}
                 \item Local optimum + Pontryagin's Minimum Principle
-            \end{itemize}
+            \end{itemize}\pause
             \item Global optimum
             \begin{itemize}
                 \item Exists, almost impossible to characterize
-            \end{itemize}
+            \end{itemize}\pause
             \item Lower bound
             \begin{itemize}
                 \item Infeasible solution, still useful
@@ -378,25 +328,24 @@ fill=green!30]
 
 \begin{frame}
     \frametitle{Orbital Maneuvering}
-    \pause
     \begin{block}{Extended dynamics}
         \begin{equation}
             \ddot{\mathbf{r}} = g(\pos) + \boldsymbol{\Gamma}.
-        \end{equation}\pause
+        \end{equation}
         Control input is acceleration \(\boldsymbol{\Gamma} = \Gamma \hat{\uc}\). Objective: \(\min \int_{0}^{t_f} \Gamma(t) dt\)
     \end{block}
     \pause
     \begin{itemize}
-        \item Impulsive thrust
+        \item Impulsive thrust\pause
         \begin{itemize}
-            \item Engineering: independent of propulsive plant
-            \item Physics: high thrust \(\approx\) impulse
-            \item Mathematics: minimum is unattainable with bounded acceleration
+            \item Engineering: independent of propulsive plant\pause
+            \item Physics: high thrust \(\approx\) impulse\pause
+            \item Mathematics: minimum is unattainable with bounded acceleration\pause
         \end{itemize}
         \item Velocity discontinuities, \textit{coasting arcs}
         \begin{equation}
-            \mathbf{v}(t_i^+) = \mathbf{v}(t_i^-) + \Delta \mathbf{v}
-        \end{equation}
+            \boldsymbol{\Gamma}(t_i) = \Delta \mathbf{v} \delta(t_i) \implies \mathbf{v}(t_i^+) = \mathbf{v}(t_i^-) + \Delta \mathbf{v}
+        \end{equation}\pause
         \item Hamiltonian results: \textit{primer vector} theory
     \end{itemize}
 \end{frame}
@@ -407,19 +356,19 @@ fill=green!30]
         \item Hamiltonian~\cite{Conway_2010}
         \begin{equation}
             H = (1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u}}) \Gamma + \dots
-        \end{equation}
-        \item \((1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u}})\) as small as possible when \(\Gamma > 0\)
-        \item \(\therefore \hat{\uc} \parallel - \boldsymbol{\lambda}_v\)
-        \item Define primer vector \(\mathbf{p} = - \boldsymbol{\lambda}_v\): optimal direction of impulse
+        \end{equation}\pause
+        \item \((1 + \boldsymbol{\lambda}_v^T \hat{\mathbf{u}})\) as small as possible when \(\Gamma > 0\)\pause
+        \item \(\therefore \hat{\uc} \parallel - \boldsymbol{\lambda}_v\)\pause
+        \item Define primer vector \(\mathbf{p} = - \boldsymbol{\lambda}_v\): optimal direction of impulse\pause
         \item Necessary conditions for optimal \(\boldsymbol{\Gamma}^\star\):
         \begin{itemize}
             \item \(\mathbf{p}(t)\) and \(\dot{\mathbf{p}}(t)\) are continuous;
             \item \(\lVert \mathbf{p} \rVert \leq 1\);
             \item \(\lVert \mathbf{p} \rVert = 1\) at the impulse instants (\(\mathbf{p} = \hat{\uc}\));
-        \end{itemize}
-        \item Suboptimal trajectory:
+        \end{itemize}\pause
+        \item Suboptimal trajectory:\pause
         \begin{itemize}
-            \item (\(\lVert \mathbf{p}(0) \rVert = 1\)) and \(\partial_t \lVert \mathbf{p} \rVert \mid_{t=0} > 0\), adding an initial coast will lower the cost;
+            \item (\(\lVert \mathbf{p}(0) \rVert = 1\)) and \(\partial_t \lVert \mathbf{p} \rVert \mid_{t=0} > 0\), adding an initial coast will lower the cost;\pause
             \item \(\lVert \mathbf{p}(t) \rVert > 1\) for some \(t \in [0, t_f]\), adding an impulse will lower the cost.
         \end{itemize}
     \end{itemize}
@@ -430,7 +379,7 @@ fill=green!30]
     \frametitle{Primer Vector Calculation}
 
     \begin{itemize}
-        \item Conservative model
+        \item Conservative model\pause
         \begin{equation}
             \begin{bmatrix}
                 \dot{\mathbf{p}} \\ \ddot{\mathbf{p}}
@@ -442,16 +391,16 @@ fill=green!30]
             \end{bmatrix} = \mathbf{A}_p(\pos) \begin{bmatrix}
                 \mathbf{p} \\ \dot{\mathbf{p}}
             \end{bmatrix}
-        \end{equation}
+        \end{equation}\pause
         \begin{itemize}
-            \item \textbf{ODE method}: numerical integration
-            \item Linear ODE: Primer vector transition matrix (PVTM) \(\Phi_p(t)\)
-            \item Same as ODE for variational perturbations: use state transition matrix (STM) \(\Phi_\delta(t)\)
-            \item \textbf{STM method}: \(\Phi_p(t) = \Phi_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}\)
+            \item \textbf{ODE method}: numerical integration\pause
+            \item Linear ODE: Primer vector transition matrix (PVTM) \(\Phi_p(t)\)\pause
+            \item Same as ODE for variational perturbations: use state transition matrix (STM) \(\Phi_\delta(t)\)\pause
+            \item \textbf{STM method}: \(\Phi_p(t) = \Phi_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}\)\pause
             \item Keplerian model:
             \begin{itemize}
                 \item \textbf{Glandorf method}: analytical form of \(\Phi_p(t) = \Phi_\delta(t)\)
-            \end{itemize}
+            \end{itemize}\pause
             \item \textbf{STM}, \textbf{Glandorf} widely used in literature~\cite{impulsive_europa}\cite{bruno_asteroid_primer}\cite{Conway_2010}
         \end{itemize}
     \end{itemize}
@@ -474,11 +423,11 @@ fill=green!30]
             \end{bmatrix} = \mathbf{A}_p(\pos, \vel) \begin{bmatrix}
                 \mathbf{p} \\ \dot{\mathbf{p}}
             \end{bmatrix}.
-        \end{equation}
+        \end{equation}\pause
         \begin{itemize}
-            \item Not found in the literature
-            \item \textbf{Not} the same as variational perturbation ODE
-            \item Only \textbf{ODE method} available
+            \item Not found in the literature!\pause
+            \item \textbf{Not} the same as variational perturbation ODE\pause
+            \item Only \textbf{ODE method} available\pause
         \end{itemize}
     \end{itemize}
 
@@ -506,15 +455,15 @@ fill=green!30]
     \frametitle{Numerical Tools}
 
     \begin{itemize}
-        \item<2-> Julia~\cite{Julia-2017} language
-        \item<3-> \texttt{SatelliteToolbox}~\cite{satellitetoolbox}: auxiliary orbit propagation
-        \item<4-> CasADi~\cite{casadi}: optimization interface
-        \item<5-> Ipopt~\cite{ipopt}: robust nonlinear optimizer. Local, deterministic, gradient-based
+        \item Julia~\cite{Julia-2017} language
+        \item \texttt{SatelliteToolbox}~\cite{satellitetoolbox}: auxiliary orbit propagation
+        \item CasADi~\cite{casadi}: optimization interface
+        \item Ipopt~\cite{ipopt}: robust nonlinear optimizer. Local, deterministic, gradient-based
     \end{itemize}
     
     \begin{minipage}[c][][c]{0.5\textwidth}
         \begin{center}
-            \includegraphics[scale=0.2]{img/ipopt_logo.png} 
+            \includegraphics[scale=0.2]{img/julia.png} 
         \end{center}
     \end{minipage}\begin{minipage}[c][][c]{0.5\textwidth}
         \begin{center}
@@ -528,7 +477,7 @@ fill=green!30]
         \end{center}
     \end{minipage}\begin{minipage}[c][][c]{0.5\textwidth}
         \begin{center}
-            \includegraphics[scale=0.2]{img/julia.png} 
+            \includegraphics[scale=0.2]{img/ipopt_logo.png} 
         \end{center}
     \end{minipage}
 \end{frame}
@@ -542,18 +491,18 @@ fill=green!30]
             \item \texttt{C}: coasting arc
             \item \texttt{I}: impulse
             \item \texttt{ICI}, \texttt{CICIC}, \texttt{CICICIC}, etc
-        \end{itemize}
-        \item Impulse: boundary condition between coasting arcs
+        \end{itemize}\pause
+        \item Impulse: boundary condition between coasting arcs\pause
         \item Coasting arc
         \begin{itemize}
             \item Optimization: RK8 Cartesian multiple shooting
             \item Propagation: integration or \texttt{SatelliteToolbox}
-        \end{itemize}
+        \end{itemize}\pause
         \item Primer vector calculation
         \begin{itemize}
             \item Solve two point boundary value problem between consecutive impulses with PVTM
-        \end{itemize}
-        \item Search for \textbf{number of impulses}~\cite{interactive_primer_vector}
+        \end{itemize}\pause
+        \item Search for \textbf{number of impulses}~\cite{interactive_primer_vector}\pause
         \begin{enumerate}
             \item Solve \texttt{ICI}
             \item Solve \texttt{CICIC}
@@ -598,6 +547,7 @@ fill=green!30]
         \begin{itemize}
             \item Keplerian model: results in the literature~\cite{interactive_primer_vector}
         \end{itemize}
+        \item Both solved for Keplerian, J2, J2+Drag
     \end{itemize}
 \end{table}
 % C2C SETUP
@@ -606,22 +556,26 @@ fill=green!30]
 
 \begin{frame}
     \frametitle{Keplerian Noncoplanar Rendez-vous}
-
+    \pause
     \begin{columns}
         \begin{column}{0.49\linewidth}
-            \begin{figure}[htbp]
-                \centering
-                \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/ICI_primer_vector.png}
-                % \caption{<caption>}
-                % \label{<label>}
-            \end{figure}
-            Local Extremum
+            \visible<3>{
+                \begin{figure}[htbp]
+                    \centering
+                    \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/ICI_primer_vector.png}
+                    % \caption{<caption>}
+                    % \label{<label>}
+                \end{figure}
+                \begin{center}
+                    Local Extremum
+                \end{center}
+            }
         \end{column}
         \begin{column}{0.49\linewidth}
             \begin{figure}[htbp]
                 \centering
                 \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/ICI_3d.png}
-                % \caption{<caption>}
+                \caption{\texttt{ICI}}
                 % \label{<label>}
             \end{figure}
         \end{column}
@@ -642,19 +596,23 @@ fill=green!30]
 
     \begin{columns}
         \begin{column}{0.49\linewidth}
+            \visible<2>{
                 \begin{figure}[htbp]
-                    \centering
-                    \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICIC_primer_vector.png}
-                    % \caption{<caption>}
-                    % \label{<label>}
-                \end{figure}
-                Addition of impulse
+                        \centering
+                        \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICIC_primer_vector.png}
+                        % \caption{<caption>}
+                        % \label{<label>}
+                    \end{figure}
+                    \begin{center}
+                        Addition of impulse
+                    \end{center}
+            }    
         \end{column}
         \begin{column}{0.49\linewidth}
             \begin{figure}[htbp]
                 \centering
                 \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICIC_z+.png}
-                % \caption{<caption>}
+                \caption{\texttt{CICIC}, view from z+}
                 % \label{<label>}
             \end{figure}
         \end{column}
@@ -674,19 +632,23 @@ fill=green!30]
 
     \begin{columns}
         \begin{column}{0.49\linewidth}
+            \visible<2>{
                 \begin{figure}[htbp]
                     \centering
                     \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICIC_primer_vector.png}
                     % \caption{<caption>}
                     % \label{<label>}
                 \end{figure}
-                Addition of impulse
+                \begin{center}
+                    Addition of impulse
+                \end{center}
+            }
         \end{column}
         \begin{column}{0.49\linewidth}
             \begin{figure}[htbp]
                 \centering
                 \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICIC_z+.png}
-                % \caption{<caption>}
+                \caption{\texttt{CICICICIC}, view from z+}
                 % \label{<label>}
             \end{figure}
         \end{column}
@@ -706,19 +668,23 @@ fill=green!30]
 
     \begin{columns}
         \begin{column}{0.49\linewidth}
+            \visible<2>{
                 \begin{figure}[htbp]
                     \centering
                     \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICICIC_primer_vector.png}
                     % \caption{<caption>}
                     % \label{<label>}
                 \end{figure}
-                Local extremum
+                \begin{center}
+                    Local extremum
+                \end{center}
+            }
         \end{column}
         \begin{column}{0.49\linewidth}
             \begin{figure}[htbp]
                 \centering
                 \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICICIC_z+.png}
-                % \caption{<caption>}
+                \caption{\texttt{CICICICIC}, view from z+}
                 % \label{<label>}
             \end{figure}
         \end{column}
@@ -735,7 +701,7 @@ fill=green!30]
 
 \begin{frame}
     \frametitle{J2+Drag circle to circle}
-
+    \pause
     \begin{table}[htbp]\small
         \centering
         \begin{tabular}{ccc} \toprule
@@ -748,23 +714,9 @@ fill=green!30]
         % \label{tab:J2_Drag_ctcr_summary}
     \end{table}
 
-    % \begin{figure}[htbp]
-    %     \centering
-    %     \begin{subfigure}{0.32\linewidth}
-    %         \includegraphics[width=\linewidth]{../results/j2drag/hohmann/ICI_3d.png}
-    %     \end{subfigure}
-    %     \begin{subfigure}{0.32\linewidth}
-    %         \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICIC_3d.png}
-    %     \end{subfigure}
-    %     \begin{subfigure}{0.32\linewidth}
-    %         \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICICIC_3d.png}
-    %     \end{subfigure}
-    %     % \caption{<caption>}
-    %     % \label{<label>}
-    % \end{figure}
     \begin{columns}[t]
         \begin{column}{0.7\linewidth}
-            \only<1>{
+            \only<3>{
                 \begin{figure}[htbp]
                     \centering
                     \includegraphics[width=\linewidth]{../results/j2drag/hohmann/ICI_3d.png}  
@@ -772,7 +724,7 @@ fill=green!30]
                 \end{figure}
             }
 
-            \only<2>{
+            \only<4>{
                 \begin{figure}[htbp]
                     \centering
                     \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICIC_3d.png}  
@@ -780,7 +732,7 @@ fill=green!30]
                 \end{figure}
             }
 
-            \only<3>{
+            \only<5>{
                 \begin{figure}[htbp]
                     \centering
                     \includegraphics[width=\linewidth]{../results/j2drag/hohmann/CICICIC_3d.png}  
@@ -789,19 +741,20 @@ fill=green!30]
             }
         \end{column}
         \begin{column}{0.3\linewidth}
-            \only<1>{
+            \only<3>{
                 \begin{itemize}
                     \item J2 `twists' all orbits except polar
                     \item VERY high cost compared to Hohmann transfer
                 \end{itemize}
             }
-            \only<2>{
+            \only<4>{
                 \begin{itemize}
                     \item Similar to Hohmann, but small initial/final coasts
+                    \item Impulses not parallel to velocity \(\implies\) plane change
                 \end{itemize}
             }
 
-            \only<3>{
+            \only<5>{
                 \begin{itemize}
                     \item 6 m/s more costly than Hohmann
                     \item Extra impulse: plane change in middle of maneuver
