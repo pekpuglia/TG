@@ -702,17 +702,29 @@ fill=green!30]
 \begin{frame}
     \frametitle{J2+Drag circle to circle}
     \pause
-    \begin{table}[htbp]\small
-        \centering
-        \begin{tabular}{ccc} \toprule
-            Maneuver type & Number of impulses & \(\Delta \vel \) (m/s) \\ \midrule
-            \texttt{ICI} & 2 & 9528.19583 \\
-            \texttt{CICIC} & 2 & 911.93304 \\
-            \texttt{CICICIC} & 3 & 893.05339 \\\bottomrule
-        \end{tabular}
-        % \caption{Summary of J2+Drag Circle to circle rendez-vous maneuvers and costs.}
-        % \label{tab:J2_Drag_ctcr_summary}
-    \end{table}
+    \begin{columns}
+        \begin{column}{0.7\linewidth}
+            \begin{table}[htbp]\small
+                \centering
+                \begin{tabular}{ccc} \toprule
+                    Maneuver type & Number of impulses & \(\Delta \vel \) (m/s) \\ \midrule
+                    \texttt{ICI} & 2 & 9528.19583 \\
+                    \texttt{CICIC} & 2 & 911.93304 \\
+                    \texttt{CICICIC} & 3 & 893.05339 \\\bottomrule
+                \end{tabular}
+                % \caption{Summary of J2+Drag Circle to circle rendez-vous maneuvers and costs.}
+                % \label{tab:J2_Drag_ctcr_summary}
+            \end{table}        
+        \end{column}
+        \begin{column}{0.3\linewidth}
+            \begin{itemize}
+                \item Keplerian optimum: \texttt{ICI}
+                \item Hohmann transfer
+                \item \(\Delta v = 887.56\) m/s
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    
 
     \begin{columns}[t]
         \begin{column}{0.7\linewidth}
@@ -757,7 +769,7 @@ fill=green!30]
             \only<5>{
                 \begin{itemize}
                     \item 6 m/s more costly than Hohmann
-                    \item Extra impulse: plane change in middle of maneuver
+                    \item Extra impulse: plane change
                     \item J2+Drag maneuver almost identical to J2 maneuver
                 \end{itemize}
             }
@@ -766,10 +778,10 @@ fill=green!30]
 \end{frame}
 
 \begin{frame}
-    \frametitle{J2+Drag Primer Vector}
-
+    \frametitle{Primer Vector circle to circle, J2+Drag}
+    \pause
     \begin{itemize}
-        \item Non-conservative model: only ODE method for primer vector calculation
+        \item Non-conservative model: only ODE method for primer vector calculation\pause
         \item In practice:
     \end{itemize}
 
@@ -789,8 +801,8 @@ fill=green!30]
     \end{figure}
 
     \begin{itemize}
-        \item STM method is indistinguishable from ODE method
-        \item \(\lVert \mathbf{A}_p - \mathbf{A}_\delta \rVert _\infty < 10^{-11}\)
+        \item STM method is indistinguishable from ODE method\pause
+        \item \(\lVert \mathbf{A}_p - \mathbf{A}_\delta \rVert _\infty < 10^{-11}\)\pause
         \item \(\therefore\) drag is too weak! System is approx.\ conservative
     \end{itemize}
 \end{frame}
@@ -809,16 +821,17 @@ fill=green!30]
         % \caption{<caption>}
         % \label{<label>}
     \end{table}
+    \pause
     \begin{itemize}
         \item Perturbations alter cost, and \textbf{number of impulses} as well
         \begin{itemize}
             \item Planar Keplerian \(\rightarrow\) nonplanar J2(+Drag)
-        \end{itemize}
-        \item Primer vector algorithm can offer >100x increase in performance
-        \item Short time frame: drag has little effect
+        \end{itemize}\pause
+        \item Primer vector algorithm can offer >100x increase in performance\pause
+        \item Short time frame: drag has little effect\pause
         \item Conjecture: 
         
-        J2+Drag maneuver \(\neq\) J2 maneuver \(\iff\) STM \(\neq\) ODE method?
+        J2+Drag maneuver \(\neq\) J2 maneuver \(\iff\) STM \(\neq\) ODE method?\pause
         \begin{itemize}
             \item Long timespans
             \item High drag: aerobraking, Very Low Earth Orbit
@@ -828,20 +841,23 @@ fill=green!30]
 
 \begin{frame}
     \frametitle{Conclusions}
-
+    \pause
     \begin{itemize}
-        \item Accomplished optimization of LEO impulsive maneuvers;
+        \item \textbf{Accomplished} optimization of LEO impulsive maneuvers;
+        \item \textbf{Extended} primer vector theory to perturbed models with 3 methods;\pause
         \item J2 affects nature of trajectories and maneuvers significantly;
-        \item In the time scales considered, drag does not;
-        \item Extended primer vector theory to perturbed models;
-        \item Three proposed primer vector calculation methods compared and validated
+        \item In the orbits and time scales considered, drag does not;\pause
         \item Future works
         \begin{itemize}
             \item Longer time spans
             \item Drag primer vector conjecture: differentiate STM and ODE methods
-            \item Estimate cost lower bound 
+            \item \textbf{Estimate cost lower bound} 
         \end{itemize}
     \end{itemize}
+    \pause
+    \begin{center}
+        {\LARGE Obrigado! Dúvidas?}
+    \end{center}
 
 \end{frame}
 
