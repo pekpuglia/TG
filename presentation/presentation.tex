@@ -448,6 +448,31 @@ fill=green!30]
 \end{frame}
 
 
+\begin{frame}
+    \frametitle{Bibliography review}
+
+    \begin{itemize}
+        \item Orbit propagation
+        \begin{itemize}
+            \item \texttt{SatelliteToolbox}~\cite{satellitetoolbox}: fast implementation of semi-analytical propagators
+            \begin{itemize}
+                \item Explicit propagation with control flow: unsuited for optimization\pause
+            \end{itemize}
+            \item Modified Equinoctial Elements~\cite{mod_equinoctial_els}: singularity-free orbital elements
+            \begin{itemize}
+                \item Used extensively in finite thrust literature
+            \end{itemize}\pause
+        \end{itemize}
+        \item Primer Vector
+        \begin{itemize}
+            \item Introduction in 1960s~\cite{lawden_optimal_1963}\pause
+            \item STM method: Jupiter maneuvers~\cite{impulsive_europa}, asteroid encounter~\cite{bruno_asteroid_primer}\pause
+            \item \textbf{Missing}: primer vector in non-conservative LEO environment
+        \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
 \section{Methodology}
 
 \begin{frame}
