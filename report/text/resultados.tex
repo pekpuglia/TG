@@ -3,7 +3,7 @@ The primer vector meta-algorithm was applied to some scenarios that represent ge
 
 \section{Maneuver scenarios}
 
-The scenarios of orbital maneuvering used in this work are introduced in this section before their solutions under different orbital models. Two scenarios were chosen, one where a coplanar transfer between two circular orbits is done in half a revolution, and a noncoplanar rendez-vous case spanning two full revolutions. Both cases are presented in detail ahead.
+The scenarios of orbital maneuvering used in this work are introduced in this section before their solutions under different orbital models. All necessary orbital parameters (\(\mu\), \(J_2\), \(R\), \(\omega_E\)) were set to the values offered by the \texttt{SatelliteToolbox}. Two scenarios were chosen, one where a coplanar transfer between two circular orbits is done in half a revolution, and a noncoplanar rendez-vous case spanning two full revolutions. Both cases are presented in detail ahead.
 
 \subsection{Circle to Circle rendez-vous}
 
@@ -642,7 +642,7 @@ Finally, all results are summarized in Table~\ref{tab:J2_nr_summary}. The optima
 \FloatBarrier
 \section{J2 and Drag Model}
 
-Finally, the non-conservative model of J2 and drag disturbances is tackled. This model's results will be presented in a summarized fashion, since they were found to be almost identical to J2 results. In addition, although the theory predicts that only the ODE method of primer vector calculation should work for this system, as developed in Section~\ref{sssec:pv_calc_ncon}, it was found that the STM method gave almost identical trajectories, as will be discussed.
+Finally, the non-conservative model of J2 and drag disturbances is tackled. The satellite was supposed to have \(C_D = 2.2\), \(S = \frac{\pi}{4}\ \text{m}^2\), and \(m = 100\) kg, which is representative of medium satellites~\cite{curtis2015orbital}. This model's results will be presented in a summarized fashion, since they were found to be almost identical to J2 results. In addition, although the theory predicts that only the ODE method of primer vector calculation should work for this system, as developed in Section~\ref{sssec:pv_calc_ncon}, it was found that the STM method gave almost identical trajectories, as will be discussed.
 
 \subsection{Circle to Circle Scenario}
 
