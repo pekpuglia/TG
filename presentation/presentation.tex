@@ -122,11 +122,11 @@ fill=green!30]
   \small
   %\tableofcontents[hideothersubsections]
   %\tableofcontents[currentsubsection,hideothersubsections]
-  \tableofcontents[currentsubsection]
+  \tableofcontents[currentsubsection, sectionstyle=show/shaded]
   \normalsize
 \end{frame}
 }
-%TODO revisão bibliográfica, mais contexto, arrumar referências, erro de posição final
+
 \section{Introduction}
 
 \begin{frame}{Context}
@@ -134,9 +134,11 @@ fill=green!30]
         \begin{figure}
             \centering
             \visible<1-2>{
+                %TODO imagem ISS
                 \begin{subfigure}{0.4\textwidth}
                     \includegraphics[width=\textwidth]{img/ISS_altitude.png}
                     \caption{ISS reboost~\cite{ISS_reboost}}
+                    \vspace{1cm}
                 \end{subfigure}
             }
             \visible<2>{
@@ -198,7 +200,7 @@ fill=green!30]
             \end{equation}
             Closed, planar, periodic elliptical trajectory for negative energy (bound satellite).
         }
-    \end{block}
+    \end{block}\vspace{-0.5cm}
     \begin{columns}[t]\pause
         \begin{column}{0.5\linewidth}
             \begin{center}
@@ -245,7 +247,7 @@ fill=green!30]
             \end{bmatrix}
         \end{equation}\pause
         \item \(\acc(\pos, \vel)\) depends on model: \(\acc_{TB}\), \(\acc_{J2}\), \(\acc_{D}\)\pause
-        \item State transition matrix (STM) for variational perturbations
+        \item State transition matrix (STM) for variational perturbations~\cite{montenbruck2000satellite}
             \begin{equation}
                 \boldsymbol{\Phi}_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}
             \end{equation}\pause
@@ -339,7 +341,7 @@ fill=green!30]
         \begin{itemize}
             \item Engineering: independent of propulsive plant\pause
             \item Physics: high thrust \(\approx\) impulse\pause
-            \item Mathematics: minimum is unattainable with bounded acceleration\pause
+            \item Mathematics: minimum is unattainable with bounded acceleration~\cite{impulsive_control}\pause
         \end{itemize}
         \item Velocity discontinuities, \textit{coasting arcs}
         \begin{equation}
@@ -390,7 +392,7 @@ fill=green!30]
             \end{bmatrix} = \mathbf{A}_p(\pos) \begin{bmatrix}
                 \mathbf{p} \\ \dot{\mathbf{p}}
             \end{bmatrix}
-        \end{equation}\pause
+        \end{equation}
         \begin{itemize}
             \item \textbf{ODE method}: numerical integration\pause
             \item Linear ODE: Primer vector transition matrix (PVTM) \(\Phi_p(t)\)\pause
@@ -398,9 +400,9 @@ fill=green!30]
             \item \textbf{STM method}: \(\Phi_p(t) = \Phi_\delta(t) = \frac{\partial \x(t)}{\partial \x_0}\)\pause
             \item Keplerian model:
             \begin{itemize}
-                \item \textbf{Glandorf method}: analytical form of \(\Phi_p(t) = \Phi_\delta(t)\)
+                \item \textbf{Glandorf method}: analytical form of \(\Phi_p(t) = \Phi_\delta(t)\)~\cite{glandorf_transition_matrix}
             \end{itemize}\pause
-            \item \textbf{STM}, \textbf{Glandorf} widely used in literature~\cite{impulsive_europa}\cite{bruno_asteroid_primer}\cite{Conway_2010}
+            \item \textbf{STM}, \textbf{Glandorf} widely used in literature~\cite{impulsive_europa}, \cite{bruno_asteroid_primer}, \cite{Conway_2010}
         \end{itemize}
     \end{itemize}
 
@@ -421,8 +423,8 @@ fill=green!30]
                 \mathbf{p} \\ \dot{\mathbf{p}}
             \end{bmatrix} = \mathbf{A}_p(\pos, \vel) \begin{bmatrix}
                 \mathbf{p} \\ \dot{\mathbf{p}}
-            \end{bmatrix}.
-        \end{equation}\pause
+            \end{bmatrix}
+        \end{equation}
         \begin{itemize}
             \item Not found in the literature!\pause
             \item \textbf{Not} the same as variational perturbation ODE\pause
@@ -467,6 +469,7 @@ fill=green!30]
         \begin{itemize}
             \item Introduction in 1960s~\cite{lawden_optimal_1963}\pause
             \item STM method: Jupiter maneuvers~\cite{impulsive_europa}, asteroid encounter~\cite{bruno_asteroid_primer}\pause
+            \item Interactive algorithm for number of impulses~\cite{interactive_primer_vector}\pause
             \item \textbf{Missing}: primer vector in non-conservative LEO environment
         \end{itemize}
     \end{itemize}
@@ -563,13 +566,18 @@ fill=green!30]
     % \caption{Orbital elements used for the Circle to circle transfer case analysis}
     % \label{tab:c2c_orb_elems}
     \begin{itemize}
-        \item Circle to circle
+        % \item Circle to circle
+        % \begin{itemize}
+        %     \item Keplerian model: Hohmann transfer
+        % \end{itemize}
+        % \item Noncoplanar rendez-vous
+        % \begin{itemize}
+        %     \item Keplerian model: results in the literature~\cite{interactive_primer_vector}
+        % \end{itemize}
+        \item Keplerian Model
         \begin{itemize}
-            \item Keplerian model: Hohmann transfer
-        \end{itemize}
-        \item Noncoplanar rendez-vous
-        \begin{itemize}
-            \item Keplerian model: results in the literature~\cite{interactive_primer_vector}
+            \item Circle to circle: Hohmann transfer
+            \item Noncoplanar rendez-vous: Solved in~\cite{interactive_primer_vector}
         \end{itemize}
         \item Both solved for Keplerian, J2, J2+Drag
     \end{itemize}
@@ -577,7 +585,7 @@ fill=green!30]
 % C2C SETUP
 
 \end{frame}
-
+%TODO put previous total
 \begin{frame}
     \frametitle{Keplerian Noncoplanar Rendez-vous}
     \pause
@@ -672,7 +680,7 @@ fill=green!30]
             \begin{figure}[htbp]
                 \centering
                 \includegraphics[width=\linewidth]{../results/two_body/ipv_noncop/CICICIC_z+.png}
-                \caption{\texttt{CICICICIC}, view from z+}
+                \caption{\texttt{CICICIC}, view from z+}
                 % \label{<label>}
             \end{figure}
         \end{column}
@@ -851,7 +859,7 @@ fill=green!30]
         \begin{itemize}
             \item Planar Keplerian \(\rightarrow\) nonplanar J2(+Drag)
         \end{itemize}\pause
-        \item Primer vector algorithm can offer >100x increase in performance\pause
+        \item Primer vector algorithm can offer >100x decrase in cost\pause
         \item Short time frame: drag has little effect\pause
         \item Conjecture: 
         
@@ -875,7 +883,7 @@ fill=green!30]
         \begin{itemize}
             \item Longer time spans
             \item Drag primer vector conjecture: differentiate STM and ODE methods
-            \item \textbf{Estimate cost lower bound} 
+            \item \textbf{Estimate cost lower bound}: characterize gap to global opt.
         \end{itemize}
     \end{itemize}
     \pause
